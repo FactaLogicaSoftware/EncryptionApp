@@ -4,7 +4,7 @@
 
 
 ## To do:
-* [AES](https://github.com/johnkellyoxford/EncryptionApp/master/EncryptionApp/AES):
+* [AES](https://github.com/johnkellyoxford/EncryptionApp/tree/master/Encryption%20App/AES):
   *   decryption algorithm and move to seperate file
 * RSA
 * Incorporate microsoft data protector
