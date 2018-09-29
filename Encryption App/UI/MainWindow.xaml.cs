@@ -77,56 +77,55 @@ namespace Encryption_App
         {
             string pwd = InpTxtBox.Text;
             string filePath = FileTxtBox.Text;
-            string cryptFilePath = filePath + ".crypt";
+            //byte[] data = File.ReadAllBytes(filePath);
+            byte[] data = Encoding.UTF8.GetBytes("Hello");
+            Encryptor encryptor = new Encryptor();
+            byte[] encryptedData = encryptor.SymEncrypt(data, Encoding.UTF8.GetBytes(pwd));
 
-            // Set your salt here, change it to meet your flavor:
-            // The salt bytes must be at least 8 bytes.
-            byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
-            using (var inFile = File.OpenRead(filePath))
+            using (var bw = new BinaryWriter(File.Create(filePath)))
             {
-                using (var file = File.Open(cryptFilePath, FileMode.Create))
-                {
-                    using (AesManaged AES = new AesManaged())
-                    {
-                        AES.KeySize = 256;
-                        AES.BlockSize = 128;
-
-                        var key = new Rfc2898DeriveBytes(pwd, saltBytes, 1000);
-                        AES.Key = key.GetBytes(AES.KeySize / 8);
-                        AES.IV = key.GetBytes(AES.BlockSize / 8);
-
-                        AES.Mode = CipherMode.CBC;
-                        byte[] bArray = new byte[16];
-                        using (var cs = new CryptoStream(file, AES.CreateEncryptor(), CryptoStreamMode.Write))
-                        {
-                            using (var br = new BinaryReader(inFile))
-                            {
-                                long fileSize = new FileInfo(filePath).Length;
-                                for (int count = 0; count < Math.Floor((decimal)fileSize/16); count++)
-                                {
-                                    bArray = br.ReadBytes((int)count*16);
-                                    cs.Write(bArray, 0, bArray.Length);
-                                    cs.Flush();
-                                }
-                                cs.Close();
-                                MessageBox.Show("Successfully Encrypted");
-                            }
-                        }
-                    }
-                }
+                bw.Write(encryptedData);
             }
-
         }
 
         private void Decrypt_Click(object sender, RoutedEventArgs e)
         {
             string pwd = PwdTxtBox.Text;
             string filePath = DFileTxtBox.Text;
-            string cryptFilePath = filePath + ".crypt";
+            byte[] data;
+
+            FileInfo f = new FileInfo(filePath);
+            var length = f.Length;
+            int rep_a = (int)(length & uint.MaxValue);
+            int rep_b = (int)(length >> 32);
+            var arr = new int[] { rep_a, rep_b };
+
+            using (var br = new BinaryReader(File.Create(filePath)))
+            {
+                const int bufferSize = 4096;
+                using (var ms = new MemoryStream())
+                {
+                    byte[] buffer = new byte[bufferSize];
+                    int count;
+                    while ((count = br.Read(buffer, 0, buffer.Length)) != 0)
+                        ms.Write(buffer, 0, count);
+                    data = ms.ToArray();
+                }
+            }
+
+            Encryptor encryptor = new Encryptor();
+
+            data = encryptor.SymDecrypt(data, Encoding.UTF8.GetBytes(pwd));
+
+            using (var bw = new BinaryWriter(File.Create(filePath)))
+            {
+                bw.Write(data);
+            }
+            //string cryptFilePath = filePath + ".crypt";
 
             // Set your salt here, change it to meet your flavor:
             // The salt bytes must be at least 8 bytes.
-            byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+            /*byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
             using (var inFile = File.OpenRead(filePath))
             {
                 using (var file = File.Open(cryptFilePath, FileMode.Create))
@@ -159,9 +158,7 @@ namespace Encryption_App
                             }
                         }
                     }
-                }
-            }
-
+                }*/
         }
         }
     }

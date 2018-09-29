@@ -1,4 +1,4 @@
-# EncryptionApp
+# EncryptorAppVS
 
 ## Documentation:
 
@@ -12,3 +12,5 @@
 * Create documentation and tutorial
 * create a microsoft installer application with certificates --> trust
 * Sell rip-off usb drives with this content on
+
+Copied this from John's cause why not
