@@ -60,7 +60,7 @@ namespace Encryption_App
                 {
                     AES.KeySize = 256;
                     AES.BlockSize = 128;
-                    AES.Padding = PaddingMode.None;
+                    AES.Padding = PaddingMode.PKCS7;
                     AES.Mode = CipherMode.CBC;
 
                     var key = new Rfc2898DeriveBytes(pwd, saltBytes, 1000);
