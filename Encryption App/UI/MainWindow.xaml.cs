@@ -22,7 +22,7 @@ namespace Encryption_App
     /// </summary>
     public partial class MainWindow : Window
     {
-        List<String> DropDownItems = new List<string> { "Choose Option...", "Cow", "Chicken" };
+        List<String> DropDownItems = new List<string> { "Choose Option...", "Encrypt a file", "Encrypt a file for sending to someone" };
 
 
         public MainWindow()
@@ -54,7 +54,7 @@ namespace Encryption_App
 
             if (result == true)
             {
-                DFileTxtBox.Text = openFileDialog.FileName;
+                DecryptFileLocBox.Text = openFileDialog.FileName;
             }
         }
 
@@ -90,7 +90,7 @@ namespace Encryption_App
         private void Decrypt_Click(object sender, RoutedEventArgs e)
         {
             string pwd = PwdTxtBox.Text;
-            string filePath = DFileTxtBox.Text;
+            string filePath = DecryptFileLocBox.Text;
             byte[] data;
 
             FileInfo f = new FileInfo(filePath);
@@ -105,7 +105,6 @@ namespace Encryption_App
             {
                 bw.Write(data);
             }
-
         }
     }
 }

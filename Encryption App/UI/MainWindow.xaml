@@ -30,7 +30,7 @@
                         <ColumnDefinition Width="125*"/>
                     </Grid.ColumnDefinitions>
                     <Button Content="Decrypt" HorizontalAlignment="Left" Margin="7,198.04,0,0" VerticalAlignment="Top" Width="284" Height="143" Grid.Column="1" Click="Decrypt_Click"/>
-                    <TextBox HorizontalAlignment="Left" Height="23" Margin="35,35.04,0,0" TextWrapping="Wrap" Text="File Path" VerticalAlignment="Top" Width="238" x:Name="DFileTxtBox" Grid.ColumnSpan="2"/>
+                    <TextBox HorizontalAlignment="Left" Height="23" Margin="35,35.04,0,0" TextWrapping="Wrap" Text="File Path" VerticalAlignment="Top" Width="238" x:Name="DecryptFileLocBox" Grid.ColumnSpan="2"/>
                     <Button Content="Browse" HorizontalAlignment="Left" Margin="242,35.04,0,0" VerticalAlignment="Top" Width="75" Height="23" Grid.Column="1" Click="FilePath_Click"/>
                     <TextBox Grid.Column="1" HorizontalAlignment="Left" Height="23" Margin="7,114.04,0,0" TextWrapping="Wrap" Text="Password" VerticalAlignment="Top" Width="195" x:Name="PwdTxtBox"/>
 
