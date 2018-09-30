@@ -14,7 +14,6 @@
 
 ## Updates
 * Add error handling if encryption/decryption fails
-* Fixed crash when trying to decrypt using incorrect pwd
 
 
 "Copied this from John's cause why not" @nightraven3142
