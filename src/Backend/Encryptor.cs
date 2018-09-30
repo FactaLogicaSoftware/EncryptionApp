@@ -35,7 +35,14 @@ namespace Encryption_App
                     {
                         using (var bw = new BinaryWriter(cs))
                         {
-                            bw.Write(data, 0, data.Length);
+                           try
+                           {
+                                bw.Write(data, 0, data.Length);
+                            }
+                           catch(Exception ex)
+                            {
+                                return null;
+                            }
                         }
                     }
                     return ms.ToArray();
@@ -53,7 +60,7 @@ namespace Encryption_App
                 {
                     AES.KeySize = 256;
                     AES.BlockSize = 128;
-                    AES.Padding = PaddingMode.PKCS7;
+                    AES.Padding = PaddingMode.None;
                     AES.Mode = CipherMode.CBC;
 
                     var key = new Rfc2898DeriveBytes(pwd, saltBytes, 1000);
@@ -62,7 +69,14 @@ namespace Encryption_App
 
                     using (var cs = new CryptoStream(ms, AES.CreateDecryptor(), CryptoStreamMode.Write))
                     {
-                        cs.Write(data, 0, data.Length);
+                        try
+                        {
+                            cs.Write(data, 0, data.Length);
+                       }
+                        catch(Exception ex)
+                       {
+                            return null;
+                        }
                     }
                     return ms.ToArray();
                 }

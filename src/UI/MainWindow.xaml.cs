@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -81,9 +82,17 @@ namespace Encryption_App
             Encryptor encryptor = new Encryptor();
             byte[] encryptedData = encryptor.SymEncrypt(data, Encoding.UTF8.GetBytes(pwd));
 
-            using (var bw = new BinaryWriter(File.Create(filePath)))
+            if (encryptedData.Length == 0)
             {
-                bw.Write(encryptedData);
+              MessageBox.Show("Encryption Failed");
+             }
+          else
+         {
+                using (var bw = new BinaryWriter(File.Create(filePath)))
+                {
+                    bw.Write(encryptedData);
+               }
+                MessageBox.Show("Successfully Encrypted");
             }
         }
 
@@ -100,10 +109,19 @@ namespace Encryption_App
             Encryptor encryptor = new Encryptor();
 
             data = encryptor.SymDecrypt(data, Encoding.UTF8.GetBytes(pwd));
+            Debug.Write("Stuff");
 
-            using (var bw = new BinaryWriter(File.Create(filePath)))
+            if (data.Length == 0)
             {
-                bw.Write(data);
+              MessageBox.Show("Decryption Failed");
+            }
+            else
+            {
+                using (var bw = new BinaryWriter(File.Create(filePath)))
+                {
+                    bw.Write(data);
+                }
+                MessageBox.Show("Successfully Decrypted");
             }
         }
     }
