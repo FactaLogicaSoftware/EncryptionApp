@@ -2,6 +2,9 @@
 
 ## Documentation:
 
+## Right now
+* Build header spec
+* Input sanitisation and error handling
 
 ## To do
 * Let user know when the decryption has not taken place due to incorrect pwd
@@ -10,7 +13,6 @@
 * .crypt header files
 * Create documentation and tutorial
 * create a microsoft installer application with certificates --> trust
-* Sell rip-off usb drives with this content on
 
 ## Updates
 * Add error handling if encryption/decryption fails
