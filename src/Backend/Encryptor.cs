@@ -1,84 +1,102 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 using System.IO;
 using System.Security.Cryptography;
 
-namespace Encryption_App
+namespace Aes
 {
-    class Encryptor
+    class AesEncryption
     {
-        private static readonly string cryptFileEnding;
-
-        public byte[] SymEncrypt(byte[] data, byte[] pwd)
+        public static void Main()
         {
+            try
+            {
+                // Create a new instance of the AesManaged
+                // class.  This generates a new key and initialization 
+                // vector (IV).
+                using (AesManaged myAes = new AesManaged())
+                {
+
+                    AES_Encrypt("file.txt", "file.crypt", new byte[10]);
+                    AES_Decrypt("file.crypt", "file.dcryptd", new byte[10]);
+                }
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: {0}", e.Message);
+            }
+            Console.Read();
+        }
+        private static void AES_Encrypt(string iF, string oF, byte[] passwordBytes)
+        {
+
             byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
 
-            using (var ms = new MemoryStream())
+            using (var outFile = File.Create(oF))
             {
-                using (var AES = new AesManaged())
+
+                using (var AES = new RijndaelManaged())
                 {
+
                     AES.KeySize = 256;
                     AES.BlockSize = 128;
+                    var key = new Rfc2898DeriveBytes(passwordBytes, saltBytes, 100000);
+                    AES.Key = key.GetBytes(AES.KeySize / 8);
+                    AES.IV = key.GetBytes(AES.BlockSize / 8);
                     AES.Padding = PaddingMode.PKCS7;
                     AES.Mode = CipherMode.CBC;
 
-                    var key = new Rfc2898DeriveBytes(pwd, saltBytes, 1000);
-                    AES.Key = key.GetBytes(AES.KeySize / 8);
-                    AES.IV = key.GetBytes(AES.BlockSize / 8);
-                    Console.WriteLine(Encoding.UTF8.GetString(AES.Key));
-                    Console.WriteLine(Encoding.UTF8.GetString(AES.IV));
-
-                    using (var cs = new CryptoStream(ms, AES.CreateEncryptor(), CryptoStreamMode.Write))
+                    using (var cs = new CryptoStream(outFile, AES.CreateEncryptor(), CryptoStreamMode.Write))
                     {
-                        using (var bw = new BinaryWriter(cs))
+
+                        using (var inFile = File.OpenRead(iF))
                         {
-                           try
-                           {
-                                bw.Write(data, 0, data.Length);
-                            }
-                           catch(Exception ex)
+
+                            using (var br = new BinaryReader(inFile))
                             {
-                                return null;
+
+                                sbyte data;
+                                while ((data = (sbyte)inFile.ReadByte()) != -1)
+                                    cs.WriteByte((byte)data);
+
                             }
                         }
                     }
-                    return ms.ToArray();
                 }
             }
         }
 
-        public byte[] SymDecrypt(byte[] data, byte[] pwd)
+        private static void AES_Decrypt(string iF, string oF, byte[] passwordBytes)
         {
+
             byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
 
-            using (var ms = new MemoryStream())
+            using (var inFile = File.OpenRead(iF))
             {
-                using (AesManaged AES = new AesManaged())
+
+                using (var AES = new RijndaelManaged())
                 {
+
                     AES.KeySize = 256;
                     AES.BlockSize = 128;
+                    var key = new Rfc2898DeriveBytes(passwordBytes, saltBytes, 100000);
+                    AES.Key = key.GetBytes(AES.KeySize / 8);
+                    AES.IV = key.GetBytes(AES.BlockSize / 8);
                     AES.Padding = PaddingMode.PKCS7;
                     AES.Mode = CipherMode.CBC;
 
-                    var key = new Rfc2898DeriveBytes(pwd, saltBytes, 1000);
-                    AES.Key = key.GetBytes(AES.KeySize / 8);
-                    AES.IV = key.GetBytes(AES.BlockSize / 8);
-
-                    using (var cs = new CryptoStream(ms, AES.CreateDecryptor(), CryptoStreamMode.Write))
+                    using (var cs = new CryptoStream(inFile, AES.CreateDecryptor(), CryptoStreamMode.Read))
                     {
-                        try
+
+                        using (var outFile = File.Create(oF))
                         {
-                            cs.Write(data, 0, data.Length);
-                       }
-                        catch(Exception ex)
-                       {
-                            return null;
+
+                            sbyte data;
+                            while ((data = (sbyte)cs.ReadByte()) != -1)
+                                outFile.WriteByte((byte)data);
+
                         }
                     }
-                    return ms.ToArray();
                 }
             }
         }
