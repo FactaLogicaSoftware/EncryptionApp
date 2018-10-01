@@ -78,50 +78,20 @@ namespace Encryption_App
         {
             string pwd = InpTxtBox.Text;
             string ofilePath = FileTxtBox.Text;
-            Encryptor encryptor = new Encryptor();
-            string filePath = encryptor.SymEncrypt(ofilePath, Encoding.UTF8.GetBytes(pwd));
-            byte[] encryptedData;
-            using (var br = new BinaryReader(File.OpenRead(filePath)))
-            {
-                encryptedData = br.ReadBytes((int)new FileInfo(filePath).Length);
-            }
-
-            if (encryptedData.Length == 0)
-            {
-                MessageBox.Show("Encryption Failed");
-            }
-            else
-            {
-                using (var bw = new BinaryWriter(File.Create(filePath)))
-                {
-                    bw.Write(encryptedData);
-                }
-                MessageBox.Show("Successfully Encrypted");
-            }
-            File.Copy(@"C:\Users\johnk\source\repos\EncryptionApp\src\Backend\tempoutfile.noedit", ofilePath, true);
+            AESCryptoManager encryptor = new AESCryptoManager();
+            encryptor.AES_Encrypt(ofilePath, @"D:\johnk\Documents\pnp.txt", Encoding.UTF8.GetBytes(pwd));
         }
 
         private void Decrypt_Click(object sender, RoutedEventArgs e)
         {
             string pwd = PwdTxtBox.Text;
             string ofilePath = DecryptFileLocBox.Text;
-            byte[] data;
 
             FileInfo f = new FileInfo(ofilePath);
 
-            Encryptor encryptor = new Encryptor();
+            AESCryptoManager decryptor = new AESCryptoManager();
 
-            string filePath = encryptor.SymDecrypt(ofilePath, Encoding.UTF8.GetBytes(pwd));
-
-            //if (data.Length == 0)
-            //{
-            //    MessageBox.Show("Decryption Failed");
-            //}
-            //else
-            //{
-            //    MessageBox.Show("Successfully Decrypted");
-            //}
-            File.Copy(@"C:\Users\johnk\source\repos\EncryptionApp\src\Backend\tempoutfile.noedit", ofilePath, true);
+            decryptor.AES_Decrypt(ofilePath, @"D:\johnk\Documents\btec.txt", Encoding.UTF8.GetBytes(pwd));
         }
     }
 }
