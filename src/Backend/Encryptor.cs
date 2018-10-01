@@ -10,63 +10,43 @@ namespace Encryption_App
 {
     class Encryptor
     {
-        private static readonly string cryptFileEnding;
+       public void SymEncrypt(string Data)
+       {
 
-        public byte[] SymEncrypt(byte[] data, byte[] pwd)
-        {
+       }
+
+       public void SymEncrypt(byte[] bArray, byte[] pwdBytes)
+       {
+            byte[] encryptedBytes = null;
+
+            // Set your salt here, change it to meet your flavor:
+            // The salt bytes must be at least 8 bytes.
             byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
 
-            using (var ms = new MemoryStream())
+            using (MemoryStream ms = new MemoryStream())
             {
-                using (var AES = new AesManaged())
+                using (RijndaelManaged AES = new RijndaelManaged())
                 {
                     AES.KeySize = 256;
                     AES.BlockSize = 128;
-                    AES.Padding = PaddingMode.PKCS7;
-                    AES.Mode = CipherMode.CBC;
 
-                    var key = new Rfc2898DeriveBytes(pwd, saltBytes, 1000);
+                    var key = new Rfc2898DeriveBytes(pwdBytes, saltBytes, 1000);
                     AES.Key = key.GetBytes(AES.KeySize / 8);
                     AES.IV = key.GetBytes(AES.BlockSize / 8);
-                    Console.WriteLine(Encoding.UTF8.GetString(AES.Key));
-                    Console.WriteLine(Encoding.UTF8.GetString(AES.IV));
+
+                    AES.Mode = CipherMode.CBC;
 
                     using (var cs = new CryptoStream(ms, AES.CreateEncryptor(), CryptoStreamMode.Write))
                     {
-                        using (var bw = new BinaryWriter(cs))
-                        {
-                            bw.Write(data, 0, data.Length);
-                        }
+                        cs.Write(bArray, 0, bArray.Length);
+                        cs.Close();
                     }
-                    return ms.ToArray();
+                    encryptedBytes = ms.ToArray();
                 }
             }
+
+            
         }
 
-        public byte[] SymDecrypt(byte[] data, byte[] pwd)
-        {
-            byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
-
-            using (var ms = new MemoryStream())
-            {
-                using (AesManaged AES = new AesManaged())
-                {
-                    AES.KeySize = 256;
-                    AES.BlockSize = 128;
-                    AES.Padding = PaddingMode.PKCS7;
-                    AES.Mode = CipherMode.CBC;
-
-                    var key = new Rfc2898DeriveBytes(pwd, saltBytes, 1000);
-                    AES.Key = key.GetBytes(AES.KeySize / 8);
-                    AES.IV = key.GetBytes(AES.BlockSize / 8);
-
-                    using (var cs = new CryptoStream(ms, AES.CreateDecryptor(), CryptoStreamMode.Write))
-                    {
-                        cs.Write(data, 0, data.Length);
-                    }
-                    return ms.ToArray();
-                }
-            }
-        }
     }
 }

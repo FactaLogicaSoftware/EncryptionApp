@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -76,35 +77,51 @@ namespace Encryption_App
         private void Encrypt_Click(object sender, RoutedEventArgs e)
         {
             string pwd = InpTxtBox.Text;
-            string filePath = FileTxtBox.Text;
-            byte[] data = File.ReadAllBytes(filePath);
+            string ofilePath = FileTxtBox.Text;
             Encryptor encryptor = new Encryptor();
-            byte[] encryptedData = encryptor.SymEncrypt(data, Encoding.UTF8.GetBytes(pwd));
-
-            using (var bw = new BinaryWriter(File.Create(filePath)))
+            string filePath = encryptor.SymEncrypt(ofilePath, Encoding.UTF8.GetBytes(pwd));
+            byte[] encryptedData;
+            using (var br = new BinaryReader(File.OpenRead(filePath)))
             {
-                bw.Write(encryptedData);
+                encryptedData = br.ReadBytes((int)new FileInfo(filePath).Length);
             }
+
+            if (encryptedData.Length == 0)
+            {
+                MessageBox.Show("Encryption Failed");
+            }
+            else
+            {
+                using (var bw = new BinaryWriter(File.Create(filePath)))
+                {
+                    bw.Write(encryptedData);
+                }
+                MessageBox.Show("Successfully Encrypted");
+            }
+            File.Copy(@"C:\Users\johnk\source\repos\EncryptionApp\src\Backend\tempoutfile.noedit", ofilePath, true);
         }
 
         private void Decrypt_Click(object sender, RoutedEventArgs e)
         {
             string pwd = PwdTxtBox.Text;
-            string filePath = DecryptFileLocBox.Text;
+            string ofilePath = DecryptFileLocBox.Text;
             byte[] data;
 
-            FileInfo f = new FileInfo(filePath);
-
-            data = File.ReadAllBytes(filePath);
+            FileInfo f = new FileInfo(ofilePath);
 
             Encryptor encryptor = new Encryptor();
 
-            data = encryptor.SymDecrypt(data, Encoding.UTF8.GetBytes(pwd));
+            string filePath = encryptor.SymDecrypt(ofilePath, Encoding.UTF8.GetBytes(pwd));
 
-            using (var bw = new BinaryWriter(File.Create(filePath)))
-            {
-                bw.Write(data);
-            }
+            //if (data.Length == 0)
+            //{
+            //    MessageBox.Show("Decryption Failed");
+            //}
+            //else
+            //{
+            //    MessageBox.Show("Successfully Decrypted");
+            //}
+            File.Copy(@"C:\Users\johnk\source\repos\EncryptionApp\src\Backend\tempoutfile.noedit", ofilePath, true);
         }
     }
 }
