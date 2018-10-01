@@ -77,52 +77,51 @@ namespace Encryption_App
         private void Encrypt_Click(object sender, RoutedEventArgs e)
         {
             string pwd = InpTxtBox.Text;
-            string filePath = FileTxtBox.Text;
-            byte[] data = File.ReadAllBytes(filePath);
+            string ofilePath = FileTxtBox.Text;
             Encryptor encryptor = new Encryptor();
-            byte[] encryptedData = encryptor.SymEncrypt(data, Encoding.UTF8.GetBytes(pwd));
+            string filePath = encryptor.SymEncrypt(ofilePath, Encoding.UTF8.GetBytes(pwd));
+            byte[] encryptedData;
+            using (var br = new BinaryReader(File.OpenRead(filePath)))
+            {
+                encryptedData = br.ReadBytes((int)new FileInfo(filePath).Length);
+            }
 
             if (encryptedData.Length == 0)
             {
-              MessageBox.Show("Encryption Failed");
-             }
-          else
-         {
-                using (var bw = new BinaryWriter(File.Create(filePath)))
-                {
-                    bw.Write(encryptedData);
-               }
-                MessageBox.Show("Successfully Encrypted");
-            }
-        }
-
-        private void Decrypt_Click(object sender, RoutedEventArgs e)
-        {
-            string pwd = PwdTxtBox.Text;
-            string filePath = DecryptFileLocBox.Text;
-            byte[] data;
-
-            FileInfo f = new FileInfo(filePath);
-
-            data = File.ReadAllBytes(filePath);
-
-            Encryptor encryptor = new Encryptor();
-
-            data = encryptor.SymDecrypt(data, Encoding.UTF8.GetBytes(pwd));
-            Debug.Write("Stuff");
-
-            if (data.Length == 0)
-            {
-              MessageBox.Show("Decryption Failed");
+                MessageBox.Show("Encryption Failed");
             }
             else
             {
                 using (var bw = new BinaryWriter(File.Create(filePath)))
                 {
-                    bw.Write(data);
+                    bw.Write(encryptedData);
                 }
-                MessageBox.Show("Successfully Decrypted");
+                MessageBox.Show("Successfully Encrypted");
             }
+            File.Copy(@"C:\Users\johnk\source\repos\EncryptionApp\src\Backend\tempoutfile.noedit", ofilePath, true);
+        }
+
+        private void Decrypt_Click(object sender, RoutedEventArgs e)
+        {
+            string pwd = PwdTxtBox.Text;
+            string ofilePath = DecryptFileLocBox.Text;
+            byte[] data;
+
+            FileInfo f = new FileInfo(ofilePath);
+
+            Encryptor encryptor = new Encryptor();
+
+            string filePath = encryptor.SymDecrypt(ofilePath, Encoding.UTF8.GetBytes(pwd));
+
+            //if (data.Length == 0)
+            //{
+            //    MessageBox.Show("Decryption Failed");
+            //}
+            //else
+            //{
+            //    MessageBox.Show("Successfully Decrypted");
+            //}
+            File.Copy(@"C:\Users\johnk\source\repos\EncryptionApp\src\Backend\tempoutfile.noedit", ofilePath, true);
         }
     }
 }

@@ -12,74 +12,60 @@ namespace Encryption_App
     {
         private static readonly string cryptFileEnding;
 
-        public byte[] SymEncrypt(byte[] data, byte[] pwd)
+        public string SymEncrypt(string filePath, byte[] pwd)
         {
             byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
 
-            using (var ms = new MemoryStream())
+
+            using (var AES = new AesManaged())
             {
-                using (var AES = new AesManaged())
+                AES.KeySize = 256;
+                AES.BlockSize = 128;
+                AES.Padding = PaddingMode.PKCS7;
+                AES.Mode = CipherMode.CBC;
+
+                var key = new Rfc2898DeriveBytes(pwd, saltBytes, 1000);
+                AES.Key = key.GetBytes(AES.KeySize / 8);
+                AES.IV = key.GetBytes(AES.BlockSize / 8);
+
+                using (var inFile = File.Create(filePath))
+                using (var outFile = File.Create(@"C:\Users\johnk\source\repos\EncryptionApp\src\Backend\tempoutfile.noedit"))
+                using (var cs = new CryptoStream(outFile, AES.CreateEncryptor(), CryptoStreamMode.Write))
+                //using (var bw = new BinaryWriter(cs))
                 {
-                    AES.KeySize = 256;
-                    AES.BlockSize = 128;
-                    AES.Padding = PaddingMode.PKCS7;
-                    AES.Mode = CipherMode.CBC;
-
-                    var key = new Rfc2898DeriveBytes(pwd, saltBytes, 1000);
-                    AES.Key = key.GetBytes(AES.KeySize / 8);
-                    AES.IV = key.GetBytes(AES.BlockSize / 8);
-                    Console.WriteLine(Encoding.UTF8.GetString(AES.Key));
-                    Console.WriteLine(Encoding.UTF8.GetString(AES.IV));
-
-                    using (var cs = new CryptoStream(ms, AES.CreateEncryptor(), CryptoStreamMode.Write))
-                    {
-                        using (var bw = new BinaryWriter(cs))
-                        {
-                           try
-                           {
-                                bw.Write(data, 0, data.Length);
-                            }
-                           catch(Exception ex)
-                            {
-                                return null;
-                            }
-                        }
-                    }
-                    return ms.ToArray();
+                    sbyte rdata;
+                    while ((rdata = (sbyte)inFile.ReadByte()) != -1)
+                        cs.WriteByte((byte)rdata);
                 }
+                return @"C:\Users\johnk\source\repos\EncryptionApp\src\Backend\tempoutfile.noedit";
             }
         }
 
-        public byte[] SymDecrypt(byte[] data, byte[] pwd)
+        public string SymDecrypt(string filePath, byte[] pwd)
         {
             byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
 
-            using (var ms = new MemoryStream())
+            using (AesManaged AES = new AesManaged())
             {
-                using (AesManaged AES = new AesManaged())
+                AES.KeySize = 256;
+                AES.BlockSize = 128;
+                AES.Padding = PaddingMode.PKCS7;
+                AES.Mode = CipherMode.CBC;
+
+                var key = new Rfc2898DeriveBytes(pwd, saltBytes, 1000);
+                AES.Key = key.GetBytes(AES.KeySize / 8);
+                AES.IV = key.GetBytes(AES.BlockSize / 8);
+
+                using (var inFile = File.OpenRead(filePath))
+                using (var outFile = File.Create(@"C:\Users\johnk\source\repos\EncryptionApp\src\Backend\tempoutfile.noedit"))
+                using (var cs = new CryptoStream(outFile, AES.CreateDecryptor(), CryptoStreamMode.Write))
+                //using (var bw = new BinaryWriter(cs))
                 {
-                    AES.KeySize = 256;
-                    AES.BlockSize = 128;
-                    AES.Padding = PaddingMode.PKCS7;
-                    AES.Mode = CipherMode.CBC;
-
-                    var key = new Rfc2898DeriveBytes(pwd, saltBytes, 1000);
-                    AES.Key = key.GetBytes(AES.KeySize / 8);
-                    AES.IV = key.GetBytes(AES.BlockSize / 8);
-
-                    using (var cs = new CryptoStream(ms, AES.CreateDecryptor(), CryptoStreamMode.Write))
-                    {
-                        try
-                        {
-                            cs.Write(data, 0, data.Length);
-                       }
-                        catch(Exception ex)
-                       {
-                            return null;
-                        }
-                    }
-                    return ms.ToArray();
+                    sbyte rdata;
+                    while ((rdata = (sbyte)inFile.ReadByte()) != -1)
+                        cs.WriteByte((byte)rdata);
                 }
+                return @"C:\Users\johnk\source\repos\EncryptionApp\src\Backend\tempoutfile.noedit";
             }
         }
     }
