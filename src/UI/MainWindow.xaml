@@ -17,10 +17,13 @@
                     </Grid.ColumnDefinitions>
                     <ComboBox HorizontalAlignment="Left" Margin="26,53.04,0,0" VerticalAlignment="Top" Width="286" Height="25.96" x:Name="DropDown" Grid.ColumnSpan="2"/>
                     <CheckBox Content="File?" HorizontalAlignment="Left" Margin="177.695,122.941,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.14,0.464" Click="CheckBox_Click" Grid.Column="1"/>
-                    <TextBox HorizontalAlignment="Left" Height="23" Margin="26,214.04,0,0" TextWrapping="Wrap" Text="File Path" VerticalAlignment="Top" Width="216" x:Name="FileTxtBox" Grid.ColumnSpan="2"/>
+                    <TextBox HorizontalAlignment="Left" Height="23" Margin="26,214.04,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="216" x:Name="FileTxtBox" Grid.ColumnSpan="2"/>
                     <Button Content="Browse" HorizontalAlignment="Left" Margin="156,214.04,0,0" VerticalAlignment="Top" Width="75" Height="23" Click="Button_Click" Grid.Column="1"/>
-                    <Button Content="Encrypt" HorizontalAlignment="Left" Margin="50,317.08,0,0" VerticalAlignment="Top" Width="101" Height="41.96" Click="Encrypt_Click" Grid.Column="1"/>
-                    <TextBox HorizontalAlignment="Left" Height="23" Margin="26,143.039,0,0" TextWrapping="Wrap" Text="Input Pwd" VerticalAlignment="Top" Width="286" x:Name="InpTxtBox" Grid.ColumnSpan="2"/>
+                    <Button Content="Encrypt" HorizontalAlignment="Left" Margin="50,317,0,0" VerticalAlignment="Top" Width="101" Height="42" Click="Encrypt_Click" Grid.Column="1"/>
+                    <TextBox HorizontalAlignment="Left" Height="23" Margin="26,143.039,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="286" x:Name="InpTxtBox" Grid.ColumnSpan="2"/>
+                    <Label x:Name="EncryptOutput" Grid.Column="1" HorizontalAlignment="Left" Margin="50,271,0,0" VerticalAlignment="Top" Height="41" Width="101"/>
+                    <Label Content="Enter password:" HorizontalAlignment="Left" Margin="26,112,0,0" VerticalAlignment="Top" Width="100" Grid.ColumnSpan="2"/>
+                    <Label Content="Encrypted file location:" HorizontalAlignment="Left" Margin="26,183,0,0" VerticalAlignment="Top" Width="131" Grid.ColumnSpan="2"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Decryption">
