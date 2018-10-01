@@ -2,7 +2,7 @@
 
 ## Documentation:
 
-## RIGHT NOW!!
+## Right now
 * Build header spec
 * Input sanitisation and error handling
 
