@@ -31,6 +31,6 @@
 | [KEYVERIFICATIONHASH](#KEYVERIFICATIONHASH) | A hash of the key to verify if the password is correct | 128 - 512 bit byte array (16-64 bytes) |
 | [ENCRYPTMODE](#ENCRYPTMODE) | A string representing the encryption type | A string in the table of [ENCRYPTMODE](#ENCRYPTMODE) page |
 
-### HMAC
+### <p id="HMAC">HMAC</p>
 
 ### KEYVERIFICATIONHASH
