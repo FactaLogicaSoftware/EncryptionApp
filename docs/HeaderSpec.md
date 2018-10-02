@@ -27,7 +27,7 @@
 
 | Argument      | Meaning       | Values|
 | ------------- |-------------| ----- |
-| [HMAC](#HMAC) | The verification hash used to confirm the file hasn't changed | 128 - 512 bit byte array (16-64 bytes) |
+| <a href="#HMAC">HMAC</a> | The verification hash used to confirm the file hasn't changed | 128 - 512 bit byte array (16-64 bytes) |
 | [KEYVERIFICATIONHASH](#KEYVERIFICATIONHASH) | A hash of the key to verify if the password is correct | 128 - 512 bit byte array (16-64 bytes) |
 | [ENCRYPTMODE](#ENCRYPTMODE) | A string representing the encryption type | A string in the table of [ENCRYPTMODE](#ENCRYPTMODE) page |
 
