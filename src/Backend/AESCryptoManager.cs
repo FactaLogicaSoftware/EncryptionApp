@@ -77,7 +77,7 @@ namespace Encryption_App
                 }
                 catch (CryptographicException)
                 {
-
+                    
                 }
             }
 
