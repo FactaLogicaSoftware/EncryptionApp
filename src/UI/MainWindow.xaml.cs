@@ -79,7 +79,8 @@ namespace Encryption_App
             string pwd = InpTxtBox.Text;
             string ofilePath = FileTxtBox.Text;
             AESCryptoManager encryptor = new AESCryptoManager();
-            encryptor.AES_Encrypt(ofilePath, @"D:\johnk\Documents\pnp.txt", Encoding.UTF8.GetBytes(pwd));
+            encryptor.AES_Encrypt(ofilePath, System.IO.Path.GetTempPath() + "tempdata.ini", Encoding.UTF8.GetBytes(pwd));
+            File.Copy(System.IO.Path.GetTempPath() + "tempdata.ini", ofilePath, true);
         }
 
         private void Decrypt_Click(object sender, RoutedEventArgs e)
@@ -90,8 +91,17 @@ namespace Encryption_App
             FileInfo f = new FileInfo(ofilePath);
 
             AESCryptoManager decryptor = new AESCryptoManager();
+            bool worked = decryptor.AES_Decrypt(ofilePath, System.IO.Path.GetTempPath() + "tempdata.ini", Encoding.UTF8.GetBytes(pwd)); ;
+            if (worked) { File.Copy(System.IO.Path.GetTempPath() + "tempdata.ini", ofilePath, true); }
 
-            decryptor.AES_Decrypt(ofilePath, @"D:\johnk\Documents\btec.txt", Encoding.UTF8.GetBytes(pwd));
+            if (!worked)
+            {
+                MessageBox.Show("Wrong Password");
+            }
+            else
+            {
+                MessageBox.Show("Successfully Decrypted");
+            }
         }
     }
 }
