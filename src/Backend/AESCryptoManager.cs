@@ -16,12 +16,11 @@ namespace Encryption_App
 
                 AES.KeySize = 256;
                 AES.BlockSize = 128;
-                AES.Padding = PaddingMode.PKCS7;
-                AES.Mode = CipherMode.CBC;
-
                 var key = new Rfc2898DeriveBytes(passwordBytes, saltBytes, 100000);
                 AES.Key = key.GetBytes(AES.KeySize / 8);
                 AES.IV = key.GetBytes(AES.BlockSize / 8);
+                AES.Padding = PaddingMode.PKCS7;
+                AES.Mode = CipherMode.CBC;
 
                 using (var outFile = File.Create(oF))
                 using (var cs = new CryptoStream(outFile, AES.CreateEncryptor(), CryptoStreamMode.Write))
@@ -40,7 +39,7 @@ namespace Encryption_App
 
         }
 
-        public void AES_Decrypt(string iF, string oF, byte[] passwordBytes)
+        public bool AES_Decrypt(string iF, string oF, byte[] passwordBytes)
         {
 
             byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -61,7 +60,6 @@ namespace Encryption_App
                 AES.Key = key.GetBytes(AES.KeySize / 8);
                 AES.IV = key.GetBytes(AES.BlockSize / 8);
 
-
                 try
                 {
                     using (var inFile = File.OpenRead(iF))
@@ -77,10 +75,13 @@ namespace Encryption_App
                 }
                 catch (CryptographicException)
                 {
-                    
+                    return false;
                 }
+                return true;
             }
 
         }
+
+    }
     }
 }
