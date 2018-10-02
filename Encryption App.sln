@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2016
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Encryption App", "src\Encryption App.csproj", "{701B9935-7BF8-4BA2-861A-7764761C1318}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EncryptionApp", "src\EncryptionApp.csproj", "{701B9935-7BF8-4BA2-861A-7764761C1318}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
