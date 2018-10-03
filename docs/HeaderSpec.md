@@ -16,12 +16,6 @@
         -ITERATIONS:(iterations here)
     }
 
--KEYVERIFICATIONHASH:(hash here, None)
-    {
-        -HASHALGO:(PBKDF2, SHA256, bcrypt),
-        -ITERATIONS:(iterations here)
-    }
-
 -ENCRYPTMODE:(AES, RSA, etc)
     {
         -AESMODE:(ECB, CBC, CFB, CTR),
@@ -41,16 +35,13 @@
 | Argument                                               | Meaning                                                       | Values                                                                                                            |
 | ------------------------------------------------------ |-------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | <a href="#HMAC">HMAC</a>                               | The verification hash used to confirm the file hasn't changed | 128 - 512 bit byte array (16-64 bytes)                                                                            |
-| <a href="#KEYVERIFICATIONHASH">KEYVERIFICATIONHASH</a> | A hash of the key to verify if the password is correct        | 128 - 512 bit byte array (16-64 bytes)                                                                            |
 | <a href="#ENCRYPTMODE">ENCRYPTMODE</a>                 | A byte representing the encryption type                       | A string in the table of <a href="#ENCRYPTMODE">ENCRYPTMODE</a> page, and the (undefined ATM -- TODO) enumeration |
 | <a href="IV">IV</a>                                    | The initialization vector used to start the encryption        | 128 - 512 bit byte array (16-64 bytes)                                                                            |
 
 
 ### <p id="HMAC">HMAC</p>
 
-* The HMAC (Hash Message Authentication Code)
-
-### <p id="KEYVERIFICATIONHASH">KEYVERIFICATIONHASH</p>
+The HMAC (Hash Message Authentication Code) is a hash that is used to verify the message hasn't been tampered with. The HMAC is the hashed value of the encrypted message. The receiver can re-hash the received message to verify the message hasn't been tampered with. **IMPORTANT: HMAC construction MUST be actual HMAC algorithm, not just hashing. See [this](https://en.wikipedia.org/wiki/HMAC#Implementation) for details ****
 
 ### <p id ="ENCRYPTMODE">ENCRYPTMODE</P>
 
