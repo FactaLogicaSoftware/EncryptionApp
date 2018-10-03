@@ -83,5 +83,4 @@ namespace Encryption_App
         }
 
     }
-    }
 }
