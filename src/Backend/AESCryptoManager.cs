@@ -39,7 +39,7 @@ namespace Encryption_App
 
         }
 
-        public void AES_Decrypt(string iF, string oF, byte[] passwordBytes)
+        public bool AES_Decrypt(string iF, string oF, byte[] passwordBytes)
         {
 
             byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -60,19 +60,28 @@ namespace Encryption_App
                 AES.Key = key.GetBytes(AES.KeySize / 8);
                 AES.IV = key.GetBytes(AES.BlockSize / 8);
 
-                using (var inFile = File.OpenRead(iF))
-                using (var cs = new CryptoStream(inFile, AES.CreateDecryptor(), CryptoStreamMode.Read))
-                using (var outFile = File.Create(oF))
+                try
                 {
+                    using (var inFile = File.OpenRead(iF))
+                    using (var cs = new CryptoStream(inFile, AES.CreateDecryptor(), CryptoStreamMode.Read))
+                    using (var outFile = File.Create(oF))
+                    {
 
-                    sbyte data;
-                    while ((data = (sbyte)cs.ReadByte()) != -1)
-                        outFile.WriteByte((byte)data);
+                        sbyte data;
+                        while ((data = (sbyte)cs.ReadByte()) != -1)
+                            outFile.WriteByte((byte)data);
 
+                    }
                 }
-
+                catch (CryptographicException)
+                {
+                    return false;
+                }
+                return true;
             }
 
         }
+
+    }
     }
 }
