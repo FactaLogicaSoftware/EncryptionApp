@@ -33,10 +33,7 @@ namespace Encryption_App
                         cs.WriteByte((byte)data);
 
                 }
-
-
             }
-
         }
 
         public bool AES_Decrypt(string iF, string oF, byte[] passwordBytes)
@@ -79,8 +76,6 @@ namespace Encryption_App
                 }
                 return true;
             }
-
         }
-
     }
 }
