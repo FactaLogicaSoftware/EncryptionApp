@@ -60,7 +60,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Compile Include="Backend\AESCryptoManager.cs" />
-    <Compile Include="Backend\Encryptor.cs" />
     <Compile Include="UI\App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
