@@ -79,7 +79,7 @@ namespace Encryption_App
             string pwd = InpTxtBox.Text;
             string ofilePath = FileTxtBox.Text;
             AESCryptoManager encryptor = new AESCryptoManager();
-            encryptor.AES_Encrypt(ofilePath, System.IO.Path.GetTempPath() + "tempdata.ini", Encoding.UTF8.GetBytes(pwd));
+            encryptor.EncryptBytes(ofilePath, System.IO.Path.GetTempPath() + "tempdata.ini", Encoding.UTF8.GetBytes(pwd));
             File.Copy(System.IO.Path.GetTempPath() + "tempdata.ini", ofilePath, true);
         }
 
@@ -91,7 +91,7 @@ namespace Encryption_App
             FileInfo f = new FileInfo(ofilePath);
 
             AESCryptoManager decryptor = new AESCryptoManager();
-            bool worked = decryptor.AES_Decrypt(ofilePath, System.IO.Path.GetTempPath() + "tempdata.ini", Encoding.UTF8.GetBytes(pwd)); ;
+            bool worked = decryptor.DecryptBytes(ofilePath, System.IO.Path.GetTempPath() + "tempdata.ini", Encoding.UTF8.GetBytes(pwd)); ;
             if (worked) { File.Copy(System.IO.Path.GetTempPath() + "tempdata.ini", ofilePath, true); }
 
             if (!worked)
