@@ -1,20 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using Encryption_App.Backend;
 
 namespace Encryption_App
 {
@@ -23,13 +12,13 @@ namespace Encryption_App
     /// </summary>
     public partial class MainWindow : Window
     {
-        List<String> DropDownItems = new List<string> { "Choose Option...", "Encrypt a file", "Encrypt a file for sending to someone" };
+        readonly List<string> _dropDownItems = new List<string> { "Choose Option...", "Encrypt a file", "Encrypt a file for sending to someone" };
 
 
         public MainWindow()
         {
             InitializeComponent();
-            DropDown.ItemsSource = DropDownItems;
+            DropDown.ItemsSource = _dropDownItems;
             DropDown.SelectedIndex = 0;
 
         }
@@ -46,12 +35,12 @@ namespace Encryption_App
 
         private void FilePath_Click(object sender, RoutedEventArgs e)
         {
-            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyComputer)
             };
 
-            bool? result = openFileDialog.ShowDialog();
+            var result = openFileDialog.ShowDialog();
 
             if (result == true)
             {
@@ -76,32 +65,25 @@ namespace Encryption_App
 
         private void Encrypt_Click(object sender, RoutedEventArgs e)
         {
-            string pwd = InpTxtBox.Text;
-            string ofilePath = FileTxtBox.Text;
-            AESCryptoManager encryptor = new AESCryptoManager();
-            encryptor.EncryptBytes(ofilePath, System.IO.Path.GetTempPath() + "tempdata.ini", Encoding.UTF8.GetBytes(pwd));
-            File.Copy(System.IO.Path.GetTempPath() + "tempdata.ini", ofilePath, true);
+            var pwd = InpTxtBox.Text;
+            var tempFilePath = FileTxtBox.Text;
+            var encryptor = new AesCryptoManager();
+            encryptor.EncryptBytes(tempFilePath, System.IO.Path.GetTempPath() + "tempdata.ini", Encoding.UTF8.GetBytes(pwd));
+            File.Copy(System.IO.Path.GetTempPath() + "tempdata.ini", tempFilePath, true);
         }
 
         private void Decrypt_Click(object sender, RoutedEventArgs e)
         {
-            string pwd = PwdTxtBox.Text;
-            string ofilePath = DecryptFileLocBox.Text;
+            var pwd = PwdTxtBox.Text;
+            var outFilePath = DecryptFileLocBox.Text;
 
-            FileInfo f = new FileInfo(ofilePath);
+            var f = new FileInfo(outFilePath);
 
-            AESCryptoManager decryptor = new AESCryptoManager();
-            bool worked = decryptor.DecryptBytes(ofilePath, System.IO.Path.GetTempPath() + "tempdata.ini", Encoding.UTF8.GetBytes(pwd)); ;
-            if (worked) { File.Copy(System.IO.Path.GetTempPath() + "tempdata.ini", ofilePath, true); }
+            var decryptor = new AesCryptoManager();
+            var worked = decryptor.DecryptBytes(outFilePath, System.IO.Path.GetTempPath() + "tempdata.ini", Encoding.UTF8.GetBytes(pwd));
+            if (worked) { File.Copy(System.IO.Path.GetTempPath() + "tempdata.ini", outFilePath, true); }
 
-            if (!worked)
-            {
-                MessageBox.Show("Wrong Password");
-            }
-            else
-            {
-                MessageBox.Show("Successfully Decrypted");
-            }
+            MessageBox.Show(!worked ? "Wrong Password" : "Successfully Decrypted");
         }
     }
 }
