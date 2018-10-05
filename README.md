@@ -19,4 +19,3 @@
 ## Updates
 * Add error handling if encryption/decryption fails
 
-"Copied this from John's cause why not" @nightraven3142
