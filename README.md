@@ -1,5 +1,7 @@
 # EncryptorAppVS
 
+Master: [![Build status](https://ci.appveyor.com/api/projects/status/lspd6npm0sbwtscm?svg=true)](https://ci.appveyor.com/project/johnkellyoxford/encryptionapp)
+
 ## Documentation:
 
 ## Right now
@@ -17,4 +19,3 @@
 ## Updates
 * Add error handling if encryption/decryption fails
 
-"Copied this from John's cause why not" @nightraven3142
