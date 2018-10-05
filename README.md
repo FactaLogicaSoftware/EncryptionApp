@@ -1,6 +1,8 @@
 # EncryptorAppVS
 
-[![Master build status](https://ci.appveyor.com/api/projects/status/lspd6npm0sbwtscm?svg=true)](https://ci.appveyor.com/project/johnkellyoxford/encryptionapp) [![Build status](https://ci.appveyor.com/api/projects/status/lspd6npm0sbwtscm/branch/dev?svg=true)](https://ci.appveyor.com/project/johnkellyoxford/encryptionapp/branch/dev) [![Build status](https://ci.appveyor.com/api/projects/status/lspd6npm0sbwtscm/branch/experimental?svg=true)](https://ci.appveyor.com/project/johnkellyoxford/encryptionapp/branch/experimental)
+Master: [![Build status](https://ci.appveyor.com/api/projects/status/lspd6npm0sbwtscm?svg=true)](https://ci.appveyor.com/project/johnkellyoxford/encryptionapp)
+Dev: [![Build status](https://ci.appveyor.com/api/projects/status/lspd6npm0sbwtscm/branch/dev?svg=true)](https://ci.appveyor.com/project/johnkellyoxford/encryptionapp/branch/dev)
+Experimental: [![Build status](https://ci.appveyor.com/api/projects/status/lspd6npm0sbwtscm/branch/experimental?svg=true)](https://ci.appveyor.com/project/johnkellyoxford/encryptionapp/branch/experimental)
 
 ## Documentation:
 
