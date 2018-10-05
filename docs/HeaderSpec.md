@@ -41,7 +41,7 @@
 
 ### <p id="HMAC">HMAC</p>
 
-The HMAC (Hash Message Authentication Code) is a hash that is used to verify the message hasn't been tampered with. The HMAC is the hashed value of the encrypted message. The receiver can re-hash the received message to verify the message hasn't been tampered with. **IMPORTANT: HMAC construction MUST be actual HMAC algorithm, not just hashing. See [this](https://en.wikipedia.org/wiki/HMAC#Implementation) for details ****
+The HMAC (Hash Message Authentication Code) is a hash that is used to verify the message hasn't been tampered with. The HMAC is the hashed value of the encrypted message. The receiver can re-hash the received message to verify the message hasn't been tampered with. **IMPORTANT: HMAC construction MUST be actual HMAC algorithm, not just hashing. See [this](https://en.wikipedia.org/wiki/HMAC#Implementation) for details ***
 
 ### <p id ="ENCRYPTMODE">ENCRYPTMODE</P>
 

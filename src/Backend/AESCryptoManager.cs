@@ -1,73 +1,78 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Security.Cryptography;
 
-namespace Encryption_App
+namespace Encryption_App.Backend
 {
-    class AESCryptoManager
+    internal class AesCryptoManager
     {
-        public void EncryptBytes(string iF, string oF, byte[] passwordBytes)
+        public void EncryptBytes(string inputFile, string outFile, byte[] passwordBytes)
         {
 
-            byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+            var saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
 
-            using (var AES = new AesManaged())
-            {
-
-                AES.KeySize = 256;
-                AES.BlockSize = 128;
-                var key = new Rfc2898DeriveBytes(passwordBytes, saltBytes, 100000);
-                AES.Key = key.GetBytes(AES.KeySize / 8);
-                AES.IV = key.GetBytes(AES.BlockSize / 8);
-                AES.Padding = PaddingMode.PKCS7;
-                AES.Mode = CipherMode.CBC;
-
-                using (var outFile = File.Create(oF))
-                using (var cs = new CryptoStream(outFile, AES.CreateEncryptor(), CryptoStreamMode.Write))
-                using (var inFile = File.OpenRead(iF))
-                using (var br = new BinaryReader(inFile))
-                {
-
-                    sbyte data;
-                    while ((data = (sbyte)inFile.ReadByte()) != -1)
-                        cs.WriteByte((byte)data);
-
-                }
-            }
-        }
-
-        public bool DecryptBytes(string iF, string oF, byte[] passwordBytes)
-        {
-
-            byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
-
-            using (var AES = new AesManaged())
+            using (var aes = new AesManaged())
             {
 
                 // AESManaged properties
-                AES.KeySize = 256;
-                AES.BlockSize = 128;
-                AES.Padding = PaddingMode.PKCS7;
-                AES.Mode = CipherMode.CBC;
+                aes.KeySize = 256;
+                aes.BlockSize = 128;
+                aes.Padding = PaddingMode.PKCS7;
+                aes.Mode = CipherMode.CBC;
 
+
+                // Derives a key using PBKDF2 from the password and a salts
                 var key = new Rfc2898DeriveBytes(passwordBytes, saltBytes, 100000);
 
 
                 // Set actual IV and key
-                AES.Key = key.GetBytes(AES.KeySize / 8);
-                AES.IV = key.GetBytes(AES.BlockSize / 8);
+                aes.Key = key.GetBytes(aes.KeySize / 8);
+                aes.IV = key.GetBytes(aes.BlockSize / 8);
+
+                using (var outFileStream = new FileStream(outFile, FileMode.Create))
+                using (var cs = new CryptoStream(outFileStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                using (var inFileStream = new FileStream(inputFile, FileMode.Create))
+                {
+
+                    sbyte data;
+                    while ((data = (sbyte)inFileStream.ReadByte()) != -1)
+                        cs.WriteByte((byte)data);
+                }
+            }
+        }
+
+        public bool DecryptBytes(string inputFile, string outFile, byte[] passwordBytes)
+        {
+
+            var saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+
+            using (var aes = new AesManaged())
+            {
+
+                // AESManaged properties
+                aes.KeySize = 256;
+                aes.BlockSize = 128;
+                aes.Padding = PaddingMode.PKCS7;
+                aes.Mode = CipherMode.CBC;
+
+
+                // Derives a key using PBKDF2 from the password and a salt
+                var key = new Rfc2898DeriveBytes(passwordBytes, saltBytes, 100000);
+
+
+                // Set actual IV and key
+                aes.Key = key.GetBytes(aes.KeySize / 8);
+                aes.IV = key.GetBytes(aes.BlockSize / 8);
 
                 try
                 {
-                    using (var inFile = File.OpenRead(iF))
-                    using (var cs = new CryptoStream(inFile, AES.CreateDecryptor(), CryptoStreamMode.Read))
-                    using (var outFile = File.Create(oF))
+                    using (var outFileStream = new FileStream(outFile, FileMode.Create))
+                    using (var cs = new CryptoStream(outFileStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                    using (var inFileStream = new FileStream(inputFile, FileMode.Create))
                     {
 
                         sbyte data;
-                        while ((data = (sbyte)cs.ReadByte()) != -1)
-                            outFile.WriteByte((byte)data);
-
+                        while ((data = (sbyte)inFileStream.ReadByte()) != -1)
+                            cs.WriteByte((byte)data);
                     }
                 }
                 catch (CryptographicException)
