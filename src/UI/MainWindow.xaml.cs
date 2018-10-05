@@ -67,21 +67,25 @@ namespace Encryption_App
         {
             var pwd = InpTxtBox.Text;
             var tempFilePath = FileTxtBox.Text;
+            Console.WriteLine(System.IO.Path.GetTempPath() + "tempdata.ini");
             var encryptor = new AesCryptoManager();
             encryptor.EncryptBytes(tempFilePath, System.IO.Path.GetTempPath() + "tempdata.ini", Encoding.UTF8.GetBytes(pwd));
-            File.Copy(System.IO.Path.GetTempPath() + "tempdata.ini", tempFilePath, true);
+            File.Copy(Path.GetTempPath() + "tempdata.ini", tempFilePath, true);
+
         }
 
         private void Decrypt_Click(object sender, RoutedEventArgs e)
         {
             var pwd = PwdTxtBox.Text;
             var outFilePath = DecryptFileLocBox.Text;
-
             var f = new FileInfo(outFilePath);
-
             var decryptor = new AesCryptoManager();
             var worked = decryptor.DecryptBytes(outFilePath, System.IO.Path.GetTempPath() + "tempdata.ini", Encoding.UTF8.GetBytes(pwd));
-            if (worked) { File.Copy(System.IO.Path.GetTempPath() + "tempdata.ini", outFilePath, true); }
+            if (worked)
+            {
+                File.Copy(Path.GetTempPath() + "tempdata.ini", outFilePath, true);
+                Console.WriteLine("yay");
+            }
 
             MessageBox.Show(!worked ? "Wrong Password" : "Successfully Decrypted");
         }

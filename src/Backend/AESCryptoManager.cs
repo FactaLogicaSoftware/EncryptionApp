@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Security.Cryptography;
 
 namespace Encryption_App.Backend
@@ -28,14 +29,18 @@ namespace Encryption_App.Backend
                 aes.Key = key.GetBytes(aes.KeySize / 8);
                 aes.IV = key.GetBytes(aes.BlockSize / 8);
 
+                long len = new FileInfo(inputFile).Length;
+
                 using (var outFileStream = new FileStream(outFile, FileMode.Create))
                 using (var cs = new CryptoStream(outFileStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
                 using (var inFileStream = new FileStream(inputFile, FileMode.Create))
                 {
-
-                    sbyte data;
-                    while ((data = (sbyte)inFileStream.ReadByte()) != -1)
-                        cs.WriteByte((byte)data);
+                    long its = 0L;
+                    while (len > its)
+                    {
+                        cs.WriteByte((byte)inFileStream.ReadByte());
+                        its++;
+                    }
                 }
             }
         }
@@ -66,13 +71,16 @@ namespace Encryption_App.Backend
                 try
                 {
                     using (var outFileStream = new FileStream(outFile, FileMode.Create))
-                    using (var cs = new CryptoStream(outFileStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
-                    using (var inFileStream = new FileStream(inputFile, FileMode.Create))
+                    using (var cs = new CryptoStream(outFileStream, aes.CreateDecryptor(), CryptoStreamMode.Write))
+                    using (var inFileStream = new FileStream(inputFile, FileMode.Open))
                     {
-
-                        sbyte data;
-                        while ((data = (sbyte)inFileStream.ReadByte()) != -1)
-                            cs.WriteByte((byte)data);
+                        ulong len = Convert.ToUInt64(new FileInfo(inputFile).Length);
+                        ulong its = 0UL;
+                        while (len > its)
+                        {
+                            cs.WriteByte((byte)inFileStream.ReadByte());
+                            its++;
+                        }
                     }
                 }
                 catch (CryptographicException)
