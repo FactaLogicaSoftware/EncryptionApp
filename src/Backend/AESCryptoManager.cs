@@ -6,7 +6,7 @@ namespace Encryption_App
 {
     class AESCryptoManager
     {
-        public void AES_Encrypt(string iF, string oF, byte[] passwordBytes)
+        public void EncryptBytes(string iF, string oF, byte[] passwordBytes)
         {
 
             byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -33,13 +33,10 @@ namespace Encryption_App
                         cs.WriteByte((byte)data);
 
                 }
-
-
             }
-
         }
 
-        public bool AES_Decrypt(string iF, string oF, byte[] passwordBytes)
+        public bool DecryptBytes(string iF, string oF, byte[] passwordBytes)
         {
 
             byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -79,8 +76,6 @@ namespace Encryption_App
                 }
                 return true;
             }
-
         }
-
     }
 }
