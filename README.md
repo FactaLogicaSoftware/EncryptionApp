@@ -1,6 +1,6 @@
 # EncryptorAppVS
 
-[[![Build status](https://ci.appveyor.com/api/projects/status/lspd6npm0sbwtscm?svg=true)](https://ci.appveyor.com/project/johnkellyoxford/encryptionapp)
+[![Build status](https://ci.appveyor.com/api/projects/status/lspd6npm0sbwtscm?svg=true)](https://ci.appveyor.com/project/johnkellyoxford/encryptionapp)
 
 ## Documentation:
 
