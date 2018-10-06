@@ -1,8 +1,4 @@
-
-
-# EncryptorAppVS
-
-
+# EncryptorApp
 
 ## Documentation:
 
