@@ -1,5 +1,7 @@
 # EncryptorApp
 
+[![Build Status](https://dev.azure.com/johnkellyoxford/EncryptionApp/_apis/build/status/EncryptionApp-.NET%20Desktop-CI)](https://dev.azure.com/johnkellyoxford/EncryptionApp/_build/latest?definitionId=1)
+
 ## Documentation:
 
 ## Right now
