@@ -1,6 +1,5 @@
-# EncryptorAppVS
 
-Master: [![Build status](https://ci.appveyor.com/api/projects/status/lspd6npm0sbwtscm?svg=true)](https://ci.appveyor.com/project/johnkellyoxford/encryptionapp)
+# EncryptorAppVS
 
 ## Documentation:
 
@@ -19,3 +18,17 @@ Master: [![Build status](https://ci.appveyor.com/api/projects/status/lspd6npm0sb
 ## Updates
 * Add error handling if encryption/decryption fails
 
+## Directories
+* `src` contains UI and logic. It is the `.exe`
+* `CryptoTools` contains the encryption tools. It is a `.dll` that can be used by other applications
+* `utils` contains mixed utilites
+* `UnitTests` are the tests for `src` and `CryptoTools`
+
+## Branches
+* `master` is the branch the current stable release is built off
+* `release` is beta/nightly versions in testing
+* `dev` is working prototypes and for the majority of work
+* `experimental` is for large changes that may not be functional
+* `hotfix` is for quick changes to push to `master` or `release`
+
+**Please use forks for your own work, and PR to the applicable branch**
