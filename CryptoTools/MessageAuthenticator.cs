@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Security.Cryptography;
 
-namespace Encryption_App.Backend
+namespace CryptoTools
 {
     /// <summary>
     /// Used for signing and verifying HMACs
