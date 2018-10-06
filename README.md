@@ -1,7 +1,5 @@
 # EncryptorAppVS
 
-Master: [![Build status](https://ci.appveyor.com/api/projects/status/lspd6npm0sbwtscm?svg=true)](https://ci.appveyor.com/project/johnkellyoxford/encryptionapp)
-
 ## Documentation:
 
 ## Right now
