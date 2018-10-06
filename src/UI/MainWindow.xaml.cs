@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Windows;
-using Encryption_App.Backend;
+using CryptoTools;
 
 namespace Encryption_App.UI
 {
