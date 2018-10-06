@@ -1,6 +1,6 @@
 # EncryptorApp
 
-[![Build Status](https://dev.azure.com/johnkellyoxford/EncryptionApp/_apis/build/status/EncryptionApp-.NET%20Desktop-CI)](https://dev.azure.com/johnkellyoxford/EncryptionApp/_build/latest?definitionId=1) [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![GitHub release](https://img.shields.io/github/release/Naereen/StrapDown.js.svg)](https://GitHub.com/Naereen/StrapDown.js/releases/)
+[![Build Status](https://dev.azure.com/johnkellyoxford/EncryptionApp/_apis/build/status/EncryptionApp-.NET%20Desktop-CI)](https://dev.azure.com/johnkellyoxford/EncryptionApp/_build/latest?definitionId=1) [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![GitHub release](https://img.shields.io/github/release/Naereen/StrapDown.js.svg)](https://GitHub.com/FactaLogicaSoftware/EncryptionApp/releases)
 
 ## Documentation:
 
