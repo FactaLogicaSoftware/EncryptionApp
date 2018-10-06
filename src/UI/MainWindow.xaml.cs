@@ -20,7 +20,6 @@ namespace Encryption_App
             InitializeComponent();
             DropDown.ItemsSource = _dropDownItems;
             DropDown.SelectedIndex = 0;
-
         }
 
         private void MenuItem_Click(object sender, RoutedEventArgs e)
@@ -84,7 +83,6 @@ namespace Encryption_App
             if (worked)
             {
                 File.Copy(Path.GetTempPath() + "tempdata.ini", outFilePath, true);
-                Console.WriteLine("yay");
             }
 
             MessageBox.Show(!worked ? "Wrong Password" : "Successfully Decrypted");

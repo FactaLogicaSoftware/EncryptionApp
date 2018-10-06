@@ -24,26 +24,27 @@ namespace Encryption_App.Backend
                 // Derives a key using PBKDF2 from the password and a salts
                 var key = new Rfc2898DeriveBytes(passwordBytes, saltBytes, 100000);
 
-
                 // Set actual IV and key
                 aes.Key = key.GetBytes(aes.KeySize / 8);
                 aes.IV = key.GetBytes(aes.BlockSize / 8);
 
-                long len = new FileInfo(inputFile).Length;
-
                 using (var outFileStream = File.Create(outFile))
                 using (var cs = new CryptoStream(outFileStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
-                using (var inFile = File.OpenRead(inputFile))
+                using (var inFile = new BinaryReader(File.OpenRead(inputFile)))
                 {
-
-                    using (var br = new BinaryReader(inFile))
+                    while (true)
                     {
-
-                        sbyte data;
-                        while ((data = (sbyte)inFile.ReadByte()) != -1)
-                            cs.WriteByte((byte)data);
-
+                        try
+                        {
+                            var data = (byte)inFile.ReadByte();
+                            cs.WriteByte(data);
+                        }
+                        catch (EndOfStreamException)
+                        {
+                            break;
+                        }
                     }
+
                 }
 
             }
@@ -74,23 +75,24 @@ namespace Encryption_App.Backend
                     aes.Key = key.GetBytes(aes.KeySize / 8);
                     aes.IV = key.GetBytes(aes.BlockSize / 8);
 
-                    long len = new FileInfo(inputFile).Length;
-
                     using (var outFileStream = File.Create(outFile))
-                    using (var cs = new CryptoStream(outFileStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
-                    using (var inFile = File.OpenRead(inputFile))
+                    using (var cs = new CryptoStream(outFileStream, aes.CreateDecryptor(), CryptoStreamMode.Write))
+                    using (var inFile = new BinaryReader(File.OpenRead(inputFile)))
                     {
-
-                        using (var br = new BinaryReader(inFile))
+                        while (true)
                         {
-
-                            sbyte data;
-                            while ((data = (sbyte)inFile.ReadByte()) != -1)
-                                cs.WriteByte((byte)data);
-
+                            try
+                            {
+                                var data = (byte)inFile.ReadByte();
+                                cs.WriteByte(data);
+                            }
+                            catch (EndOfStreamException)
+                            {
+                                break;
+                            }
                         }
-                    }
 
+                    }
                 }
             }
 
