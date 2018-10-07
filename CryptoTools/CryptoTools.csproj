@@ -65,10 +65,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\UnitTests\UnitTests.csproj">
-      <Project>{1c6d1346-027c-445e-a0bf-0a329e829794}</Project>
-      <Name>UnitTests</Name>
-    </ProjectReference>
     <ProjectReference Include="..\utils\utils.csproj">
       <Project>{0fa675c6-6565-4f9a-b9d0-56118c9ae1a8}</Project>
       <Name>utils</Name>

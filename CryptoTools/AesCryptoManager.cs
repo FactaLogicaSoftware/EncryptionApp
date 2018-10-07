@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using utils;
@@ -9,6 +8,41 @@ namespace CryptoTools
 {
     public class AesCryptoManager
     {
+
+        /// <summary>
+        /// Generates a secure random key
+        /// </summary>
+        /// <param name="size">Size, in bytes, if below 128, in bits if above 128</param>
+        /// <returns>A byte array that is the key</returns>
+        public byte[] GenerateKey(uint size)
+        {
+            if (size >= 128)
+            {
+                size /= size / 8;
+            }
+            var key = new byte[size];
+            var rng = new RNGCryptoServiceProvider();
+            rng.GetBytes(key);
+            return key;
+        }
+
+        /// <summary>
+        /// Generates a random salt
+        /// </summary>
+        /// <param name="size">Size, in bytes, if below 128, in bits if above 128</param>
+        /// <returns>A byte array that is the salt</returns>
+        public byte[] GenerateSalt(uint size)
+        {
+            if (size >= 128)
+            {
+                size /= size / 8;
+            }
+            var key = new byte[size];
+            var rng = new RNGCryptoServiceProvider();
+            rng.GetBytes(key);
+            return key;
+        }
+
         /// <summary>
         /// Encrypts data from one file to another using AES
         /// </summary>
@@ -37,7 +71,7 @@ namespace CryptoTools
 
 #if DEBUG
                     // Debug values
-                    if (!Stopwatch.IsHighResolution) { throw new Exception("You don't have a high-res sysclock"); }
+                    if (!IsHighResolution) { throw new Exception("You don't have a high-res sysclock"); }
                     var iterations = 0L;
                     var fullIterationTime = 0.0D;
                     var watch = StartNew();
@@ -130,7 +164,7 @@ namespace CryptoTools
 
 #if DEBUG
                     // Debug values
-                    if (!Stopwatch.IsHighResolution) { throw new Exception("You don't have a high-res sysclock"); }
+                    if (!IsHighResolution) { throw new Exception("You don't have a high-res sysclock"); }
                     var iterations = 0L;
                     var fullIterationTime = 0.0D;
                     var watch = StartNew();

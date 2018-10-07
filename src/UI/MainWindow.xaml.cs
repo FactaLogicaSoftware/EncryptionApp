@@ -13,7 +13,7 @@ namespace Encryption_App.UI
     /// </summary>
     public partial class MainWindow
     {
-        readonly List<string> _dropDownItems = new List<string> { "Choose Option...", "Encrypt a file", "Encrypt a file for sending to someone" };
+        private readonly List<string> _dropDownItems = new List<string> { "Choose Option...", "Encrypt a file", "Encrypt a file for sending to someone" };
 
         public MainWindow()
         {
