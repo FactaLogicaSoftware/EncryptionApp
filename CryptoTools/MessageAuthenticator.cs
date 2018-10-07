@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -16,7 +17,7 @@ namespace CryptoTools
         /// <param name="data">A byte[] of the encrypted message data</param>
         /// <param name="key">A byte[] of the key</param>
         /// <returns>A byte[] hash that is the file and key hashed</returns>
-        public byte[] CreateHMAC(byte[] data, byte[] key)
+        public byte[] CreateHmac(byte[] data, byte[] key)
         {
             byte[] hashKey;
 
@@ -35,7 +36,7 @@ namespace CryptoTools
         /// <param name="key">A byte[] of the key</param>
         /// <param name="typeOfHash">typeof() any derivative of the System.Security.Cryptography.HMAC class</param>
         /// <returns>A byte[] hash that is the file and key hashed</returns>
-        public byte[] CreateHMAC(byte[] data, byte[] key, Type typeOfHash)
+        public byte[] CreateHmac(byte[] data, byte[] key, Type typeOfHash)
         {
             HMAC hmac;
             if (typeOfHash.IsSubclassOf(typeof(HMAC)))
@@ -63,7 +64,7 @@ namespace CryptoTools
         /// <param name="path">A path to the file with the encrypted data</param>
         /// <param name="key">A byte[] of the key</param>
         /// <returns>A byte[] hash that is the file and key hashed</returns>
-        public byte[] CreateHMAC(string path, byte[] key)
+        public byte[] CreateHmac(string path, byte[] key)
         {
             byte[] hashKey;
 
@@ -83,7 +84,7 @@ namespace CryptoTools
         /// <param name="key">A byte[] of the key</param>
         /// <param name="typeOfHash">typeof() any derivative of the System.Security.Cryptography.HMAC class</param>
         /// <returns>A byte[] hash that is the file and key hashed</returns>
-        public byte[] CreateHMAC(string path, byte[] key, Type typeOfHash)
+        public byte[] CreateHmac(string path, byte[] key, Type typeOfHash)
         {
             HMAC hmac;
             if (typeOfHash.IsSubclassOf(typeof(HMAC)))
@@ -113,7 +114,7 @@ namespace CryptoTools
         /// <param name="key">A byte[] of the key</param>
         /// <param name="hash">The hash in the header file/the hash provided, that's been hashed with SHA384</param>
         /// <returns>True if they match, otherwise false</returns>
-        public bool VerifyHMAC(byte[] data, byte[] key, byte[] hash)
+        public bool VerifyHmac(byte[] data, byte[] key, IEnumerable<byte> hash)
         {
             byte[] hashKey;
 
@@ -134,7 +135,7 @@ namespace CryptoTools
         /// <param name="hash">The hash in the header file/the hash provided, that's been hashed with typeOfHash</param>
         /// <param name="typeOfHash">typeof() the hash algorithm you used to create this, derived from System.Security.Cryptography.HMAC</param>
         /// <returns>True if they match, otherwise false</returns>
-        public bool VerifyHMAC(byte[] data, byte[] key, byte[] hash, Type typeOfHash)
+        public bool VerifyHmac(byte[] data, byte[] key, IEnumerable<byte> hash, Type typeOfHash)
         {
             HMAC hmac;
             if (typeOfHash.IsSubclassOf(typeof(HMAC)))
@@ -163,7 +164,7 @@ namespace CryptoTools
         /// <param name="key">A byte[] of the key</param>
         /// <param name="hash">The hash in the header file/the hash provided, that's been hashed with SHA384</param>
         /// <returns>True if they match, otherwise false</returns>
-        public bool VerifyHMAC(string path, byte[] key, byte[] hash)
+        public bool VerifyHmac(string path, byte[] key, IEnumerable<byte> hash)
         {
             byte[] hashKey;
 
@@ -185,7 +186,7 @@ namespace CryptoTools
         /// <param name="hash">The hash in the header file/the hash provided, that's been hashed with typeOfHash</param>
         /// <param name="typeOfHash">typeof() the hash algorithm you used to create this, derived from System.Security.Cryptography.HMAC</param>
         /// <returns>True if they match, otherwise false</returns>
-        public bool VerifyHMAC(string path, byte[] key, byte[] hash, Type typeOfHash)
+        public bool VerifyHmac(string path, byte[] key, IEnumerable<byte> hash, Type typeOfHash)
         {
             HMAC hmac;
             if (typeOfHash.IsSubclassOf(typeof(HMAC)))
