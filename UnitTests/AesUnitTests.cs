@@ -9,7 +9,7 @@ namespace UnitTests
     [TestClass]
     public class AesUnitTests
     {
-        private const string AssetsFolder = Path.GetDirectoryName(Path.GetDirectoryName(System.IO.Directory.GetCurrentDirectory())) + "assets\";
+        private const string AssetsFolder = Path.GetDirectoryName(Path.GetDirectoryName(System.IO.Directory.GetCurrentDirectory())) + @"assets\";
 
         private bool? _testLargeImage;
 
