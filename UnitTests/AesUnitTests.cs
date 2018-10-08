@@ -1,8 +1,10 @@
 ﻿using System;
+using System.CodeDom;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace UnitTests
@@ -58,6 +60,7 @@ namespace UnitTests
         }
 
         [TestMethod]
+        [ExpectedException(typeof(CryptographicException))]
         public void TestBadKey()
         {
             var testEncryptionHandler = new CryptoTools.AesCryptoManager();
@@ -66,16 +69,14 @@ namespace UnitTests
             if (key.SequenceEqual(badKey)) { throw new ExternalException("What the $@#%"); }
 
             testEncryptionHandler.EncryptFileBytes(_assetsFolder + "TestFile.txt", _assetsFolder + "EncryptedTestFile.txt",
-                badKey);
+                key);
 
             testEncryptionHandler.DecryptFileBytes(_assetsFolder + "EncryptedTestFile.txt", _assetsFolder + "DecryptedTestFile.txt",
                 badKey);
-
-            Debug.Assert(testEncryptionHandler.DecryptFileBytes(_assetsFolder + "EncryptedTestFile.txt", _assetsFolder + "DecryptedTestFile.txt",
-                key) == false, "Used fake key, didn't register it as so");
         }
 
         [TestMethod]
+        [ExpectedException(typeof(CryptographicException))]
         public void TestBadFile()
         {
             var testEncryptionHandler = new CryptoTools.AesCryptoManager();
@@ -86,8 +87,8 @@ namespace UnitTests
             rng.NextBytes(data);
             File.WriteAllBytes(_assetsFolder + "EncryptedtestFile.txt", data);
 
-            Debug.Assert(testEncryptionHandler.DecryptFileBytes(_assetsFolder + "EncryptedTestFile.txt", _assetsFolder + "DecryptedTestFile.txt",
-                             key) == false, "Used corrupt file, didn't register it as so");
+            testEncryptionHandler.DecryptFileBytes(_assetsFolder + "EncryptedTestFile.txt", _assetsFolder + "DecryptedTestFile.txt",
+                             key);
         }
     }
 }
