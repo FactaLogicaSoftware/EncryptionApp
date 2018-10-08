@@ -12,6 +12,7 @@ namespace UnitTests
     [TestClass]
     public class AesUnitTests
     {
+
         private readonly string _assetsFolder = Path.GetTempPath() + @"\EncryptionApp\assets\";
 
         [TestInitialize]
