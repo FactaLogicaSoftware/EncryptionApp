@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -9,21 +10,17 @@ namespace UnitTests
     [TestClass]
     public class AesUnitTests
     {
-        private readonly string _assetsFolder = Path.GetTempPath() + @"\assets\";
-
-        private bool? _testLargeImage;
+        private readonly string _assetsFolder = Path.GetTempPath() + @"\EncryptionApp\assets\";
 
         [TestInitialize]
         public void Initializer()
         {
             Directory.CreateDirectory(_assetsFolder);
 
-            _testLargeImage = null;
-
-            using (var fs = new FileStream(_assetsFolder + "testFile.txt", FileMode.Create))
-            {
-                fs.SetLength(1024 * 1024);
-            }
+            var data = new byte[1024 * 1024];
+            var rng = new Random();
+            rng.NextBytes(data);
+            File.WriteAllBytes(_assetsFolder + "testFile.txt", data);
         }
 
         [TestCleanup]
@@ -31,8 +28,6 @@ namespace UnitTests
         {
             Directory.Delete(_assetsFolder, true);
         }
-
-        public bool HasPassed => _testLargeImage.GetValueOrDefault();
 
         [TestMethod]
         public void TestMegabyte()
@@ -44,10 +39,8 @@ namespace UnitTests
 
             testEncryptionHandler.DecryptFileBytes(_assetsFolder + "EncryptedTestFile.txt", _assetsFolder + "DecryptedTestFile.txt",
                 key);
-
-            _testLargeImage = false;
             
-            using (var unencryptedFileReader = new BinaryReader(File.OpenRead(_assetsFolder + "EncryptedTestFile.txt")))
+            using (var unencryptedFileReader = new BinaryReader(File.OpenRead(_assetsFolder + "TestFile.txt")))
             using (var decryptedFileReader = new BinaryReader(File.OpenRead(_assetsFolder + "DecryptedTestFile.txt")))
             {
                 while (true)
@@ -58,7 +51,6 @@ namespace UnitTests
                     }
                     catch (EndOfStreamException)
                     {
-                        _testLargeImage = true;
                         break;
                     }
                 }
@@ -81,6 +73,21 @@ namespace UnitTests
 
             Debug.Assert(testEncryptionHandler.DecryptFileBytes(_assetsFolder + "EncryptedTestFile.txt", _assetsFolder + "DecryptedTestFile.txt",
                 key) == false, "Used fake key, didn't register it as so");
+        }
+
+        [TestMethod]
+        public void TestBadFile()
+        {
+            var testEncryptionHandler = new CryptoTools.AesCryptoManager();
+            var key = testEncryptionHandler.GenerateKey(256);
+
+            var data = new byte[1024 * 1024];
+            var rng = new Random();
+            rng.NextBytes(data);
+            File.WriteAllBytes(_assetsFolder + "EncryptedtestFile.txt", data);
+
+            Debug.Assert(testEncryptionHandler.DecryptFileBytes(_assetsFolder + "EncryptedTestFile.txt", _assetsFolder + "DecryptedTestFile.txt",
+                             key) == false, "Used corrupt file, didn't register it as so");
         }
     }
 }
