@@ -73,10 +73,13 @@ namespace UnitTests
             var badKey = testEncryptionHandler.GenerateKey(256);
             if (key.SequenceEqual(badKey)) { throw new ExternalException("What the $@#%"); }
 
-            testEncryptionHandler.EncryptFileBytes(_assetsFolder + "LargeImage.png", _assetsFolder + "EncryptedLargeImage.png",
+            testEncryptionHandler.EncryptFileBytes(_assetsFolder + "TestFile.txt", _assetsFolder + "EncryptedTestFile.txt",
                 badKey);
 
-            Debug.Assert(testEncryptionHandler.DecryptFileBytes(_assetsFolder + "EncryptedLargeImage.png", _assetsFolder + "DecryptedLargeImage.png",
+            testEncryptionHandler.DecryptFileBytes(_assetsFolder + "EncryptedTestFile.txt", _assetsFolder + "DecryptedTestFile.txt",
+                badKey);
+
+            Debug.Assert(testEncryptionHandler.DecryptFileBytes(_assetsFolder + "EncryptedTestFile.txt", _assetsFolder + "DecryptedTestFile.txt",
                 key) == false, "Used fake key, didn't register it as so");
         }
     }
