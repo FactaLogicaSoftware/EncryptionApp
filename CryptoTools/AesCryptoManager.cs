@@ -18,7 +18,7 @@ namespace CryptoTools
         {
             if (size >= 128)
             {
-                size /= size / 8;
+                size /= 8;
             }
             var key = new byte[size];
             var rng = new RNGCryptoServiceProvider();
@@ -35,7 +35,7 @@ namespace CryptoTools
         {
             if (size >= 128)
             {
-                size /= size / 8;
+                size /= 8;
             }
             var key = new byte[size];
             var rng = new RNGCryptoServiceProvider();
