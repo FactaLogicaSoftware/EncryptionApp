@@ -20,7 +20,7 @@ namespace UnitTests
 
             _testLargeImage = null;
 
-            using (var fs = new FileStream(_assetsFolder + "testFile.txt", FileMode.Create, FileAccess.Write, FileShare.None))
+            using (var fs = new FileStream(_assetsFolder + "testFile.txt", FileMode.Create))
             {
                 fs.SetLength(1024 * 1024);
             }
