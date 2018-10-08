@@ -2,7 +2,7 @@
 # Each line is a file pattern followed by one or more owners.
 
 # Default owner
-* @johnkellyoxford
+* @johnkellyoxford @nathanmc158 @NightRaven3142
 
 # File endings owner
 *.xaml @NightRaven3142
