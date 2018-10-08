@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
 using CryptoTools;
@@ -67,8 +68,8 @@ namespace Encryption_App.UI
             var pwd = InpTxtBox.Text;
             var tempFilePath = FileTxtBox.Text;
             Console.WriteLine(Path.GetTempPath() + "tempdata.ini");
-            var encryptor = new AesCryptoManager();
-            encryptor.EncryptFileBytes(tempFilePath, Path.GetTempPath() + "tempdata.ini", Encoding.UTF8.GetBytes(pwd));
+            var encrypt = new AesCryptoManager();
+            encrypt.EncryptFileBytes(tempFilePath, Path.GetTempPath() + "tempdata.ini", Encoding.UTF8.GetBytes(pwd));
             File.Copy(Path.GetTempPath() + "tempdata.ini", tempFilePath, true);
 
         }
@@ -78,13 +79,19 @@ namespace Encryption_App.UI
             var pwd = PwdTxtBox.Text;
             var outFilePath = DecryptFileLocBox.Text;
             var decryptor = new AesCryptoManager();
-            var worked = decryptor.DecryptFileBytes(outFilePath, Path.GetTempPath() + "tempdata.ini", Encoding.UTF8.GetBytes(pwd));
-            if (worked)
+            try
             {
-                File.Copy(Path.GetTempPath() + "tempdata.ini", outFilePath, true);
-            }
+                decryptor.DecryptFileBytes(outFilePath, Path.GetTempPath() + "tempdata.ini",
+                    Encoding.UTF8.GetBytes(pwd));
 
-            MessageBox.Show(worked ? "Successfully Decrypted" : "Wrong password or corrupted file");
+                MessageBox.Show("Successfully Decrypted");
+            }
+            catch (CryptographicException)
+            {
+                MessageBox.Show("Wrong password or corrupted file");
+            }
+            
+            File.Copy(Path.GetTempPath() + "tempdata.ini", outFilePath, true);
         }
     }
 }
