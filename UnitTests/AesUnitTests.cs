@@ -16,6 +16,8 @@ namespace UnitTests
         [TestInitialize]
         public void Initializer()
         {
+            Directory.CreateDirectory(_assetsFolder);
+
             _testLargeImage = null;
 
             using (var fs = new FileStream(_assetsFolder + "testFile.txt", FileMode.Create, FileAccess.Write, FileShare.None))
