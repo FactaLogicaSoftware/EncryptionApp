@@ -27,7 +27,7 @@ namespace UnitTests
         [AssemblyInitialize]
         public static void TestInitializer(TestContext e)
         {
-            
+
         }
 
         [AssemblyCleanup]
@@ -91,18 +91,22 @@ namespace UnitTests
         public void TestGigabyteFile()
         {
             var rng = new Random();
+            ;
 
-            var bigData = new byte[1024 * 1024 * 1024];
-            rng.NextBytes(bigData);
-            File.WriteAllBytes(AssetsFolder + "BigTestFile.txt", bigData);
+            using (var fs = new FileStream(AssetsFolder + "BigTestFile.txt", FileMode.Create))
+            {
+                fs.Seek(1024L * 1024 * 1024, SeekOrigin.Begin);
+                fs.WriteByte(0);
+            }
 
-            var bigData2 = new byte[1024 * 1024 * 1024];
-            rng.NextBytes(bigData2);
-            File.WriteAllBytes(AssetsFolder + "BigTestFile2.txt", bigData2);
-            BigFileHandler.MoveLargeFile(AssetsFolder + "BigTestFile.txt", AssetsFolder + "MoveFile.txt");
+            Console.WriteLine("Made");
+
+            BigFileHandler.MoveLargeFile(AssetsFolder + "BigTestFile.txt", AssetsFolder + "MoveFile.txt", true);
+
+            Console.WriteLine("Moved");
 
             using (var firstFileReader = new BinaryReader(File.OpenRead(AssetsFolder + "BigTestFile.txt")))
-            using (var secondFileReader = new BinaryReader(File.OpenRead(AssetsFolder + "BigTestFile2.txt")))
+            using (var secondFileReader = new BinaryReader(File.OpenRead(AssetsFolder + "MoveFile.txt")))
             {
                 while (true)
                 {

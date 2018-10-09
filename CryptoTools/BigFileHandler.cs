@@ -34,7 +34,7 @@ namespace CryptoTools
                             for (; ;)
                             {
                                 int read = binReader.Read(dataArray, 0, arrayLength);
-                                if (0 == read)
+                                if (read == 0)
                                     break;
                                 binWriter.Write(dataArray, 0, read);
                             }
@@ -42,6 +42,8 @@ namespace CryptoTools
                     }
                 }
             }
+
+            Console.WriteLine("end");
 
             if (delete)
             {
