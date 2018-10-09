@@ -26,7 +26,7 @@ namespace CryptoTools
                 throw new CryptographicException("Invalid key size for AES");
             }
 
-            //DEPRECATED,, TODO add flag
+            //DEPRECATED,, TODO: add flag
 
             var flag = true;
 
