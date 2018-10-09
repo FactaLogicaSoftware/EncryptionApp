@@ -13,11 +13,12 @@ namespace UnitTests
     public class AesUnitTests
     {
 
-        private readonly string _assetsFolder = Path.GetTempPath() + @"\EncryptionApp\assets\";
-
-        [TestInitialize]
-        public void Initializer()
+        private readonly string _assetsFolder;
+        
+        public AesUnitTests()
         {
+            _assetsFolder = MiscTests.AssetsFolder;
+
             Directory.CreateDirectory(_assetsFolder);
 
             var data = new byte[1024 * 1024];
@@ -30,11 +31,45 @@ namespace UnitTests
             File.WriteAllBytes(_assetsFolder + "BigTestFile.txt", bigData);
         }
 
-        [TestCleanup]
-        public void Cleanup()
+        private TestContext testContextInstance;
+
+        /// <summary>
+        ///Gets or sets the test context which provides
+        ///information about and functionality for the current test run.
+        ///</summary>
+        public TestContext TestContext
         {
-            Directory.Delete(_assetsFolder, true);
+            get
+            {
+                return testContextInstance;
+            }
+            set
+            {
+                testContextInstance = value;
+            }
         }
+
+        #region Additional test attributes
+        //
+        // You can use the following additional attributes as you write your tests:
+        //
+        // Use ClassInitialize to run code before running the first test in the class
+        // [ClassInitialize()]
+        // public static void MyClassInitialize(TestContext testContext) { }
+        //
+        // Use ClassCleanup to run code after all tests in a class have run
+        // [ClassCleanup()]
+        // public static void MyClassCleanup() { }
+        //
+        // Use TestInitialize to run code before running each test 
+        // [TestInitialize()]
+        // public void MyTestInitialize() { }
+        //
+        // Use TestCleanup to run code after each test has run
+        // [TestCleanup()]
+        // public void MyTestCleanup() { }
+        //
+        #endregion
 
         [TestMethod]
         public void TestMegabyte()
@@ -49,34 +84,6 @@ namespace UnitTests
             
             using (var unencryptedFileReader = new BinaryReader(File.OpenRead(_assetsFolder + "TestFile.txt")))
             using (var decryptedFileReader = new BinaryReader(File.OpenRead(_assetsFolder + "DecryptedTestFile.txt")))
-            {
-                while (true)
-                {
-                    try
-                    {
-                        Debug.Assert(unencryptedFileReader.ReadByte() == decryptedFileReader.ReadByte(), "Failed decrypting - file corrupted");
-                    }
-                    catch (EndOfStreamException)
-                    {
-                        break;
-                    }
-                }
-            }
-        }
-
-        [TestMethod]
-        public void TestGigabyte()
-        {
-            var testEncryptionHandler = new CryptoTools.AesCryptoManager();
-            var key = testEncryptionHandler.GenerateKey(256);
-            testEncryptionHandler.EncryptFileBytes(_assetsFolder + "BigTestFile.txt", _assetsFolder + "EncryptedBigTestFile.txt",
-                key);
-
-            testEncryptionHandler.DecryptFileBytes(_assetsFolder + "EncryptedBigTestFile.txt", _assetsFolder + "DecryptedBigTestFile.txt",
-                key);
-
-            using (var unencryptedFileReader = new BinaryReader(File.OpenRead(_assetsFolder + "BigTestFile.txt")))
-            using (var decryptedFileReader = new BinaryReader(File.OpenRead(_assetsFolder + "DecryptedBigTestFile.txt")))
             {
                 while (true)
                 {
