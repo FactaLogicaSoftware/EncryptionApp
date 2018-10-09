@@ -24,6 +24,10 @@ namespace UnitTests
             var rng = new Random();
             rng.NextBytes(data);
             File.WriteAllBytes(_assetsFolder + "testFile.txt", data);
+
+            var bigData = new byte[1024 * 1024 * 1024];
+            rng.NextBytes(data);
+            File.WriteAllBytes(_assetsFolder + "BigTestFile.txt", bigData);
         }
 
         [TestCleanup]
@@ -61,6 +65,34 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public void TestGigabyte()
+        {
+            var testEncryptionHandler = new CryptoTools.AesCryptoManager();
+            var key = testEncryptionHandler.GenerateKey(256);
+            testEncryptionHandler.EncryptFileBytes(_assetsFolder + "BigTestFile.txt", _assetsFolder + "EncryptedBigTestFile.txt",
+                key);
+
+            testEncryptionHandler.DecryptFileBytes(_assetsFolder + "EncryptedBigTestFile.txt", _assetsFolder + "DecryptedBigTestFile.txt",
+                key);
+
+            using (var unencryptedFileReader = new BinaryReader(File.OpenRead(_assetsFolder + "BigTestFile.txt")))
+            using (var decryptedFileReader = new BinaryReader(File.OpenRead(_assetsFolder + "DecryptedBigTestFile.txt")))
+            {
+                while (true)
+                {
+                    try
+                    {
+                        Debug.Assert(unencryptedFileReader.ReadByte() == decryptedFileReader.ReadByte(), "Failed decrypting - file corrupted");
+                    }
+                    catch (EndOfStreamException)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
         [ExpectedException(typeof(CryptographicException))]
         public void TestBadKey()
         {
@@ -69,7 +101,7 @@ namespace UnitTests
             var badKey = testEncryptionHandler.GenerateKey(256);
             if (key.SequenceEqual(badKey)) { throw new ExternalException("What the $@#%"); }
 
-            testEncryptionHandler.EncryptFileBytes(_assetsFolder + "TestFile.txt", _assetsFolder + "EncryptedTestFile.txt",
+            testEncryptionHandler.EncryptFileBytes(_assetsFolder + "testFile.txt", _assetsFolder + "EncryptedTestFile.txt",
                 key);
 
             testEncryptionHandler.DecryptFileBytes(_assetsFolder + "EncryptedTestFile.txt", _assetsFolder + "DecryptedTestFile.txt",
@@ -86,7 +118,7 @@ namespace UnitTests
             var data = new byte[1024 * 1024];
             var rng = new Random();
             rng.NextBytes(data);
-            File.WriteAllBytes(_assetsFolder + "EncryptedtestFile.txt", data);
+            File.WriteAllBytes(_assetsFolder + "EncryptedTestFile.txt", data);
 
             testEncryptionHandler.DecryptFileBytes(_assetsFolder + "EncryptedTestFile.txt", _assetsFolder + "DecryptedTestFile.txt",
                              key);
