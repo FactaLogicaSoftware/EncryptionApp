@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AesCryptoManager.cs" />
+    <Compile Include="BigFileHandler.cs" />
     <Compile Include="MessageAuthenticator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

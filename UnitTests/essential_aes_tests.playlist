@@ -1,0 +1,5 @@
+<Playlist Version="1.0">
+    <Add Test="UnitTests.AesUnitTests.TestBadKey" />
+    <Add Test="UnitTests.AesUnitTests.TestMegabyte" />
+    <Add Test="UnitTests.AesUnitTests.TestBadFile" />
+</Playlist>
