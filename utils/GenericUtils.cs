@@ -10,7 +10,7 @@ namespace utils
     public static class Utils
     {
 
-        [System.Obsolete("Do not use")]
+        [Obsolete("Do not use")]
         public static void Time()
         {
             var rng = new RNGCryptoServiceProvider();
@@ -28,11 +28,11 @@ namespace utils
         public static void WriteToDiagnosticsFile(params string[] items)
         {
 
-            using (var fHandle = new FileStream(Path.GetTempPath() + "DiagnosticsAndDebug.data", FileMode.Append))
+            using (var fHandle = new FileStream(Path.GetTempPath() + @"EncryptionApp\" + "DiagnosticsAndDebug.data", FileMode.Append))
             using (var fWriter = new StreamWriter(fHandle))
             {
-                fWriter.WriteLine('\n' + DateTime.Now.ToString());
-                foreach (var item in items)
+                fWriter.WriteLine('\n' + DateTime.Now.ToString(CultureInfo.CurrentCulture));
+                foreach (string item in items)
                 {
                     fWriter.WriteLine(item);
                 }

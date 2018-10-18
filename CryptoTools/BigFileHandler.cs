@@ -43,8 +43,6 @@ namespace CryptoTools
                 }
             }
 
-            Console.WriteLine("end");
-
             if (delete)
             {
                 File.Delete(inFile);
