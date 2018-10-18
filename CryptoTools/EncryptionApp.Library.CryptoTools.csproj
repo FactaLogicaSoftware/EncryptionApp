@@ -70,7 +70,6 @@
   <ItemGroup>
     <Compile Include="AesCryptographicInfo.cs" />
     <Compile Include="AesCryptoManager.cs" />
-    <Compile Include="BigFileHandler.cs" />
     <Compile Include="CryptographicInfo.cs" />
     <Compile Include="CryptoStructs.cs" />
     <Compile Include="ICryptoStruct.cs" />

@@ -203,56 +203,50 @@ namespace CryptoTools
                     // Continuously reads the stream until it hits an EndOfStream exception
                     while (true)
                     {
-                        try
+
+#if DEBUG
+                        double offset = watch.Elapsed.TotalMilliseconds;
+#endif
+                        // Read as many bytes as we allow into the array from the file
+                        byte[] data = inFile.ReadBytes(_memoryConst);
+
+                        // Write it through the cryptostream so it is transformed
+                        cs.Write(data, 0, data.Length);
+#if DEBUG
+                        // Debug values
+                        double perIterationMilliseconds = watch.Elapsed.TotalMilliseconds - offset;
+                        avgIterationMilliseconds = (avgIterationMilliseconds * iterations + perIterationMilliseconds) /
+                                                   (iterations + 1);
+                        fullIterationTime += perIterationMilliseconds;
+                        iterations++;
+#endif
+                        // Break if 
+                        if (data.Length < _memoryConst)
                         {
-#if DEBUG
-                            double offset = watch.Elapsed.TotalMilliseconds;
-#endif
-                            // Read as many bytes as we allow into the array from the file
-                            byte[] data = inFile.ReadBytes(_memoryConst);
-
-                            // Write it through the cryptostream so it is transformed
-                            cs.Write(data, 0, data.Length);
-
-                            // TODO Change this Try - Throw - Catch to an If - from deprecated method
-                            if (data.Length < _memoryConst)
-                            {
-                                throw new EndOfStreamException();
-                            }
-#if DEBUG
-                            // Debug values
-                            double perIterationMilliseconds = watch.Elapsed.TotalMilliseconds - offset;
-                            avgIterationMilliseconds = (avgIterationMilliseconds * iterations + perIterationMilliseconds) / (iterations + 1);
-                            fullIterationTime += perIterationMilliseconds;
-                            iterations++;
-#endif
+                            break;
                         }
-                        catch (EndOfStreamException)
-                        {
+                    }
+
 #if DEBUG
-                            // Finalize and write debug values
-                            double totalMilliseconds = watch.Elapsed.TotalMilliseconds;
-                            double totalSeconds = totalMilliseconds / 1000;
-                            double perIterationSeconds = avgIterationMilliseconds / 1000,
-                                perIterationMilliseconds = avgIterationMilliseconds;
-                            string[] toWrite =
-                            {
+                    // Finalize and write debug values
+                    double totalMilliseconds = watch.Elapsed.TotalMilliseconds;
+                    double totalSeconds = totalMilliseconds / 1000;
+                    double perIterationSeconds = avgIterationMilliseconds / 1000,
+                        iterationMilliseconds = avgIterationMilliseconds;
+                    string[] toWrite =
+                    {
                                 "Time to encrypt (s):" + totalSeconds,
                                 "Time to encrypt (ms):" + totalMilliseconds,
                                 "Average iteration length (s):" + perIterationSeconds.ToString("0." + new string('#', 339)),
-                                "Average iteration length (ms):" + perIterationMilliseconds.ToString("0." + new string('#', 339)),
+                                "Average iteration length (ms):" + iterationMilliseconds.ToString("0." + new string('#', 339)),
                                 "Time of all iterations, combined (s):" + fullIterationTime / 1000,
                                 "Time of all iterations, combined (ms):" + fullIterationTime,
                                 "Iterations:" + iterations
 
                             };
 
-                            Utils.WriteToDiagnosticsFile(toWrite);
+                    Utils.WriteToDiagnosticsFile(toWrite);
 #endif
-
-                            break;
-                        }
-                    }
                 }
             }
             catch (CryptographicException)  // If something went wrong, we get it here
@@ -273,8 +267,6 @@ namespace CryptoTools
         public void DecryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
         {
 
-            var saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
-
             // Any cryptographic exception indicates the data is invalid or an incorrect password has been inputted
             try
             {
@@ -288,7 +280,7 @@ namespace CryptoTools
                 var fullIterationTime = 0.0D;
                 var avgIterationMilliseconds = 0D;
 #endif
-                
+
 
                 // Set actual IV and key
                 _aes.Key = key;
@@ -300,7 +292,7 @@ namespace CryptoTools
                 using (var inFile = new BinaryReader(File.OpenRead(inputFile))) // BinaryReader is not a stream, but it's only argument is one
                 {
                     // Continuously reads the stream until it hits an EndOfStream exception
-                    while (true) 
+                    while (true)
                     {
                         try
                         {

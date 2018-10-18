@@ -40,7 +40,6 @@ namespace CryptoTools
             }
 
             // Define the length of the header
-            // TODO remove
             HeaderLength = StartChars.Length + json.Length + EndChars.Length;
             type = InfoType.Write;
         }
