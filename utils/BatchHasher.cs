@@ -1,7 +1,7 @@
 using System;
 using System.Security.Cryptography;
 
-namespace PBKDF2Hasher
+namespace utils
 {
     public class BatchHasher
     {

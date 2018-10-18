@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Dynamic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Text;
+using Microsoft.VisualBasic.Devices;
 using utils;
 using static System.Diagnostics.Stopwatch;
 
@@ -9,97 +13,158 @@ namespace CryptoTools
 {
     public class AesCryptoManager
     {
-        /// <summary>
-        /// Encrypts data from one file to another using AES
-        /// </summary>
-        /// <param name="inputFile">The file path to the unencrypted data</param>
-        /// <param name="outputFile">The file path to output the encrypted data to</param>
-        /// <param name="keyBytes">The bytes of the key</param>
-        /// <returns>true if successful, else false</returns>
-        public bool EncryptFileBytes(string inputFile, string outputFile, byte[] keyBytes)
+        // The aes object used for transformation
+        private readonly Aes _aes;
+
+        // How many bytes read into memory per chunk - calculated by constructor
+        private readonly int _memoryConst;
+
+        // Whether the current aes object is FIPS 140-2 compliant
+        public bool IsFipsCompliant { get; }
+
+        public AesCryptoManager()
         {
+            // Default memory - TODO Calculate to higher numbers if possible
+            _memoryConst = 1024 * 1024;
 
-            var saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+            // As the default aes transformation object is AesCng which is FIPS compliant
+            IsFipsCompliant = true;
 
-            // Any cryptographic exception indicates the data is invalid or an incorrect password has been inputted
-            try
+            // Create the aes object
+            // TODO Customized field values
+            _aes = new AesCng
             {
+                BlockSize = 128,
+                KeySize = 256,
+                Mode = CipherMode.CBC,
+                Padding = PaddingMode.PKCS7
+            };
+        }
 
-                // Creates the instance used to encrypt. This implements IDisposable so is inside a using statement
-                using (var aes = new AesCryptoServiceProvider())
+        public AesCryptoManager(int memoryConst)
+        {
+            // Check if that much memory can be assigned
+            if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
+            {
+                throw new ArgumentException("Not enough memory to use that chunking size");
+            }
+
+            // Assign to class field
+            _memoryConst = memoryConst;
+
+            // Create the aes object
+            // TODO Customized field values
+            _aes = new AesCng
+            {
+                BlockSize = 128,
+                KeySize = 256,
+                Mode = CipherMode.CBC,
+                Padding = PaddingMode.PKCS7
+            };
+        }
+
+        public AesCryptoManager(Aes aes)
+        {
+            // Default memory - TODO Calculate to higher numbers if possible
+            _memoryConst = 1024 * 1024;
+
+            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
+            if (aes is AesCng || aes is AesCryptoServiceProvider)
+            {
+                IsFipsCompliant = true;
+            }
+            else
+            {
+                IsFipsCompliant = false;
+            }
+
+            // Assign the aes object
+            // TODO verify integrity of argument
+            _aes = aes;
+        }
+
+        public AesCryptoManager(int memoryConst, Aes aes)
+        {
+            // Check if that much memory can be assigned
+            if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
+            {
+                throw new ArgumentException("Not enough memory to use that chunking size");
+            }
+
+            // Assign to class field
+            _memoryConst = memoryConst;
+
+            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
+            if (aes is AesCng || aes is AesCryptoServiceProvider)
+            {
+                IsFipsCompliant = true;
+            }
+            else
+            {
+                IsFipsCompliant = false;
+            }
+
+            // Assign the aes object
+            // TODO verify integrity of argument
+            _aes = aes;
+        }
+
+        ~AesCryptoManager()
+        {
+            // All aes classes implement IDispose so we must dispose of it
+            _aes.Dispose();
+        }
+
+        /// <summary>
+        /// Generates a secure value in bytes
+        /// </summary>
+        /// <param name="sizeInBytes">Size, in bytes</param>
+        /// <returns>A byte array that is the key</returns>
+        public static byte[] GenerateSecureValue(uint sizeInBytes)
+        {
+            var key = new byte[sizeInBytes];
+            var rng = new RNGCryptoServiceProvider();
+            rng.GetBytes(key);
+            return key;
+        }
+
+        /// <summary>
+        /// Creates a random salt of 32 bytes
+        /// </summary>
+        /// <returns></returns>
+        private static byte[] GenerateRandomSalt()
+        {
+            var data = new byte[32];
+
+            using (var rng = new RNGCryptoServiceProvider())
+            {
+                for (var i = 0; i < 10; i++)
                 {
-
-                    // AESManaged properties
-                    aes.KeySize = 256;
-                    aes.BlockSize = 128;
-                    aes.Padding = PaddingMode.PKCS7;
-                    aes.Mode = CipherMode.CBC;
-
-#if DEBUG
-                    // Debug values
-                    if (!Stopwatch.IsHighResolution) { throw new Exception("You don't have a high-res sysclock"); }
-                    var iterations = 0L;
-                    var fullIterationTime = 0.0D;
-                    var watch = StartNew();
-                    var avgIterationMilliseconds = 0D;
-#endif
-
-                    // Derives a key using PBKDF2 from the password and a salt
-                    var key = new Rfc2898DeriveBytes(keyBytes, saltBytes, 100000);
-
-                    // Set actual IV and key
-                    aes.Key = key.GetBytes(aes.KeySize / 8);
-                    aes.IV = key.GetBytes(aes.BlockSize / 8);
-
-                    // Creates the streams necessary for reading and writing data
-                    using (var outFileStream = File.Create(outputFile))
-                    using (var cs = new CryptoStream(outFileStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
-                    using (var inFile = new BinaryReader(File.OpenRead(inputFile))) // BinaryReader is not a stream, but it's only argument is one
-                    {
-                        // Continuously reads the stream until it hits an EndOfStream exception
-                        while (true)
-                        {
-                            try
-                            {
-#if DEBUG
-                                var offset = watch.Elapsed.TotalMilliseconds;
-#endif
-                                var data = inFile.ReadByte();
-                                cs.WriteByte(data);
-#if DEBUG
-                                var perIterationMilliseconds = watch.Elapsed.TotalMilliseconds - offset;
-                                avgIterationMilliseconds = (avgIterationMilliseconds * iterations + perIterationMilliseconds) / (iterations + 1);
-                                fullIterationTime += perIterationMilliseconds;
-                                iterations++;
-#endif
-                            }
-                            catch (EndOfStreamException)
-                            {
-#if DEBUG
-                                var totalMilliseconds = watch.Elapsed.TotalMilliseconds;
-                                var totalSeconds = totalMilliseconds / 1000;
-                                double perIterationSeconds = avgIterationMilliseconds / 1000,
-                                    perIterationMilliseconds = avgIterationMilliseconds;
-                                var toWrite = new[] {"Time to encrypt (s):" + totalSeconds, "Time to encrypt (ms):" + totalMilliseconds,
-                                    "Average iteration length (s):" + perIterationSeconds.ToString("0." + new string('#', 339)), "Average iteration length (ms):" + perIterationMilliseconds.ToString("0." + new string('#', 339)),
-                                    "Time of all iterations, combined (s):" + fullIterationTime / 1000, "Time of all iterations, combined (ms):" + fullIterationTime,
-                                    "Iterations:" + iterations};
-
-                                Utils.WriteToDiagnosticsFile(toWrite);
-#endif
-
-                                break;
-                            }
-                        }
-                    }
+                    rng.GetBytes(data);
                 }
             }
-            catch (CryptographicException)  // If something went wrong, we get it here
+
+            return data;
+        }
+
+        /// <summary>
+        /// Generates a secure value in bits
+        /// </summary>
+        /// <param name="sizeInBits">Size in bits</param>
+        /// <returns>A byte array that is the key</returns>
+        public static byte[] GenerateSecureValueBits(uint sizeInBits)
+        {
+            if (sizeInBits % 8 != 0)
             {
-                return false;
+                throw new ArgumentException("Size must be wholly divisible by 8");
             }
 
-            return true;
+            sizeInBits /= 8;
+
+            var key = new byte[sizeInBits];
+            var rng = new RNGCryptoServiceProvider();
+            rng.GetBytes(key);
+            return key;
         }
 
         /// <summary>
@@ -107,92 +172,184 @@ namespace CryptoTools
         /// </summary>
         /// <param name="inputFile">The file path to the unencrypted data</param>
         /// <param name="outputFile">The file path to output the encrypted data to</param>
-        /// <param name="keyBytes">The bytes of the key</param>
+        /// <param name="key">The key bytes</param>
+        /// <param name="iv">The initialization vector</param>
         /// <returns>true if successful, else false</returns>
-        public bool DecryptFileBytes(string inputFile, string outputFile, byte[] keyBytes)
+        public void EncryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
         {
+            // Any cryptographic exception indicates the data is invalid or an incorrect password has been inputted
+            try
+            {
 
-            var saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+#if DEBUG
+                // Debug values
+                if (!IsHighResolution) { throw new ExternalException("You don't have a high-res sysclock"); }
+                Stopwatch watch = StartNew();
+
+                var iterations = 0L;
+                var fullIterationTime = 0.0D;
+                var avgIterationMilliseconds = 0.0D;
+#endif
+
+                // Set actual IV and key
+                _aes.Key = key;
+                _aes.IV = iv;
+
+                // Creates the streams necessary for reading and writing data
+                using (var outFileStream = new FileStream(outputFile, FileMode.Create))
+                using (var cs = new CryptoStream(outFileStream, _aes.CreateEncryptor(), CryptoStreamMode.Write))
+                using (var inFile = new BinaryReader(File.OpenRead(inputFile))) // BinaryReader is not a stream, but it's only argument is one
+                {
+                    // Continuously reads the stream until it hits an EndOfStream exception
+                    while (true)
+                    {
+
+#if DEBUG
+                        double offset = watch.Elapsed.TotalMilliseconds;
+#endif
+                        // Read as many bytes as we allow into the array from the file
+                        byte[] data = inFile.ReadBytes(_memoryConst);
+
+                        // Write it through the cryptostream so it is transformed
+                        cs.Write(data, 0, data.Length);
+#if DEBUG
+                        // Debug values
+                        double perIterationMilliseconds = watch.Elapsed.TotalMilliseconds - offset;
+                        avgIterationMilliseconds = (avgIterationMilliseconds * iterations + perIterationMilliseconds) /
+                                                   (iterations + 1);
+                        fullIterationTime += perIterationMilliseconds;
+                        iterations++;
+#endif
+                        // Break if 
+                        if (data.Length < _memoryConst)
+                        {
+                            break;
+                        }
+                    }
+
+#if DEBUG
+                    // Finalize and write debug values
+                    double totalMilliseconds = watch.Elapsed.TotalMilliseconds;
+                    double totalSeconds = totalMilliseconds / 1000;
+                    double perIterationSeconds = avgIterationMilliseconds / 1000,
+                        iterationMilliseconds = avgIterationMilliseconds;
+                    string[] toWrite =
+                    {
+                                "Time to encrypt (s):" + totalSeconds,
+                                "Time to encrypt (ms):" + totalMilliseconds,
+                                "Average iteration length (s):" + perIterationSeconds.ToString("0." + new string('#', 339)),
+                                "Average iteration length (ms):" + iterationMilliseconds.ToString("0." + new string('#', 339)),
+                                "Time of all iterations, combined (s):" + fullIterationTime / 1000,
+                                "Time of all iterations, combined (ms):" + fullIterationTime,
+                                "Iterations:" + iterations
+
+                            };
+
+                    Utils.WriteToDiagnosticsFile(toWrite);
+#endif
+                }
+            }
+            catch (CryptographicException)  // If something went wrong, we get it here
+            {
+                _aes.Dispose();
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Encrypts data from one file to another using AES
+        /// </summary>
+        /// <param name="inputFile">The file path to the unencrypted data</param>
+        /// <param name="outputFile">The file path to output the encrypted data to</param>
+        /// <param name="key">The key bytes</param>
+        /// <param name="iv">The initialization vector</param>
+        /// <returns>true if successful, else false</returns>
+        public void DecryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
+        {
 
             // Any cryptographic exception indicates the data is invalid or an incorrect password has been inputted
             try
             {
 
-                // Creates the instance used to decrypt. This implements IDisposable so is inside a using statement
-                using (var aes = new AesCryptoServiceProvider())
+#if DEBUG
+                // Debug values
+                if (!IsHighResolution) { throw new Exception("You don't have a high-res sysclock"); }
+                Stopwatch watch = StartNew();
+
+                var iterations = 0L;
+                var fullIterationTime = 0.0D;
+                var avgIterationMilliseconds = 0D;
+#endif
+
+
+                // Set actual IV and key
+                _aes.Key = key;
+                _aes.IV = iv;
+
+                // Creates the streams necessary for reading and writing data
+                using (FileStream outFileStream = File.Create(outputFile))
+                using (var cs = new CryptoStream(outFileStream, _aes.CreateDecryptor(), CryptoStreamMode.Write))
+                using (var inFile = new BinaryReader(File.OpenRead(inputFile))) // BinaryReader is not a stream, but it's only argument is one
                 {
-
-                    // AESManaged properties
-                    aes.KeySize = 256;
-                    aes.BlockSize = 128;
-                    aes.Padding = PaddingMode.PKCS7;
-                    aes.Mode = CipherMode.CBC;
-
-#if DEBUG
-                    // Debug values
-                    if (!Stopwatch.IsHighResolution) { throw new Exception("You don't have a high-res sysclock"); }
-                    var iterations = 0L;
-                    var fullIterationTime = 0.0D;
-                    var watch = StartNew();
-                    var avgIterationMilliseconds = 0D;
-#endif
-
-                    // Derives a key using PBKDF2 from the password and a salt
-                    var key = new Rfc2898DeriveBytes(keyBytes, saltBytes, 100000);
-
-                    // Set actual IV and key
-                    aes.Key = key.GetBytes(aes.KeySize / 8);
-                    aes.IV = key.GetBytes(aes.BlockSize / 8);
-
-                    // Creates the streams necessary for reading and writing data
-                    using (var outFileStream = File.Create(outputFile))
-                    using (var cs = new CryptoStream(outFileStream, aes.CreateDecryptor(), CryptoStreamMode.Write))
-                    using (var inFile = new BinaryReader(File.OpenRead(inputFile))) // BinaryReader is not a stream, but it's only argument is one
+                    // Continuously reads the stream until it hits an EndOfStream exception
+                    while (true)
                     {
-                        // Continuously reads the stream until it hits an EndOfStream exception
-                        while (true)
+                        try
                         {
-                            try
-                            {
 #if DEBUG
-                                var offset = watch.Elapsed.TotalMilliseconds;
+                            double offset = watch.Elapsed.TotalMilliseconds;
 #endif
-                                var data = inFile.ReadByte();
-                                cs.WriteByte(data);
-#if DEBUG
-                                var perIterationMilliseconds = watch.Elapsed.TotalMilliseconds - offset;
-                                avgIterationMilliseconds = (avgIterationMilliseconds * iterations + perIterationMilliseconds) / (iterations + 1);
-                                fullIterationTime += perIterationMilliseconds;
-                                iterations++;
-#endif
-                            }
-                            catch (EndOfStreamException)
-                            {
-#if DEBUG
-                                var totalMilliseconds = watch.Elapsed.TotalMilliseconds;
-                                var totalSeconds = totalMilliseconds / 1000;
-                                double perIterationSeconds = avgIterationMilliseconds / 1000,
-                                    perIterationMilliseconds = avgIterationMilliseconds;
-                                var toWrite = new[] {"Time to encrypt (s):" + totalSeconds, "Time to encrypt (ms):" + totalMilliseconds,
-                                    "Average iteration length (s):" + perIterationSeconds.ToString("0." + new string('#', 339)), "Average iteration length (ms):" + perIterationMilliseconds.ToString("0." + new string('#', 339)),
-                                    "Time of all iterations, combined (s):" + fullIterationTime / 1000, "Time of all iterations, combined (ms):" + fullIterationTime,
-                                    "Iterations:" + iterations};
+                            // Read as many bytes as we allow into the array from the file
+                            byte[] data = inFile.ReadBytes(_memoryConst);
 
-                                Utils.WriteToDiagnosticsFile(toWrite);
-#endif
+                            // Write it through the cryptostream so it is transformed
+                            cs.Write(data, 0, data.Length);
 
-                                break;
+                            // TODO Change this Try - Throw - Catch to an If - from deprecated method
+                            if (data.Length < _memoryConst)
+                            {
+                                throw new EndOfStreamException();
                             }
+#if DEBUG
+                            // Debug values
+                            double perIterationMilliseconds = watch.Elapsed.TotalMilliseconds - offset;
+                            avgIterationMilliseconds = (avgIterationMilliseconds * iterations + perIterationMilliseconds) / (iterations + 1);
+                            fullIterationTime += perIterationMilliseconds;
+                            iterations++;
+#endif
+                        }
+                        catch (EndOfStreamException)
+                        {
+#if DEBUG
+                            // Finalize and write debug values
+                            double totalMilliseconds = watch.Elapsed.TotalMilliseconds;
+                            double totalSeconds = totalMilliseconds / 1000;
+                            double perIterationSeconds = avgIterationMilliseconds / 1000,
+                                perIterationMilliseconds = avgIterationMilliseconds;
+                            string[] toWrite =
+                            {
+                                "Time to decrypt (s):" + totalSeconds,
+                                "Time to decrypt (ms):" + totalMilliseconds,
+                                "Average iteration length (s):" + perIterationSeconds.ToString("0." + new string('#', 339)),
+                                "Average iteration length (ms):" + perIterationMilliseconds.ToString("0." + new string('#', 339)),
+                                "Time of all iterations, combined (s):" + fullIterationTime / 1000,
+                                "Time of all iterations, combined (ms):" + fullIterationTime,
+                                "Iterations:" + iterations
+                            };
+
+                            Utils.WriteToDiagnosticsFile(toWrite);
+#endif
+                            break;
                         }
                     }
                 }
+
             }
             catch (CryptographicException)  // If something went wrong, we get it here
             {
-                return false;
+                _aes.Dispose();
+                throw;
             }
-
-            return true;
         }
     }
 }
