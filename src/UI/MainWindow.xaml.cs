@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
@@ -14,6 +15,7 @@ namespace Encryption_App.UI
     /// </summary>
     public partial class MainWindow
     {
+        private const string TempFile = "tempdatafile.dat";
         private readonly List<string> _dropDownItems = new List<string> { "Choose Option...", "Encrypt a file", "Encrypt a file for sending to someone" };
 
         public MainWindow()
@@ -40,7 +42,7 @@ namespace Encryption_App.UI
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyComputer)
             };
 
-            var result = openFileDialog.ShowDialog();
+            bool? result = openFileDialog.ShowDialog();
 
             if (result == true)
             {
@@ -50,7 +52,7 @@ namespace Encryption_App.UI
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyComputer)
             };
@@ -65,33 +67,117 @@ namespace Encryption_App.UI
 
         private void Encrypt_Click(object sender, RoutedEventArgs e)
         {
-            var pwd = InpTxtBox.Text;
-            var tempFilePath = FileTxtBox.Text;
-            Console.WriteLine(Path.GetTempPath() + "tempdata.ini");
-            var encrypt = new AesCryptoManager();
-            encrypt.EncryptFileBytes(tempFilePath, Path.GetTempPath() + "tempdata.ini", Encoding.UTF8.GetBytes(pwd));
-            File.Copy(Path.GetTempPath() + "tempdata.ini", tempFilePath, true);
+            var salt = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
+            string pwd = InpTxtBox.Text;
+            string filePath = FileTxtBox.Text;
+
+            var encrypt = new AesCryptoManager();
+            var keyDevice = new Rfc2898DeriveBytes(pwd, salt, 10000);
+            var data = new AesCryptographicInfo
+            {
+                InitializationVector = salt,
+                Salt = salt,
+
+                Hmac = new Hmac
+                {
+                    _hashAlgorithm = nameof(HMACSHA384),
+                    _iterations = 1
+                },
+
+                PwdCreator = new PasswordCreator
+                {
+                    hashAlgorithm = nameof(keyDevice),
+                    iterations = 10000
+                },
+
+                EncryptionModeInfo = new EncryptionModeInfo
+                {
+                    _algorithm_root = nameof(AesCng),
+                    _keySize = 256,
+                    _blockSize = 128,
+                    _mode = CipherMode.CBC
+                }
+            };
+            var hmac = new MessageAuthenticator();
+
+            byte[] key = keyDevice.GetBytes(256 / 8);
+
+            encrypt.EncryptFileBytes(filePath, Path.GetTempPath() + "tempdata.ini", key, salt);
+
+            byte[] signature = hmac.CreateHmac(Path.GetTempPath() + "tempdata.ini", key);
+            data.Hmac._hash_root = signature;
+
+            data.WriteHeaderToFile(filePath);
+
+            using (var reader = new BinaryReader(File.OpenRead(Path.GetTempPath() + "tempdata.ini")))
+            using (var writer = new BinaryWriter(new FileStream(filePath, FileMode.Append)))
+            {
+                while (true)
+                {
+                    var buff = new byte[1024 * 1024 * 1024];
+                    int read = reader.Read(buff, 0, buff.Length);
+                    writer.Write(buff, 0, read);
+
+                    if (read < buff.Length)
+                    {
+                        break;
+                    }
+                }
+            }
         }
 
         private void Decrypt_Click(object sender, RoutedEventArgs e)
         {
-            var pwd = PwdTxtBox.Text;
-            var outFilePath = DecryptFileLocBox.Text;
-            var decryptor = new AesCryptoManager();
+            string pwd = PwdTxtBox.Text;
+            string outFilePath = DecryptFileLocBox.Text;
+
+            var decrypt = new AesCryptoManager();
+            var data = new AesCryptographicInfo();
+            var hmac = new MessageAuthenticator();
+
+            var salt = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
+
+            var keyDevice = new Rfc2898DeriveBytes(pwd, salt, 10000);
+            byte[] key = keyDevice.GetBytes(256 / 8);
+
+            // TODO
+
+            data = (AesCryptographicInfo)data.ReadHeaderFromFile(outFilePath);
+
+            long headerLength = CryptographicInfo.HeaderLength;
+
+            using (var modifyStream = new FileStream(outFilePath, FileMode.Open))
+            using (var tempWriteStream = new FileStream(Path.GetTempPath() + TempFile, FileMode.Create))
+            {
+                var dataBytes = new byte[1024 * 1024 * 1024];
+                modifyStream.Seek(CryptographicInfo.HeaderLength, SeekOrigin.Begin);
+
+                while (true)
+                {
+                    int read = modifyStream.Read(dataBytes, 0, dataBytes.Length);
+                    tempWriteStream.Write(dataBytes, 0, read);
+                    Console.WriteLine(Encoding.UTF8.GetString(dataBytes.Take(read).ToArray()));
+
+                    if (read < dataBytes.Length)
+                    {
+                        break;
+                    }
+                }
+            }
+
             try
             {
-                decryptor.DecryptFileBytes(outFilePath, Path.GetTempPath() + "tempdata.ini",
-                    Encoding.UTF8.GetBytes(pwd));
+                decrypt.DecryptFileBytes(Path.GetTempPath() + TempFile, Path.GetTempPath() + "tempdata.ini", key, salt);
 
                 MessageBox.Show("Successfully Decrypted");
+
+                File.Copy(Path.GetTempPath() + "tempdata.ini", outFilePath, true);
             }
             catch (CryptographicException)
             {
                 MessageBox.Show("Wrong password or corrupted file");
             }
-            
-            File.Copy(Path.GetTempPath() + "tempdata.ini", outFilePath, true);
         }
     }
 }
