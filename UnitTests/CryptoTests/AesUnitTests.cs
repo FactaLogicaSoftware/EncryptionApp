@@ -100,9 +100,9 @@ namespace UnitTests.CryptoTests
             var currentInfo = new AesCryptographicInfo
             {
                 InitializationVector = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 },
-                EncryptionModeInfo = new EncryptionModeInfo { _algorithm_root = "AES", _keySize = 256, _blockSize = 128, _mode = CipherMode.CBC },
-                PwdCreator = new PasswordCreator { hashAlgorithm = nameof(Rfc2898DeriveBytes), iterations = 10000 },
-                Hmac = new Hmac { _hash_root = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, _hashAlgorithm = nameof(HMACSHA384), _iterations = 1 },
+                EncryptionModeInfo = new EncryptionModeInfo { root_Algorithm = "AES", KeySize = 256, _blockSize = 128, Mode = CipherMode.CBC },
+                PwdCreator = new KeyCreator { root_HashAlgorithm = nameof(Rfc2898DeriveBytes), Iterations = 10000 },
+                Hmac = new Hmac { root_Hash = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, HashAlgorithm = nameof(HMACSHA384), Iterations = 1 },
                 Salt = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }
             };
 
