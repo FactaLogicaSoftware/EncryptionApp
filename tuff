@@ -1,0 +1,202 @@
+[1mdiff --git a/.gitignore b/.gitignore[m
+[1mindex c96c3d4..3e759b7 100644[m
+[1m--- a/.gitignore[m
+[1m+++ b/.gitignore[m
+[36m@@ -328,7 +328,3 @@[m [mASALocalRun/[m
+ [m
+ # MFractors (Xamarin productivity tool) working folder [m
+ .mfractor/[m
+[31m-[m
+[31m-# Specific unit test images[m
+[31m-UnitTests\Resources\EncryptedLargeImage.png[m
+[31m-UnitTests\Resources\DecryptedLargeImage.png[m
+\ No newline at end of file[m
+[1mdiff --git a/CODEOWNERS b/CODEOWNERS[m
+[1mdeleted file mode 100644[m
+[1mindex 6182f48..0000000[m
+[1m--- a/CODEOWNERS[m
+[1m+++ /dev/null[m
+[36m@@ -1,12 +0,0 @@[m
+[31m-# Lines starting with '#' are comments.[m
+[31m-# Each line is a file pattern followed by one or more owners.[m
+[31m-[m
+[31m-# Defualt owner[m
+[31m-* @johnkellyoxford[m
+[31m-[m
+[31m-# File endings owner[m
+[31m-*.xaml @NightRaven3142[m
+[31m-*.xaml.cs @NightRaven3142 @nathanmc158 @johnkellyoxford[m
+[31m-*.md @NightRaven3142 @nathanmc158 @johnkellyoxford[m
+[31m-[m
+[31m-# You can also use email addresses if you prefer.[m
+[1mdiff --git a/CONTRIBUTING.md b/CONTRIBUTING.md[m
+[1mdeleted file mode 100644[m
+[1mindex 20dd114..0000000[m
+[1m--- a/CONTRIBUTING.md[m
+[1m+++ /dev/null[m
+[36m@@ -1,20 +0,0 @@[m
+[31m-# EncryptorApp[m
+[31m-[m
+[31m-[![Build Status](https://dev.azure.com/johnkellyoxford/EncryptionApp/_apis/build/status/EncryptionApp-.NET%20Desktop-CI)](https://dev.azure.com/johnkellyoxford/EncryptionApp/_build/latest?definitionId=1) [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)[m
+[31m-[m
+[31m-## Documentation:[m
+[31m-[m
+[31m-## Directories[m
+[31m-* `src` contains UI and logic. It is the `.exe`[m
+[31m-* `CryptoTools` contains the encryption tools. It is a `.dll` that can be used by other applications[m
+[31m-* `utils` contains mixed utilites[m
+[31m-* `UnitTests` are the tests for `src` and `CryptoTools`[m
+[31m-[m
+[31m-## Branches[m
+[31m-* `master` is the branch the current stable release is built off[m
+[31m-* `release` is beta/nightly versions in testing[m
+[31m-* `dev` is working prototypes and for the majority of work[m
+[31m-* `experimental` is for large changes that may not be functional[m
+[31m-* `hotfix` is for quick changes to push to `master` or `release`[m
+[31m-[m
+[31m-**Please use forks for your own work, and PR to the applicable branch**[m
+[1mdiff --git a/CryptoTools/AesCryptoManager.cs b/CryptoTools/AesCryptoManager.cs[m
+[1mdeleted file mode 100644[m
+[1mindex f4b2342..0000000[m
+[1m--- a/CryptoTools/AesCryptoManager.cs[m
+[1m+++ /dev/null[m
+[36m@@ -1,355 +0,0 @@[m
+[31m-﻿using System;[m
+[31m-using System.Diagnostics;[m
+[31m-using System.Dynamic;[m
+[31m-using System.IO;[m
+[31m-using System.Runtime.InteropServices;[m
+[31m-using System.Security.Cryptography;[m
+[31m-using System.Text;[m
+[31m-using Microsoft.VisualBasic.Devices;[m
+[31m-using utils;[m
+[31m-using static System.Diagnostics.Stopwatch;[m
+[31m-[m
+[31m-namespace CryptoTools[m
+[31m-{[m
+[31m-    public class AesCryptoManager[m
+[31m-    {[m
+[31m-        // The aes object used for transformation[m
+[31m-        private readonly Aes _aes;[m
+[31m-[m
+[31m-        // How many bytes read into memory per chunk - calculated by constructor[m
+[31m-        private readonly int _memoryConst;[m
+[31m-[m
+[31m-        // Whether the current aes object is FIPS 140-2 compliant[m
+[31m-        public bool IsFipsCompliant { get; }[m
+[31m-[m
+[31m-        public AesCryptoManager()[m
+[31m-        {[m
+[31m-            // Default memory - TODO Calculate to higher numbers if possible[m
+[31m-            _memoryConst = 1024 * 1024;[m
+[31m-[m
+[31m-            // As the default aes transformation object is AesCng which is FIPS compliant[m
+[31m-            IsFipsCompliant = true;[m
+[31m-[m
+[31m-            // Create the aes object[m
+[31m-            // TODO Customized field values[m
+[31m-            _aes = new AesCng[m
+[31m-            {[m
+[31m-                BlockSize = 128,[m
+[31m-                KeySize = 256,[m
+[31m-                Mode = CipherMode.CBC,[m
+[31m-                Padding = PaddingMode.PKCS7[m
+[31m-            };[m
+[31m-        }[m
+[31m-[m
+[31m-        public AesCryptoManager(int memoryConst)[m
+[31m-        {[m
+[31m-            // Check if that much memory can be assigned[m
+[31m-            if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)[m
+[31m-            {[m
+[31m-                throw new ArgumentException("Not enough memory to use that chunking size");[m
+[31m-            }[m
+[31m-[m
+[31m-            // Assign to class field[m
+[31m-            _memoryConst = memoryConst;[m
+[31m-[m
+[31m-            // Create the aes object[m
+[31m-            // TODO Customized field values[m
+[31m-            _aes = new AesCng[m
+[31m-            {[m
+[31m-                BlockSize = 128,[m
+[31m-                KeySize = 256,[m
+[31m-                Mode = CipherMode.CBC,[m
+[31m-                Padding = PaddingMode.PKCS7[m
+[31m-            };[m
+[31m-        }[m
+[31m-[m
+[31m-        public AesCryptoManager(Aes aes)[m
+[31m-        {[m
+[31m-            // Default memory - TODO Calculate to higher numbers if possible[m
+[31m-            _memoryConst = 1024 * 1024;[m
+[31m-[m
+[31m-            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint[m
+[31m-            if (aes is AesCng || aes is AesCryptoServiceProvider)[m
+[31m-            {[m
+[31m-                IsFipsCompliant = true;[m
+[31m-            }[m
+[31m-            else[m
+[31m-            {[m
+[31m-                IsFipsCompliant = false;[m
+[31m-            }[m
+[31m-[m
+[31m-            // Assign the aes object[m
+[31m-            // TODO verify integrity of argument[m
+[31m-            _aes = aes;[m
+[31m-        }[m
+[31m-[m
+[31m-        public AesCryptoManager(int memoryConst, Aes aes)[m
+[31m-        {[m
+[31m-            // Check if that much memory can be assigned[m
+[31m-            if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)[m
+[31m-            {[m
+[31m-                throw new ArgumentException("Not enough memory to use that chunking size");[m
+[31m-            }[m
+[31m-[m
+[31m-            // Assign to class field[m
+[31m-            _memoryConst = memoryConst;[m
+[31m-[m
+[31m-            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint[m
+[31m-            if (aes is AesCng || aes is AesCryptoServiceProvider)[m
+[31m-            {[m
+[31m-                IsFipsCompliant = true;[m
+[31m-            }[m
+[31m-            else[m
+[31m-            {[m
+[31m-                IsFipsCompliant = false;[m
+[31m-            }[m
+[31m-[m
+[31m-            // Assign the aes object[m
+[31m-            // TODO verify integrity of argument[m
+[31m-            _aes = aes;[m
+[31m-        }[m
+[31m-[m
+[31m-        ~AesCryptoManager()[m
+[31m-        {[m
+[31m-            // All aes classes implement IDispose so we must dispose of it[m
+[31m-            _aes.Dispose();[m
+[31m-        }[m
+[31m-[m
+[31m-        /// <summary>[m
+[31m-        /// Generates a secure value in bytes[m
+[31m-        /// </summary>[m
+[31m-        /// <param name="sizeInBytes">Size, in bytes</param>[m
+[31m-        /// <returns>A byte array that is the key</returns>[m
+[31m-        public static byte[] GenerateSecureValue(uint sizeInBytes)[m
+[31m-        {[m
+[31m-            var key = new byte[sizeInBytes];[m
+[31m-            var rng = new RNGCryptoServiceProvider();[m
+[31m-            rng.GetBytes(key);[m
+[31m-            return key;[m
+[31m-        }[m
+[31m-[m
+[31m-        /// <summary>[m
+[31m-        /// Creates a random salt of 32 bytes[m
+[31m-        /// </summary>[m
+[31m-        /// <returns></returns>[m
+[31m-        private static byte[] GenerateRandomSalt()[m
+[31m-        {[m
+[31m-            var data = new byte[32];[m
+[31m-[m
+[31m-            using (var rng = new RNGCryptoServiceProvide
