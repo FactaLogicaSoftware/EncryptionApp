@@ -28,27 +28,18 @@ namespace CryptoTools
 
             return hashKey;
         }
-        
+
         /// <summary>
         /// Signs a encrypted file and key with a hash algorithm of your choosing. Do not try and verify this yourself, use the VerifyHMAC() func
         /// </summary>
         /// <param name="data">A byte[] of the encrypted message data</param>
         /// <param name="key">A byte[] of the key</param>
-        /// <param name="typeOfHash">typeof() any derivative of the System.Security.Cryptography.HMAC class</param>
+        /// <param name="hmac">The HMAC algorithm to use</param>
         /// <returns>A byte[] hash that is the file and key hashed</returns>
-        public byte[] CreateHmac(byte[] data, byte[] key, Type typeOfHash)
+        public byte[] CreateHmac(byte[] data, byte[] key, HMAC hmac)
         {
-            HMAC hmac;
-            if (typeOfHash.IsSubclassOf(typeof(HMAC)))
-            {
-                hmac = (HMAC)Activator.CreateInstance(typeOfHash, key);
-            }
-            else
-            {
-                throw new ArgumentException("TypeOfHash is not a derivative of \"System.Security.Cryptography.HMAC\"");
-            }
-
             byte[] hashKey;
+            hmac.Key = key;
 
             using (hmac)
             {
@@ -82,21 +73,12 @@ namespace CryptoTools
         /// </summary>
         /// <param name="path">A path to the file with the encrypted data</param>
         /// <param name="key">A byte[] of the key</param>
-        /// <param name="typeOfHash">typeof() any derivative of the System.Security.Cryptography.HMAC class</param>
+        /// <param name="hmac">The HMAC algorithm to use</param>
         /// <returns>A byte[] hash that is the file and key hashed</returns>
-        public byte[] CreateHmac(string path, byte[] key, Type typeOfHash)
+        public byte[] CreateHmac(string path, byte[] key, HMAC hmac)
         {
-            HMAC hmac;
-            if (typeOfHash.IsSubclassOf(typeof(HMAC)))
-            {
-                hmac = (HMAC)Activator.CreateInstance(typeOfHash, key);
-            }
-            else
-            {
-                throw new ArgumentException("TypeOfHash is not a derivative of \"System.Security.Cryptography.HMAC\"");
-            }
-
             byte[] hashKey;
+            hmac.Key = key;
 
             using (var fHandle = new FileStream(path, FileMode.Open))
             using (hmac)
@@ -133,28 +115,19 @@ namespace CryptoTools
         /// <param name="data">A byte[] of encrypted message data</param>
         /// <param name="key">A byte[] of the key</param>
         /// <param name="hash">The hash in the header file/the hash provided, that's been hashed with typeOfHash</param>
-        /// <param name="typeOfHash">typeof() the hash algorithm you used to create this, derived from System.Security.Cryptography.HMAC</param>
+        /// <param name="hmac">The HMAC algorithm to use</param>
         /// <returns>True if they match, otherwise false</returns>
-        public bool VerifyHmac(byte[] data, byte[] key, IEnumerable<byte> hash, Type typeOfHash)
+        public bool VerifyHmac(byte[] data, byte[] key, IEnumerable<byte> hash, HMAC hmac)
         {
-            HMAC hmac;
-            if (typeOfHash.IsSubclassOf(typeof(HMAC)))
-            {
-                hmac = (HMAC)Activator.CreateInstance(typeOfHash, key);
-            }
-            else
-            {
-                throw new ArgumentException("TypeOfHash is not a derivative of \"System.Security.Cryptography.HMAC\"");
-            }
-
             byte[] hashKey;
+            hmac.Key = key;
 
             using (hmac)
             {
                 hashKey = hmac.ComputeHash(data);
             }
 
-            return hash.SequenceEqual(hashKey);  // returns true if they match
+            return hash.SequenceEqual(hashKey);
         }
 
         /// <summary>
@@ -184,21 +157,12 @@ namespace CryptoTools
         /// <param name="path">A path to the file with the encrypted data</param>
         /// <param name="key">A byte[] of the key</param>
         /// <param name="hash">The hash in the header file/the hash provided, that's been hashed with typeOfHash</param>
-        /// <param name="typeOfHash">typeof() the hash algorithm you used to create this, derived from System.Security.Cryptography.HMAC</param>
+        /// <param name="hmac">The HMAC algorithm to use</param>
         /// <returns>True if they match, otherwise false</returns>
-        public bool VerifyHmac(string path, byte[] key, IEnumerable<byte> hash, Type typeOfHash)
+        public bool VerifyHmac(string path, byte[] key, IEnumerable<byte> hash, HMAC hmac)
         {
-            HMAC hmac;
-            if (typeOfHash.IsSubclassOf(typeof(HMAC)))
-            {
-                hmac = (HMAC)Activator.CreateInstance(typeOfHash, key);
-            }
-            else
-            {
-                throw new ArgumentException("TypeOfHash is not a derivative of \"System.Security.Cryptography.HMAC\"");
-            }
-
             byte[] hashKey;
+            hmac.Key = key;
 
             using (var fHandle = new FileStream(path, FileMode.Open))
             using (hmac)
@@ -206,7 +170,7 @@ namespace CryptoTools
                 hashKey = hmac.ComputeHash(fHandle);
             }
 
-            return hash.SequenceEqual(hashKey);  // returns true if they match
+            return hash.SequenceEqual(hashKey);
         }
     }
 }
