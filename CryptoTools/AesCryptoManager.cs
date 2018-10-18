@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Dynamic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -12,18 +13,25 @@ namespace CryptoTools
 {
     public class AesCryptoManager
     {
-        private Aes _aes;
+        // The aes object used for transformation
+        private readonly Aes _aes;
 
+        // How many bytes read into memory per chunk - calculated by constructor
         private readonly int _memoryConst;
 
-        public bool IsFipsCompliant { get; set; }
+        // Whether the current aes object is FIPS 140-2 compliant
+        public bool IsFipsCompliant { get; }
 
         public AesCryptoManager()
         {
+            // Default memory - TODO Calculate to higher numbers if possible
             _memoryConst = 1024 * 1024;
 
+            // As the default aes transformation object is AesCng which is FIPS compliant
             IsFipsCompliant = true;
 
+            // Create the aes object
+            // TODO Customized field values
             _aes = new AesCng
             {
                 BlockSize = 128,
@@ -35,13 +43,17 @@ namespace CryptoTools
 
         public AesCryptoManager(int memoryConst)
         {
+            // Check if that much memory can be assigned
             if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
             {
                 throw new ArgumentException("Not enough memory to use that chunking size");
             }
 
+            // Assign to class field
             _memoryConst = memoryConst;
 
+            // Create the aes object
+            // TODO Customized field values
             _aes = new AesCng
             {
                 BlockSize = 128,
@@ -53,8 +65,10 @@ namespace CryptoTools
 
         public AesCryptoManager(Aes aes)
         {
+            // Default memory - TODO Calculate to higher numbers if possible
             _memoryConst = 1024 * 1024;
 
+            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
             if (aes is AesCng || aes is AesCryptoServiceProvider)
             {
                 IsFipsCompliant = true;
@@ -64,18 +78,23 @@ namespace CryptoTools
                 IsFipsCompliant = false;
             }
 
+            // Assign the aes object
+            // TODO verify integrity of argument
             _aes = aes;
         }
 
         public AesCryptoManager(int memoryConst, Aes aes)
         {
+            // Check if that much memory can be assigned
             if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
             {
                 throw new ArgumentException("Not enough memory to use that chunking size");
             }
 
+            // Assign to class field
             _memoryConst = memoryConst;
 
+            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
             if (aes is AesCng || aes is AesCryptoServiceProvider)
             {
                 IsFipsCompliant = true;
@@ -85,11 +104,14 @@ namespace CryptoTools
                 IsFipsCompliant = false;
             }
 
+            // Assign the aes object
+            // TODO verify integrity of argument
             _aes = aes;
         }
 
         ~AesCryptoManager()
         {
+            // All aes classes implement IDispose so we must dispose of it
             _aes.Dispose();
         }
 
@@ -150,7 +172,8 @@ namespace CryptoTools
         /// </summary>
         /// <param name="inputFile">The file path to the unencrypted data</param>
         /// <param name="outputFile">The file path to output the encrypted data to</param>
-        /// <param name="pwdBytes">The bytes of the key</param>
+        /// <param name="key">The key bytes</param>
+        /// <param name="iv">The initialization vector</param>
         /// <returns>true if successful, else false</returns>
         public void EncryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
         {
@@ -185,15 +208,19 @@ namespace CryptoTools
 #if DEBUG
                             double offset = watch.Elapsed.TotalMilliseconds;
 #endif
+                            // Read as many bytes as we allow into the array from the file
                             byte[] data = inFile.ReadBytes(_memoryConst);
 
+                            // Write it through the cryptostream so it is transformed
                             cs.Write(data, 0, data.Length);
 
+                            // TODO Change this Try - Throw - Catch to an If - from deprecated method
                             if (data.Length < _memoryConst)
                             {
                                 throw new EndOfStreamException();
                             }
 #if DEBUG
+                            // Debug values
                             double perIterationMilliseconds = watch.Elapsed.TotalMilliseconds - offset;
                             avgIterationMilliseconds = (avgIterationMilliseconds * iterations + perIterationMilliseconds) / (iterations + 1);
                             fullIterationTime += perIterationMilliseconds;
@@ -203,6 +230,7 @@ namespace CryptoTools
                         catch (EndOfStreamException)
                         {
 #if DEBUG
+                            // Finalize and write debug values
                             double totalMilliseconds = watch.Elapsed.TotalMilliseconds;
                             double totalSeconds = totalMilliseconds / 1000;
                             double perIterationSeconds = avgIterationMilliseconds / 1000,
@@ -239,7 +267,8 @@ namespace CryptoTools
         /// </summary>
         /// <param name="inputFile">The file path to the unencrypted data</param>
         /// <param name="outputFile">The file path to output the encrypted data to</param>
-        /// <param name="pwdBytes">The bytes of the key</param>
+        /// <param name="key">The key bytes</param>
+        /// <param name="iv">The initialization vector</param>
         /// <returns>true if successful, else false</returns>
         public void DecryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
         {
@@ -278,15 +307,19 @@ namespace CryptoTools
 #if DEBUG
                             double offset = watch.Elapsed.TotalMilliseconds;
 #endif
+                            // Read as many bytes as we allow into the array from the file
                             byte[] data = inFile.ReadBytes(_memoryConst);
 
+                            // Write it through the cryptostream so it is transformed
                             cs.Write(data, 0, data.Length);
 
+                            // TODO Change this Try - Throw - Catch to an If - from deprecated method
                             if (data.Length < _memoryConst)
                             {
                                 throw new EndOfStreamException();
                             }
 #if DEBUG
+                            // Debug values
                             double perIterationMilliseconds = watch.Elapsed.TotalMilliseconds - offset;
                             avgIterationMilliseconds = (avgIterationMilliseconds * iterations + perIterationMilliseconds) / (iterations + 1);
                             fullIterationTime += perIterationMilliseconds;
@@ -296,6 +329,7 @@ namespace CryptoTools
                         catch (EndOfStreamException)
                         {
 #if DEBUG
+                            // Finalize and write debug values
                             double totalMilliseconds = watch.Elapsed.TotalMilliseconds;
                             double totalSeconds = totalMilliseconds / 1000;
                             double perIterationSeconds = avgIterationMilliseconds / 1000,

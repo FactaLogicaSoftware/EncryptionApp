@@ -15,7 +15,8 @@ namespace Encryption_App.UI
     /// </summary>
     public partial class MainWindow
     {
-        private const string TempFile = "tempdatafile.dat";
+        private readonly string headerlessTempFile = Path.GetTempPath() + "headerLessConstructionFile.temp";
+        private readonly string dataTempFile = Path.GetTempPath() + "moveFile.temp";
         private readonly List<string> _dropDownItems = new List<string> { "Choose Option...", "Encrypt a file", "Encrypt a file for sending to someone" };
 
         public MainWindow()
@@ -81,40 +82,41 @@ namespace Encryption_App.UI
 
                 Hmac = new Hmac
                 {
-                    _hashAlgorithm = nameof(HMACSHA384),
-                    _iterations = 1
+                    HashAlgorithm = nameof(HMACSHA384),
+                    Iterations = 1
                 },
 
-                PwdCreator = new PasswordCreator
+                PwdCreator = new KeyCreator
                 {
-                    hashAlgorithm = nameof(keyDevice),
-                    iterations = 10000
+                    root_HashAlgorithm = nameof(keyDevice),
+                    Iterations = 10000
                 },
 
                 EncryptionModeInfo = new EncryptionModeInfo
                 {
-                    _algorithm_root = nameof(AesCng),
-                    _keySize = 256,
+                    root_Algorithm = nameof(AesCng),
+                    KeySize = 256,
                     _blockSize = 128,
-                    _mode = CipherMode.CBC
+                    Mode = CipherMode.CBC
                 }
             };
             var hmac = new MessageAuthenticator();
 
             byte[] key = keyDevice.GetBytes(256 / 8);
 
-            encrypt.EncryptFileBytes(filePath, Path.GetTempPath() + "tempdata.ini", key, salt);
+            encrypt.EncryptFileBytes(filePath, dataTempFile, key, data.InitializationVector);
 
-            byte[] signature = hmac.CreateHmac(Path.GetTempPath() + "tempdata.ini", key);
-            data.Hmac._hash_root = signature;
+            byte[] signature = hmac.CreateHmac(dataTempFile, key);
+            data.Hmac.root_Hash = signature;
 
             data.WriteHeaderToFile(filePath);
 
-            using (var reader = new BinaryReader(File.OpenRead(Path.GetTempPath() + "tempdata.ini")))
+            using (var reader = new BinaryReader(File.OpenRead(dataTempFile)))
             using (var writer = new BinaryWriter(new FileStream(filePath, FileMode.Append)))
             {
                 while (true)
                 {
+                    // c
                     var buff = new byte[1024 * 1024 * 1024];
                     int read = reader.Read(buff, 0, buff.Length);
                     writer.Write(buff, 0, read);
@@ -129,36 +131,47 @@ namespace Encryption_App.UI
 
         private void Decrypt_Click(object sender, RoutedEventArgs e)
         {
+            // Get the password and path from the box
             string pwd = PwdTxtBox.Text;
             string outFilePath = DecryptFileLocBox.Text;
 
+            // Create the objects used for encryption and data generation
             var decrypt = new AesCryptoManager();
             var data = new AesCryptographicInfo();
             var hmac = new MessageAuthenticator();
 
-            var salt = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
-
-            var keyDevice = new Rfc2898DeriveBytes(pwd, salt, 10000);
-            byte[] key = keyDevice.GetBytes(256 / 8);
-
-            // TODO
-
+            // Read the header
             data = (AesCryptographicInfo)data.ReadHeaderFromFile(outFilePath);
 
-            long headerLength = CryptographicInfo.HeaderLength;
+            // TODO make random
+            var salt = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
+            // Create the device used to derive the key from the password
+            var keyDevice = new Rfc2898DeriveBytes(pwd, data.Salt, 10000);
+            // Get the key from this device
+            byte[] key = keyDevice.GetBytes(256 / 8);
+
+            // Create the streams used to write the data, minus the header, to a new file
             using (var modifyStream = new FileStream(outFilePath, FileMode.Open))
-            using (var tempWriteStream = new FileStream(Path.GetTempPath() + TempFile, FileMode.Create))
+            using (var tempWriteStream = new FileStream(headerlessTempFile, FileMode.Create))
             {
+                // Create a large array to read into
                 var dataBytes = new byte[1024 * 1024 * 1024];
-                modifyStream.Seek(CryptographicInfo.HeaderLength, SeekOrigin.Begin);
 
+                // Seek to the end of the header
+                modifyStream.Seek(data.HeaderLength, SeekOrigin.Begin);
+
+                // Keep writing until the end (see if statement)
                 while (true)
                 {
+                    // Read as many bytes as possible into the array
                     int read = modifyStream.Read(dataBytes, 0, dataBytes.Length);
-                    tempWriteStream.Write(dataBytes, 0, read);
-                    Console.WriteLine(Encoding.UTF8.GetString(dataBytes.Take(read).ToArray()));
 
+                    // Write as many as possible to the file
+                    tempWriteStream.Write(dataBytes, 0, read);
+
+
+                    // If the amount read was less than the byte array length, we've reached the end of the file
                     if (read < dataBytes.Length)
                     {
                         break;
@@ -166,13 +179,23 @@ namespace Encryption_App.UI
                 }
             }
 
+            // Check if the file and key make the same HMAC
+            bool isVerified = hmac.VerifyHmac(headerlessTempFile, key, data.Hmac.root_Hash);
+
+            // If that didn't succeed, the file has been tampered with
+            if (!isVerified)
+            {
+                throw new CryptographicException("File could not be verified - may have been tampered");
+            }
+
+            // Try decrypting the remaining data
             try
             {
-                decrypt.DecryptFileBytes(Path.GetTempPath() + TempFile, Path.GetTempPath() + "tempdata.ini", key, salt);
+                decrypt.DecryptFileBytes(headerlessTempFile, dataTempFile, key, data.InitializationVector);
 
                 MessageBox.Show("Successfully Decrypted");
 
-                File.Copy(Path.GetTempPath() + "tempdata.ini", outFilePath, true);
+                File.Copy(dataTempFile, outFilePath, true);
             }
             catch (CryptographicException)
             {
