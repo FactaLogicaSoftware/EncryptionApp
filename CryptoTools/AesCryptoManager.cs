@@ -242,8 +242,7 @@ namespace CryptoTools
                                 "Time of all iterations, combined (s):" + fullIterationTime / 1000,
                                 "Time of all iterations, combined (ms):" + fullIterationTime,
                                 "Iterations:" + iterations
-
-                            };
+                    };
 
                     Utils.WriteToDiagnosticsFile(toWrite);
 #endif

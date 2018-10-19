@@ -34,11 +34,6 @@ namespace CryptoTools
         public byte[] InitializationVector { get; set; }
         public byte[] Salt { get; set; }
 
-        protected CryptographicInfo()
-        {
-
-        }
-
         /// <summary>
         /// If overriden in a derived class, writes a header representation of the object to a file as JSON
         /// </summary>
@@ -62,6 +57,6 @@ namespace CryptoTools
         /// If overriden in a derived class, reads a header from a string and creates a CryptographicInfo object from it
         /// </summary>
         /// <param name="data"></param>
-        public abstract void ReadHeader(string data);
+        public abstract CryptographicInfo ReadHeader(string data);
     }
 }
