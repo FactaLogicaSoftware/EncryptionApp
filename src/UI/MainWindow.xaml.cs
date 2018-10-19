@@ -4,7 +4,9 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Markup;
 using CryptoTools;
 
 
@@ -14,21 +16,35 @@ namespace Encryption_App.UI
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow
+    public sealed partial class MainWindow
     {
         private readonly string _headerLessTempFile = Path.GetTempPath() + "headerLessConstructionFile.temp";
         private readonly string _dataTempFile = Path.GetTempPath() + "moveFile.temp";
         private readonly List<string> _dropDownItems = new List<string> { "Choose Option...", "Encrypt a file", "Encrypt a file for sending to someone" };
 
+        /// <inheritdoc />
+        /// <summary>
+        /// Constructor for window. Don't mess with
+        /// </summary>
         public MainWindow()
         {
-            InitializeComponent();
+            try
+            {
+                InitializeComponent();
+            }
+            catch (XamlParseException e)
+            {
+                Console.WriteLine(e);
+                Console.WriteLine(e.InnerException);
+                throw;
+            }
             DropDown.ItemsSource = _dropDownItems;
             DropDown.SelectedIndex = 0;
+            LoadingGif.Visibility = Visibility.Hidden;
         }
 
         [DllImport("KERNEL32.DLL", EntryPoint = "RtlZeroMemory")]
-        private static extern bool ZeroMemory(IntPtr destination, int Length);
+        private static extern bool ZeroMemory(IntPtr destination, int length);
 
         private void MenuItem_Click(RoutedEventArgs e)
         {
@@ -70,22 +86,24 @@ namespace Encryption_App.UI
             // Did this succeed?
             bool? result = openFileDialog.ShowDialog();
 
-            // If it did, set the text box text to the selected file
-            if (result == true)
+            switch (result)
             {
-                FileTextBox.Text = openFileDialog.FileName;
-            }
-            // If it didn't, throw an exception
-            // TODO Manage exception
-            else
-            {
-                throw new ExternalException("Directory box failed to open");
+                // If it did, set the text box text to the selected file
+                // If it didn't, throw an exception
+                // TODO Manage exception
+                case true:
+                    FileTextBox.Text = openFileDialog.FileName;
+                    break;
+                case null:
+                    throw new ExternalException("Directory box failed to open");
             }
         }
 
         // TODO Make values dependent on settings
-        private void Encrypt_Click(object sender, RoutedEventArgs e)
+        private async void Encrypt_Click(object sender, RoutedEventArgs e)
         {
+            LoadingGif.Visibility = Visibility.Visible;
+
             // Create a random salt and iv
             var salt = new byte[16];
             var iv = new byte[16];
@@ -94,18 +112,76 @@ namespace Encryption_App.UI
             rng.GetBytes(iv);
 
             // Pre declaration of them for assigning during the secure string scope
-            Rfc2898DeriveBytes keyDevice;
             string filePath = FileTextBox.Text;
 
+            // Assign the values to the CryptographicInfo object
+            var data = new AesCryptographicInfo
+            {
+                hmac = new HMACSHA384(),
+                aes = new AesCng(),
+
+                InitializationVector = iv,
+                Salt = salt,
+
+                Hmac = new HmacInfo
+                {
+                    // root_Hash is set later
+                    HashAlgorithm = typeof(HMACSHA384).FullName,
+                    Iterations = 1
+                },
+
+                InstanceKeyCreator = new KeyCreator
+                {
+                    root_HashAlgorithm = typeof(Rfc2898DeriveBytes).FullName,
+                    Iterations = 10000
+                },
+
+                EncryptionModeInfo = new EncryptionModeInfo
+                {
+                    root_Algorithm = typeof(AesCng).FullName,
+                    KeySize = 256,
+                    BlockSize = 128,
+                    Mode = CipherMode.CBC
+                }
+            };
+
+            await Task.Run(() => EncryptDataWithHeader(data, EncryptPasswordBox.SecurePassword, filePath));
+            
+            //throw new Exception("IF THIS DOESN'T GO I GIVE UP");
+            LoadingGif.Visibility = Visibility.Hidden;
+        }
+
+        private async void Decrypt_Click(object sender, RoutedEventArgs e)
+        {
+            LoadingGif.Visibility = Visibility.Visible;
+
+            // Create the object used to represent the header data
+            var data = new AesCryptographicInfo();
+
+            // Get the path from the box
+            string outFilePath = DecryptFileLocBox.Text;
+
+            // Read the header
+            await Task.Run(() => data = (AesCryptographicInfo)data.ReadHeaderFromFile(outFilePath));
+
+            await Task.Run(() => DecryptDataWithHeader(data, DecryptPasswordBox.SecurePassword, outFilePath));
+            LoadingGif.Visibility = Visibility.Hidden;
+        }
+
+        private async void EncryptDataWithHeader(AesCryptographicInfo cryptographicInfo, SecureString password, string filePath)
+        {
+            DeriveBytes keyDevice;
             // Get the password
-            using (SecureString pwd = EncryptPasswordBox.SecurePassword)
+            using (password)
             {
                 // Turn the secure string into a string to pass it into keyDevice for the shortest interval possible
                 IntPtr valuePtr = IntPtr.Zero;
                 try
                 {
-                    valuePtr = Marshal.SecureStringToGlobalAllocUnicode(pwd);
-                    keyDevice = new Rfc2898DeriveBytes(Marshal.PtrToStringUni(valuePtr), salt, 10000);
+                    valuePtr = Marshal.SecureStringToGlobalAllocUnicode(password);
+                    var parameters = new object[] {Marshal.PtrToStringUni(valuePtr), cryptographicInfo.Salt, 10000};
+
+                    keyDevice = (DeriveBytes)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) ?? throw new InvalidOperationException(), parameters);
                 }
                 finally
                 {
@@ -113,40 +189,10 @@ namespace Encryption_App.UI
                     Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
                 }
             }
+            HMAC hmacAlg = cryptographicInfo.hmac;
+            var authenticator = new MessageAuthenticator();
 
-            // Create the object used to encrypt the data
             var encryptor = new AesCryptoManager();
-
-            // Assign the values to the CryptographicInfo object
-            var data = new AesCryptographicInfo
-            {
-                InitializationVector = iv,
-                Salt = salt,
-
-                Hmac = new Hmac
-                {
-                    // root_Hash is set later
-                    HashAlgorithm = nameof(HMACSHA384),
-                    Iterations = 1
-                },
-
-                InstanceKeyCreator = new KeyCreator
-                {
-                    root_HashAlgorithm = nameof(keyDevice),
-                    Iterations = 10000
-                },
-
-                EncryptionModeInfo = new EncryptionModeInfo
-                {
-                    root_Algorithm = nameof(AesCng),
-                    KeySize = 256,
-                    BlockSize = 128,
-                    Mode = CipherMode.CBC
-                }
-            };
-
-            // Create the object used to create the signature of the encrypted data and key
-            var hmac = new MessageAuthenticator();
 
             // Create the key
             byte[] key = keyDevice.GetBytes(256 / 8);
@@ -155,20 +201,20 @@ namespace Encryption_App.UI
             GCHandle gch = GCHandle.Alloc(key, GCHandleType.Pinned);
 
             // Encrypt the data to a temporary file
-            encryptor.EncryptFileBytes(filePath, _dataTempFile, key, data.InitializationVector);
+            encryptor.EncryptFileBytes(filePath, _dataTempFile, key, cryptographicInfo.InitializationVector);
 
             // Create the signature derived from the encrypted data and key
-            byte[] signature = hmac.CreateHmac(_dataTempFile, key);
+            byte[] signature = authenticator.CreateHmac(_dataTempFile, key, hmacAlg);
 
             // Delete the key from memory for security
             ZeroMemory(gch.AddrOfPinnedObject(), key.Length);
             gch.Free();
 
             // Set the signature correctly in the CryptographicInfo object
-            data.Hmac.root_Hash = signature;
+            cryptographicInfo.Hmac.root_Hash = signature;
 
             // Write the CryptographicInfo object to a file
-            data.WriteHeaderToFile(filePath);
+            cryptographicInfo.WriteHeaderToFile(filePath);
 
             // Create streams to read from the temporary file with the encrypted data to the file with the header
             using (var reader = new BinaryReader(File.OpenRead(_dataTempFile)))
@@ -197,30 +243,20 @@ namespace Encryption_App.UI
             }
         }
 
-        private void Decrypt_Click(object sender, RoutedEventArgs e)
+        private async void DecryptDataWithHeader(AesCryptographicInfo cryptographicInfo, SecureString password, string filePath)
         {
-
-            // Create the objects used for encryption and data generation
-            var decrypt = new AesCryptoManager();
-            var data = new AesCryptographicInfo();
-            var hmac = new MessageAuthenticator();
-            Rfc2898DeriveBytes keyDevice;
-
-            // Get the path from the box
-            string outFilePath = DecryptFileLocBox.Text;
-
-            // Read the header
-            data = (AesCryptographicInfo)data.ReadHeaderFromFile(outFilePath);
+            DeriveBytes keyDevice;
 
             // Get the password
-            using (SecureString pwd = EncryptPasswordBox.SecurePassword)
+            using (password)
             {
                 // Turn the secure string into a string to pass it into keyDevice for the shortest interval possible
                 IntPtr valuePtr = IntPtr.Zero;
                 try
                 {
-                    valuePtr = Marshal.SecureStringToGlobalAllocUnicode(pwd);
-                    keyDevice = new Rfc2898DeriveBytes(Marshal.PtrToStringUni(valuePtr), data.Salt, 10000);
+                    valuePtr = Marshal.SecureStringToGlobalAllocUnicode(password);
+                    var parameters = new object[] { Marshal.PtrToStringUni(valuePtr), cryptographicInfo.Salt, 10000 };
+                    keyDevice = (DeriveBytes)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) ?? throw new InvalidOperationException(), parameters);
                 }
                 finally
                 {
@@ -228,13 +264,18 @@ namespace Encryption_App.UI
                     Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
                 }
             }
+            var hmacAlg = (HMAC)Activator.CreateInstance(Type.GetType(cryptographicInfo.Hmac.HashAlgorithm));
+            var authenticator = new MessageAuthenticator();
 
+            var decryptor = new AesCryptoManager();
+            
             // Create the streams used to write the data, minus the header, to a new file
-            using (var reader = new BinaryReader(File.OpenRead(outFilePath)))
+            using (var reader = new BinaryReader(File.OpenRead(filePath)))
             using (var writer = new BinaryWriter(File.Create(_headerLessTempFile)))
             {
-                // Seek to the end of the header
-                reader.BaseStream.Seek(data.HeaderLength, SeekOrigin.Begin);
+                // Seek to the end of the header. IMPORTANT Do not change to Position - Position has no value checking - Seek does
+                reader.BaseStream.Seek(cryptographicInfo.HeaderLength, SeekOrigin.Begin);
+                // TODO Manage IO exceptions
 
                 // Continuously reads the stream in 1 mb sections until there is none left
                 while (true)
@@ -263,23 +304,23 @@ namespace Encryption_App.UI
             GCHandle gch = GCHandle.Alloc(key, GCHandleType.Pinned);
 
             // Check if the file and key make the same HMAC
-            bool isVerified = hmac.VerifyHmac(_headerLessTempFile, key, data.Hmac.root_Hash);
+            bool isVerified = authenticator.VerifyHmac(_headerLessTempFile, key, cryptographicInfo.Hmac.root_Hash, hmacAlg);
 
             // If that didn't succeed, the file has been tampered with
             if (!isVerified)
             {
-                throw new CryptographicException("File could not be verified - may have been tampered");
+                throw new CryptographicException("File could not be verified - may have been tampered, or the password is incorrect");
             }
 
             // Try decrypting the remaining data
             try
             {
-                decrypt.DecryptFileBytes(_headerLessTempFile, _dataTempFile, key, data.InitializationVector);
+                decryptor.DecryptFileBytes(_headerLessTempFile, _dataTempFile, key, cryptographicInfo.InitializationVector);
 
                 MessageBox.Show("Successfully Decrypted");
 
                 // Move the file to the original file location
-                File.Copy(_dataTempFile, outFilePath, true);
+                File.Copy(_dataTempFile, filePath, true);
             }
             catch (CryptographicException)
             {

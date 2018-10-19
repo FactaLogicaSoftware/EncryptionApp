@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Encryption_App.UI"
+        xmlns:gif="http://wpfanimatedgif.codeplex.com"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="392">
     <Grid>
@@ -24,6 +25,7 @@
                     <Label x:Name="EncryptOutput" Grid.Column="1" HorizontalAlignment="Left" Margin="50,271,0,0" VerticalAlignment="Top" Height="41" Width="101"/>
                     <Label Content="Enter password:" HorizontalAlignment="Left" Margin="26,112,0,0" VerticalAlignment="Top" Width="100" Grid.ColumnSpan="2"/>
                     <Label Content="Encrypted file location:" HorizontalAlignment="Left" Margin="26,183,0,0" VerticalAlignment="Top" Width="131" Grid.ColumnSpan="2"/>
+                    <Image x:Name="LoadingGif" gif:ImageBehavior.AnimatedSource="/UI/Assets/loading.gif" gif:ImageBehavior.RepeatBehavior="Forever" Grid.Column="1" Margin="213,171,34,-126" ></Image>
                 </Grid>
             </TabItem>
             <TabItem Header="Decryption">

@@ -11,7 +11,7 @@ using static System.Diagnostics.Stopwatch;
 
 namespace CryptoTools
 {
-    public class AesCryptoManager
+    public class AesCryptoManager : ISymmetricCryptoManager
     {
         // The aes object used for transformation
         private readonly Aes _aes;

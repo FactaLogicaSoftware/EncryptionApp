@@ -12,7 +12,7 @@ using Newtonsoft.Json;
 namespace CryptoTools
 {
     // The data about the Hash Message Authentication Code (HMAC)
-    public struct Hmac : ICryptoStruct
+    public struct HmacInfo : ICryptoStruct
     {
         // The byte[] of the actual hash
         public byte[] root_Hash;

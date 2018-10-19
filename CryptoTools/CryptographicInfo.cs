@@ -28,7 +28,7 @@ namespace CryptoTools
         }
 
         // primary data object - see CryptoStructs.cs for documentation
-        public Hmac Hmac;
+        public HmacInfo Hmac;
         public EncryptionModeInfo EncryptionModeInfo;
         public KeyCreator InstanceKeyCreator;
         public byte[] InitializationVector { get; set; }
