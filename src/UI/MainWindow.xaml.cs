@@ -53,29 +53,45 @@ namespace Encryption_App.UI
             {
                 DecryptFileLocBox.Text = openFileDialog.FileName;
             }
+            else
+            {
+                throw new ExternalException("Directory box failed to open");
+            }
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+            // Try creating a file dialog
             var openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyComputer)
             };
 
+            // Did this succeed?
             bool? result = openFileDialog.ShowDialog();
 
+            // If it did, set the text box text to the selected file
             if (result == true)
             {
                 FileTextBox.Text = openFileDialog.FileName;
             }
+            // If it didn't, throw an exception
+            // TODO Manage exception
+            else
+            {
+                throw new ExternalException("Directory box failed to open");
+            }
         }
 
+        // TODO Make values dependent on settings
         private void Encrypt_Click(object sender, RoutedEventArgs e)
         {
-            // Create a random salt
+            // Create a random salt and iv
             var salt = new byte[16];
+            var iv = new byte[16];
             var rng = new RNGCryptoServiceProvider();
             rng.GetBytes(salt);
+            rng.GetBytes(iv);
 
             // Pre declaration of them for assigning during the secure string scope
             Rfc2898DeriveBytes keyDevice;
@@ -93,6 +109,7 @@ namespace Encryption_App.UI
                 }
                 finally
                 {
+                    // Destroy the managed string
                     Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
                 }
             }
@@ -103,7 +120,7 @@ namespace Encryption_App.UI
             // Assign the values to the CryptographicInfo object
             var data = new AesCryptographicInfo
             {
-                InitializationVector = salt,
+                InitializationVector = iv,
                 Salt = salt,
 
                 Hmac = new Hmac
@@ -113,7 +130,7 @@ namespace Encryption_App.UI
                     Iterations = 1
                 },
 
-                PwdCreator = new KeyCreator
+                InstanceKeyCreator = new KeyCreator
                 {
                     root_HashAlgorithm = nameof(keyDevice),
                     Iterations = 10000
@@ -123,7 +140,7 @@ namespace Encryption_App.UI
                 {
                     root_Algorithm = nameof(AesCng),
                     KeySize = 256,
-                    _blockSize = 128,
+                    BlockSize = 128,
                     Mode = CipherMode.CBC
                 }
             };
@@ -133,12 +150,14 @@ namespace Encryption_App.UI
 
             // Create the key
             byte[] key = keyDevice.GetBytes(256 / 8);
+
+            // Create a handle to the key to allow control of it
             GCHandle gch = GCHandle.Alloc(key, GCHandleType.Pinned);
 
             // Encrypt the data to a temporary file
             encryptor.EncryptFileBytes(filePath, _dataTempFile, key, data.InitializationVector);
 
-            // Create the signature
+            // Create the signature derived from the encrypted data and key
             byte[] signature = hmac.CreateHmac(_dataTempFile, key);
 
             // Delete the key from memory for security
@@ -153,20 +172,26 @@ namespace Encryption_App.UI
 
             // Create streams to read from the temporary file with the encrypted data to the file with the header
             using (var reader = new BinaryReader(File.OpenRead(_dataTempFile)))
-            using (var writer = new BinaryWriter(new FileStream(filePath, FileMode.Append)))
+            using (var writer = new BinaryWriter(new FileStream(filePath, FileMode.Append))) // IMPORTANT, FileMode.Append is used to not overwrite the header
             {
-                // Continuously reads the stream until it hits an EndOfStream exception
+                // Continuously reads the stream in 1 mb sections until there is none left
                 while (true)
                 {
-                    // Read as many bytes as we allow into the array from the file
-                    var buff = new byte[1024 * 1024 * 1024];
-                    int read = reader.Read(buff, 0, buff.Length);
-                    writer.Write(buff, 0, read);
-
-                    // If read is less than the length, the end of the file is reached
-                    if (read < buff.Length)
+                    if (reader.BaseStream.Length < 1024 * 1024 * 1024)
                     {
+                        // Read all bytes into the array and write them
+                        var buff = new byte[reader.BaseStream.Length];
+                        int read = reader.Read(buff, 0, buff.Length);
+                        writer.Write(buff, 0, read);
+
                         break;
+                    }
+                    else
+                    {
+                        // Read as many bytes as we allow into the array from the file and write them
+                        var buff = new byte[1024 * 1024 * 1024];
+                        int read = reader.Read(buff, 0, buff.Length);
+                        writer.Write(buff, 0, read);
                     }
                 }
             }
@@ -199,34 +224,36 @@ namespace Encryption_App.UI
                 }
                 finally
                 {
+                    // Destroy the managed string
                     Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
                 }
             }
 
             // Create the streams used to write the data, minus the header, to a new file
-            using (var modifyStream = new FileStream(outFilePath, FileMode.Open))
-            using (var tempWriteStream = new FileStream(_headerLessTempFile, FileMode.Create))
+            using (var reader = new BinaryReader(File.OpenRead(outFilePath)))
+            using (var writer = new BinaryWriter(File.Create(_headerLessTempFile)))
             {
-                // Create a large array to read into
-                var dataBytes = new byte[1024 * 1024 * 1024];
-
                 // Seek to the end of the header
-                modifyStream.Seek(data.HeaderLength, SeekOrigin.Begin);
+                reader.BaseStream.Seek(data.HeaderLength, SeekOrigin.Begin);
 
-                // Keep writing until the end (see if statement)
+                // Continuously reads the stream in 1 mb sections until there is none left
                 while (true)
                 {
-                    // Read as many bytes as possible into the array
-                    int read = modifyStream.Read(dataBytes, 0, dataBytes.Length);
-
-                    // Write as many as possible to the file
-                    tempWriteStream.Write(dataBytes, 0, read);
-
-
-                    // If the amount read was less than the byte array length, we've reached the end of the file
-                    if (read < dataBytes.Length)
+                    if (reader.BaseStream.Length < 1024 * 1024 * 1024)
                     {
+                        // Read all bytes into the array and write them
+                        var buff = new byte[reader.BaseStream.Length];
+                        int read = reader.Read(buff, 0, buff.Length);
+                        writer.Write(buff, 0, read);
+
                         break;
+                    }
+                    else
+                    {
+                        // Read as many bytes as we allow into the array from the file and write them
+                        var buff = new byte[1024 * 1024 * 1024];
+                        int read = reader.Read(buff, 0, buff.Length);
+                        writer.Write(buff, 0, read);
                     }
                 }
             }

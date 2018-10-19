@@ -37,7 +37,7 @@ namespace CryptoTools
         public uint KeySize;
 
         // The block size used
-        public uint _blockSize;
+        public uint BlockSize;
     }
 
     // The data about the device used to derive or create the key
