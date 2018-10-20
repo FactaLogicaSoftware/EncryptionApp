@@ -298,8 +298,6 @@ namespace CryptoTools
                     // Continuously reads the stream until it hits an EndOfStream exception
                     while (true)
                     {
-
-
 #if DEBUG
                         double offset = watch.Elapsed.TotalMilliseconds;
 #endif
@@ -323,9 +321,6 @@ namespace CryptoTools
                         iterations++;
 #endif
                     }
-
-
-
 #if DEBUG
                     // Finalize and write debug values
                     double totalMilliseconds = watch.Elapsed.TotalMilliseconds;

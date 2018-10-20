@@ -11,14 +11,6 @@ namespace CryptoTools
 {
     public class AesCryptographicInfo : CryptographicInfo
     {
-
-        // LiveObjects
-        [JsonIgnore]
-        public HMAC hmac;
-
-        [JsonIgnore]
-        public Aes aes;
-
         public AesCryptographicInfo() : base()
         {
             // Define the encoding used and the strings used to represent the start and end of the header object
@@ -82,7 +74,7 @@ namespace CryptoTools
                 var data = JsonConvert.DeserializeObject<AesCryptographicInfo>(jsonString);
 
                 // Set the type and length
-                data.Type = InfoType.Write;
+                data.Type = InfoType.Read;
                 data.HeaderLength = HeaderLength;
 
                 // Return the data object

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using CryptoTools;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace UnitTests.CryptoTests
