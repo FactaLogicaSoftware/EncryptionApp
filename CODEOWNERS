@@ -1,8 +1,8 @@
 # Lines starting with '#' are comments.
 # Each line is a file pattern followed by one or more owners.
 
-# Defualt owner
-* @johnkellyoxford
+# Default owner
+* @johnkellyoxford @nathanmc158 @NightRaven3142
 
 # File endings owner
 *.xaml @NightRaven3142
