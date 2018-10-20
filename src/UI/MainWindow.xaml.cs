@@ -170,7 +170,7 @@ namespace Encryption_App.UI
         private void EncryptDataWithHeader(AesCryptographicInfo cryptographicInfo, SecureString password, string filePath)
         {
             // We have to use Dispatcher.Invoke as the current thread can't access these objects
-            this.Dispatcher.Invoke(() =>
+            Dispatcher.Invoke(() =>
             {
                 EncryptOutput.Content = "Beginning encryption...";
             });
@@ -209,7 +209,7 @@ namespace Encryption_App.UI
             GCHandle gch = GCHandle.Alloc(key, GCHandleType.Pinned);
 
             // We have to use Dispatcher.Invoke as the current thread can't access these objects
-            this.Dispatcher.Invoke(() =>
+            Dispatcher.Invoke(() =>
             {
                 EncryptOutput.Content = "Encrypting your data";
             });
@@ -219,7 +219,7 @@ namespace Encryption_App.UI
             encryptor.EncryptFileBytes(filePath, _dataTempFile, key, cryptographicInfo.InitializationVector);
 
             // We have to use Dispatcher.Invoke as the current thread can't access these objects
-            this.Dispatcher.Invoke(() =>
+            Dispatcher.Invoke(() =>
             {
                 EncryptOutput.Content = "Creating an HMAC";
             });
@@ -236,7 +236,7 @@ namespace Encryption_App.UI
             cryptographicInfo.Hmac.root_Hash = signature;
 
             // We have to use Dispatcher.Invoke as the current thread can't access these objects
-            this.Dispatcher.Invoke(() =>
+            Dispatcher.Invoke(() =>
             {
                 EncryptOutput.Content = "Writing the header to the file";
             });
@@ -275,7 +275,7 @@ namespace Encryption_App.UI
             }
 
             // We have to use Dispatcher.Invoke as the current thread can't access these objects
-            this.Dispatcher.Invoke(() =>
+            Dispatcher.Invoke(() =>
             {
                 EncryptOutput.Content = "Encrypted";
             });
@@ -283,7 +283,7 @@ namespace Encryption_App.UI
             Console.WriteLine("File write time: " + watch.ElapsedMilliseconds);
         }
 
-        private void DecryptDataWithHeader(AesCryptographicInfo cryptographicInfo, SecureString password, string filePath)
+        private void DecryptDataWithHeader(CryptographicInfo cryptographicInfo, SecureString password, string filePath)
         {
             DeriveBytes keyDevice;
 
