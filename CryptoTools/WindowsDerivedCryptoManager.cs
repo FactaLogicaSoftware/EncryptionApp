@@ -32,20 +32,20 @@ namespace CryptoTools
 
             byte[] encryptedData;
 
-            int availableMem = checked(1024 * 1024 * 1024);
+            int availableMem = checked(1024 * 1024 * 4);
 
             using (var binReader = new BinaryReader(File.Open(inputFile, FileMode.Open)))
             {
-                if (new ComputerInfo().AvailablePhysicalMemory < 1024 * 1024 * 1024 && new ComputerInfo().AvailablePhysicalMemory > 1024 * 1024 * 1024 / 2) // less than 1GB mem
+                if (new ComputerInfo().AvailablePhysicalMemory < 1024 * 1024 * 4 && new ComputerInfo().AvailablePhysicalMemory > 1024 * 1024 * 4 / 2) // less than 1GB mem
                 {
-                    availableMem = 1024 * 1024 * 1024 / 2;
+                    availableMem = 1024 * 1024 * 4 / 2;
                 }
-                else if (new ComputerInfo().AvailablePhysicalMemory > 1024 * 1024)
+                else if (new ComputerInfo().AvailablePhysicalMemory > 1024 * 1024 * 4)
                 {
-                    availableMem = 1024 * 1024; // MUCH slower
+                    availableMem = 1024 * 1024 * 4; // MUCH slower
                 }
 
-                var read = binReader.ReadBytes(availableMem);
+                byte[] read = binReader.ReadBytes(availableMem);
 
                 encryptedData = ProtectedData.Protect(read, entropy, DataProtectionScope.CurrentUser);
             }
@@ -62,17 +62,17 @@ namespace CryptoTools
         {
             byte[] read;
 
-            int availableMem = checked(1024 * 1024 * 1024);
+            int availableMem = checked(1024 * 1024 * 4);
 
             using (var binReader = new BinaryReader(File.Open(inputFile, FileMode.Open)))
             {
-                if (new ComputerInfo().AvailablePhysicalMemory < 1024 * 1024 * 1024 && new ComputerInfo().AvailablePhysicalMemory > 1024 * 1024 * 1024 / 2) // less than 1GB mem
+                if (new ComputerInfo().AvailablePhysicalMemory < 1024 * 1024 * 4 && new ComputerInfo().AvailablePhysicalMemory > 1024 * 1024 * 4 / 2) // less than 1GB mem
                 {
-                    availableMem = 1024 * 1024 * 1024 / 2;
+                    availableMem = 1024 * 1024 * 4 / 2;
                 }
-                else if (new ComputerInfo().AvailablePhysicalMemory > 1024 * 1024)
+                else if (new ComputerInfo().AvailablePhysicalMemory > 1024 * 1024 * 4)
                 {
-                    availableMem = 1024 * 1024; // MUCH slower
+                    availableMem = 1024 * 1024 * 4; // MUCH slower
                 }
 
                 read = binReader.ReadBytes(availableMem);

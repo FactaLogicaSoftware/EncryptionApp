@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using CryptoTools;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace UnitTests.CryptoTests
@@ -19,7 +18,7 @@ namespace UnitTests.CryptoTests
         {
             _assetsFolder = MiscTests.MiscTests.AssetsFolder;
 
-            var data = new byte[1024 * 1024];
+            var data = new byte[1024 * 1024 * 4];
             var rng = new Random();
             rng.NextBytes(data);
             File.WriteAllBytes(_assetsFolder + "TestFile.txt", data);
@@ -84,7 +83,7 @@ namespace UnitTests.CryptoTests
 
             byte[] key = AesCryptoManager.GenerateSecureValueBits(256);
 
-            var data = new byte[1024 * 1024];
+            var data = new byte[1024 * 1024 * 4];
             var rng = new Random();
             rng.NextBytes(data);
             File.WriteAllBytes(_assetsFolder + "EncryptedTestFile.txt", data);
@@ -100,9 +99,9 @@ namespace UnitTests.CryptoTests
             var currentInfo = new AesCryptographicInfo
             {
                 InitializationVector = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 },
-                EncryptionModeInfo = new EncryptionModeInfo { root_Algorithm = "AES", KeySize = 256, _blockSize = 128, Mode = CipherMode.CBC },
-                PwdCreator = new KeyCreator { root_HashAlgorithm = nameof(Rfc2898DeriveBytes), Iterations = 10000 },
-                Hmac = new Hmac { root_Hash = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, HashAlgorithm = nameof(HMACSHA384), Iterations = 1 },
+                EncryptionModeInfo = new EncryptionModeInfo { root_Algorithm = "AES", KeySize = 256, BlockSize = 128, Mode = CipherMode.CBC },
+                InstanceKeyCreator = new KeyCreator { root_HashAlgorithm = nameof(Rfc2898DeriveBytes), Iterations = 10000 },
+                Hmac = new HmacInfo { root_Hash = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, HashAlgorithm = nameof(HMACSHA384) },
                 Salt = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }
             };
 
