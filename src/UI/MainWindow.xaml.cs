@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
@@ -117,27 +118,27 @@ namespace Encryption_App.UI
             var data = new AesCryptographicInfo
             {
                 hmac = new HMACSHA384(),
-                aes = new AesCng(),
+                aes = new AesCryptoServiceProvider(),
 
+                CryptoManager = typeof(AesCryptoManager).AssemblyQualifiedName,
                 InitializationVector = iv,
                 Salt = salt,
 
                 Hmac = new HmacInfo
                 {
                     // root_Hash is set later
-                    HashAlgorithm = typeof(HMACSHA384).FullName,
-                    Iterations = 1
+                    HashAlgorithm = typeof(HMACSHA384).AssemblyQualifiedName
                 },
 
                 InstanceKeyCreator = new KeyCreator
                 {
-                    root_HashAlgorithm = typeof(Rfc2898DeriveBytes).FullName,
+                    root_HashAlgorithm = typeof(Rfc2898DeriveBytes).AssemblyQualifiedName,
                     Iterations = 10000
                 },
 
                 EncryptionModeInfo = new EncryptionModeInfo
                 {
-                    root_Algorithm = typeof(AesCng).FullName,
+                    root_Algorithm = typeof(AesCryptoServiceProvider).AssemblyQualifiedName,
                     KeySize = 256,
                     BlockSize = 128,
                     Mode = CipherMode.CBC
@@ -287,6 +288,11 @@ namespace Encryption_App.UI
         {
             DeriveBytes keyDevice;
 
+            Assembly asm = Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(),
+                "System.Security.dll"));
+
+            //Assembly cryptoAssembly = Assembly.Load(Directory.GetCurrentDirectory() + @"\CryptoTools.dll");
+            
             // Get the password
             using (password)
             {
@@ -304,10 +310,10 @@ namespace Encryption_App.UI
                     Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
                 }
             }
-            var hmacAlg = (HMAC)Activator.CreateInstance(Type.GetType(cryptographicInfo.Hmac.HashAlgorithm));
+            var hmacAlg = (HMAC)Activator.CreateInstance(Type.GetType(cryptographicInfo.Hmac.HashAlgorithm) ?? throw new InvalidOperationException());
             var authenticator = new MessageAuthenticator();
 
-            var decryptor = new AesCryptoManager();
+            var decryptor = (ISymmetricCryptoManager)Activator.CreateInstance(Type.GetType(cryptographicInfo.CryptoManager) ?? throw new InvalidOperationException());
 
             // Create the streams used to write the data, minus the header, to a new file
             using (var reader = new BinaryReader(File.OpenRead(filePath)))
@@ -320,7 +326,7 @@ namespace Encryption_App.UI
                 // Continuously reads the stream in 1 mb sections until there is none left
                 while (true)
                 {
-                    if (reader.BaseStream.Length < 1024 * 1024 * 1024)
+                    if (reader.BaseStream.Length < 1024 * 1024 * 4)
                     {
                         // Read all bytes into the array and write them
                         var buff = new byte[reader.BaseStream.Length];
@@ -332,7 +338,7 @@ namespace Encryption_App.UI
                     else
                     {
                         // Read as many bytes as we allow into the array from the file and write them
-                        var buff = new byte[1024 * 1024 * 1024];
+                        var buff = new byte[1024 * 1024 * 4];
                         int read = reader.Read(buff, 0, buff.Length);
                         writer.Write(buff, 0, read);
                     }
@@ -371,6 +377,15 @@ namespace Encryption_App.UI
                 // Delete the key from memory for security
                 ZeroMemory(gch.AddrOfPinnedObject(), key.Length);
                 gch.Free();
+            }
+        }
+
+        private unsafe void DestroyArray(void* startV, long lengthInBytes)
+        {
+            var start = (byte*) startV;
+            for (var i = 0L; i < lengthInBytes; i++)
+            {
+                start[i] = 0;
             }
         }
     }

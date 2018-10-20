@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.Devices;
 

@@ -19,9 +19,6 @@ namespace CryptoTools
 
         // The string that is the nameof() the type used
         public string HashAlgorithm;
-
-        // The number of iterations
-        public uint Iterations;
     }
 
     // The data about the encryption mode used

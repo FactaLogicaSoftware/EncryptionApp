@@ -49,7 +49,7 @@ namespace CryptoTools
 
             // Define the length of the header
             HeaderLength = StartChars.Length + json.Length + EndChars.Length;
-            type = InfoType.Write;
+            Type = InfoType.Write;
         }
 
         public override CryptographicInfo ReadHeaderFromFile(string path)
@@ -82,7 +82,7 @@ namespace CryptoTools
                 var data = JsonConvert.DeserializeObject<AesCryptographicInfo>(jsonString);
 
                 // Set the type and length
-                data.type = InfoType.Write;
+                data.Type = InfoType.Write;
                 data.HeaderLength = HeaderLength;
 
                 // Return the data object
@@ -117,7 +117,7 @@ namespace CryptoTools
             var data = JsonConvert.DeserializeObject<AesCryptographicInfo>(jsonString);
 
             // Set the type and length
-            data.type = InfoType.Write;
+            data.Type = InfoType.Write;
             data.HeaderLength = HeaderLength;
 
             // Return the data object
