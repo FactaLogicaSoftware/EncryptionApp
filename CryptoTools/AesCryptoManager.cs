@@ -11,7 +11,7 @@ using static System.Diagnostics.Stopwatch;
 
 namespace CryptoTools
 {
-    public class AesCryptoManager
+    public class AesCryptoManager : ISymmetricCryptoManager
     {
         // The aes object used for transformation
         private readonly Aes _aes;
@@ -242,8 +242,7 @@ namespace CryptoTools
                                 "Time of all iterations, combined (s):" + fullIterationTime / 1000,
                                 "Time of all iterations, combined (ms):" + fullIterationTime,
                                 "Iterations:" + iterations
-
-                            };
+                    };
 
                     Utils.WriteToDiagnosticsFile(toWrite);
 #endif
@@ -273,7 +272,11 @@ namespace CryptoTools
 
 #if DEBUG
                 // Debug values
-                if (!IsHighResolution) { throw new Exception("You don't have a high-res sysclock"); }
+                if (!IsHighResolution)
+                {
+                    throw new Exception("You don't have a high-res sysclock");
+                }
+
                 Stopwatch watch = StartNew();
 
                 var iterations = 0L;
@@ -289,63 +292,65 @@ namespace CryptoTools
                 // Creates the streams necessary for reading and writing data
                 using (FileStream outFileStream = File.Create(outputFile))
                 using (var cs = new CryptoStream(outFileStream, _aes.CreateDecryptor(), CryptoStreamMode.Write))
-                using (var inFile = new BinaryReader(File.OpenRead(inputFile))) // BinaryReader is not a stream, but it's only argument is one
+                using (var inFile = new BinaryReader(File.OpenRead(inputFile))
+                ) // BinaryReader is not a stream, but it's only argument is one
                 {
                     // Continuously reads the stream until it hits an EndOfStream exception
                     while (true)
                     {
-                        try
+
+
+#if DEBUG
+                        double offset = watch.Elapsed.TotalMilliseconds;
+#endif
+                        // Read as many bytes as we allow into the array from the file
+                        byte[] data = inFile.ReadBytes(_memoryConst);
+
+                        // Write it through the cryptostream so it is transformed
+                        cs.Write(data, 0, data.Length);
+
+                        // Break if 
+                        if (data.Length < _memoryConst)
                         {
-#if DEBUG
-                            double offset = watch.Elapsed.TotalMilliseconds;
-#endif
-                            // Read as many bytes as we allow into the array from the file
-                            byte[] data = inFile.ReadBytes(_memoryConst);
-
-                            // Write it through the cryptostream so it is transformed
-                            cs.Write(data, 0, data.Length);
-
-                            // TODO Change this Try - Throw - Catch to an If - from deprecated method
-                            if (data.Length < _memoryConst)
-                            {
-                                throw new EndOfStreamException();
-                            }
-#if DEBUG
-                            // Debug values
-                            double perIterationMilliseconds = watch.Elapsed.TotalMilliseconds - offset;
-                            avgIterationMilliseconds = (avgIterationMilliseconds * iterations + perIterationMilliseconds) / (iterations + 1);
-                            fullIterationTime += perIterationMilliseconds;
-                            iterations++;
-#endif
-                        }
-                        catch (EndOfStreamException)
-                        {
-#if DEBUG
-                            // Finalize and write debug values
-                            double totalMilliseconds = watch.Elapsed.TotalMilliseconds;
-                            double totalSeconds = totalMilliseconds / 1000;
-                            double perIterationSeconds = avgIterationMilliseconds / 1000,
-                                perIterationMilliseconds = avgIterationMilliseconds;
-                            string[] toWrite =
-                            {
-                                "Time to decrypt (s):" + totalSeconds,
-                                "Time to decrypt (ms):" + totalMilliseconds,
-                                "Average iteration length (s):" + perIterationSeconds.ToString("0." + new string('#', 339)),
-                                "Average iteration length (ms):" + perIterationMilliseconds.ToString("0." + new string('#', 339)),
-                                "Time of all iterations, combined (s):" + fullIterationTime / 1000,
-                                "Time of all iterations, combined (ms):" + fullIterationTime,
-                                "Iterations:" + iterations
-                            };
-
-                            Utils.WriteToDiagnosticsFile(toWrite);
-#endif
                             break;
                         }
+#if DEBUG
+                        // Debug values
+                        double perIterationMilliseconds = watch.Elapsed.TotalMilliseconds - offset;
+                        avgIterationMilliseconds = (avgIterationMilliseconds * iterations + perIterationMilliseconds) /
+                                                   (iterations + 1);
+                        fullIterationTime += perIterationMilliseconds;
+                        iterations++;
+#endif
                     }
-                }
 
+
+
+#if DEBUG
+                    // Finalize and write debug values
+                    double totalMilliseconds = watch.Elapsed.TotalMilliseconds;
+                    double totalSeconds = totalMilliseconds / 1000;
+                    double perIterationSeconds = avgIterationMilliseconds / 1000,
+                        iterationMilliseconds = avgIterationMilliseconds;
+                    string[] toWrite =
+                    {
+                        "Time to decrypt (s):" + totalSeconds,
+                        "Time to decrypt (ms):" + totalMilliseconds,
+                        "Average iteration length (s):" + perIterationSeconds.ToString("0." + new string('#', 339)),
+                        "Average iteration length (ms):" + iterationMilliseconds.ToString("0." + new string('#', 339)),
+                        "Time of all iterations, combined (s):" + fullIterationTime / 1000,
+                        "Time of all iterations, combined (ms):" + fullIterationTime,
+                        "Iterations:" + iterations
+                    };
+
+                    Utils.WriteToDiagnosticsFile(toWrite);
+#endif
+
+                }
             }
-            catch (CryptographicException)  // If something went wrong, we get it here
+
+
+            catch (CryptographicException) // If something went wrong, we get it here
             {
                 _aes.Dispose();
                 throw;
