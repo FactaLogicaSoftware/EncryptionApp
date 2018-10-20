@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
@@ -40,7 +41,8 @@ namespace Encryption_App.UI
             }
             DropDown.ItemsSource = _dropDownItems;
             DropDown.SelectedIndex = 0;
-            LoadingGif.Visibility = Visibility.Hidden;
+            EncryptLoadingGif.Visibility = Visibility.Hidden;
+            DecryptLoadingGif.Visibility = Visibility.Hidden;
         }
 
         [DllImport("KERNEL32.DLL", EntryPoint = "RtlZeroMemory")]
@@ -101,7 +103,7 @@ namespace Encryption_App.UI
         // TODO Make values dependent on settings
         private async void Encrypt_Click(object sender, RoutedEventArgs e)
         {
-            LoadingGif.Visibility = Visibility.Visible;
+            EncryptLoadingGif.Visibility = Visibility.Visible;
 
             // Create a random salt and iv
             var salt = new byte[16];
@@ -116,28 +118,25 @@ namespace Encryption_App.UI
             // Assign the values to the CryptographicInfo object
             var data = new AesCryptographicInfo
             {
-                hmac = new HMACSHA384(),
-                aes = new AesCng(),
-
+                CryptoManager = typeof(AesCryptoManager).AssemblyQualifiedName,
                 InitializationVector = iv,
                 Salt = salt,
 
                 Hmac = new HmacInfo
                 {
                     // root_Hash is set later
-                    HashAlgorithm = typeof(HMACSHA384).FullName,
-                    Iterations = 1
+                    HashAlgorithm = typeof(HMACSHA384).AssemblyQualifiedName
                 },
 
                 InstanceKeyCreator = new KeyCreator
                 {
-                    root_HashAlgorithm = typeof(Rfc2898DeriveBytes).FullName,
+                    root_HashAlgorithm = typeof(Rfc2898DeriveBytes).AssemblyQualifiedName,
                     Iterations = 10000
                 },
 
                 EncryptionModeInfo = new EncryptionModeInfo
                 {
-                    root_Algorithm = typeof(AesCng).FullName,
+                    root_Algorithm = typeof(AesCryptoServiceProvider).AssemblyQualifiedName,
                     KeySize = 256,
                     BlockSize = 128,
                     Mode = CipherMode.CBC
@@ -146,13 +145,12 @@ namespace Encryption_App.UI
 
             await Task.Run(() => EncryptDataWithHeader(data, EncryptPasswordBox.SecurePassword, filePath));
 
-            //throw new Exception("IF THIS DOESN'T GO I GIVE UP");
-            LoadingGif.Visibility = Visibility.Hidden;
+            EncryptLoadingGif.Visibility = Visibility.Hidden;
         }
 
         private async void Decrypt_Click(object sender, RoutedEventArgs e)
         {
-            LoadingGif.Visibility = Visibility.Visible;
+            DecryptLoadingGif.Visibility = Visibility.Visible;
 
             // Create the object used to represent the header data
             var data = new AesCryptographicInfo();
@@ -164,7 +162,7 @@ namespace Encryption_App.UI
             await Task.Run(() => data = (AesCryptographicInfo)data.ReadHeaderFromFile(outFilePath));
 
             await Task.Run(() => DecryptDataWithHeader(data, DecryptPasswordBox.SecurePassword, outFilePath));
-            LoadingGif.Visibility = Visibility.Hidden;
+            DecryptLoadingGif.Visibility = Visibility.Hidden;
         }
 
         private void EncryptDataWithHeader(AesCryptographicInfo cryptographicInfo, SecureString password, string filePath)
@@ -178,6 +176,9 @@ namespace Encryption_App.UI
             Stopwatch watch = Stopwatch.StartNew();
             DeriveBytes keyDevice;
 
+            Assembly securityAsm = Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Security.dll"));
+            Assembly coreAsm = Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Core.dll"));
+
             // Get the password
             using (password)
             {
@@ -188,7 +189,7 @@ namespace Encryption_App.UI
                     valuePtr = Marshal.SecureStringToGlobalAllocUnicode(password);
                     var parameters = new object[] { Marshal.PtrToStringUni(valuePtr), cryptographicInfo.Salt, 10000 };
 
-                    keyDevice = (DeriveBytes)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) ?? throw new InvalidOperationException(), parameters);
+                    keyDevice = (DeriveBytes)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm), parameters);
                 }
                 finally
                 {
@@ -197,7 +198,7 @@ namespace Encryption_App.UI
                 }
             }
 
-            HMAC hmacAlg = cryptographicInfo.hmac;
+            var hmacAlg = (HMAC)Activator.CreateInstance(Type.GetType(cryptographicInfo.Hmac.HashAlgorithm) ?? securityAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm) ?? coreAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm));
             var authenticator = new MessageAuthenticator();
 
             var encryptor = new AesCryptoManager();
@@ -274,6 +275,8 @@ namespace Encryption_App.UI
                 }
             }
 
+            GC.Collect();
+
             // We have to use Dispatcher.Invoke as the current thread can't access these objects
             Dispatcher.Invoke(() =>
             {
@@ -283,31 +286,80 @@ namespace Encryption_App.UI
             Console.WriteLine("File write time: " + watch.ElapsedMilliseconds);
         }
 
-        private void DecryptDataWithHeader(CryptographicInfo cryptographicInfo, SecureString password, string filePath)
+        private unsafe void DecryptDataWithHeader(CryptographicInfo cryptographicInfo, SecureString password, string filePath)
         {
+
+            Stopwatch watch = Stopwatch.StartNew();
+
             DeriveBytes keyDevice;
 
-            // Get the password
+            // We have to use Dispatcher.Invoke as the current thread can't access these objects
+            Dispatcher.Invoke(() =>
+            {
+                DecryptOutput.Content = "Loading assemblies...";
+            });
+            Console.WriteLine("Start time: " + watch.ElapsedMilliseconds);
+
+            Assembly securityAsm = Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Security.dll"));
+            Assembly coreAsm = Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Core.dll"));
+
+            // We have to use Dispatcher.Invoke as the current thread can't access these objects
+            Dispatcher.Invoke(() =>
+            {
+                DecryptOutput.Content = "Securely managing password";
+            });
+            Console.WriteLine("Assembly loaded time: " + watch.ElapsedMilliseconds);
+
+
+            // Marshal the secure string to a managed string
             using (password)
             {
                 // Turn the secure string into a string to pass it into keyDevice for the shortest interval possible
                 IntPtr valuePtr = IntPtr.Zero;
+                var p = "";
                 try
                 {
                     valuePtr = Marshal.SecureStringToGlobalAllocUnicode(password);
-                    var parameters = new object[] { Marshal.PtrToStringUni(valuePtr), cryptographicInfo.Salt, 10000 };
+                    p = Marshal.PtrToStringUni(valuePtr);
+                    var parameters = new object[] { p, cryptographicInfo.Salt, 10000 };
                     keyDevice = (DeriveBytes)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) ?? throw new InvalidOperationException(), parameters);
                 }
                 finally
                 {
-                    // Destroy the managed string
+                    // Destroy the unmanaged string
                     Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
+
+                    // Destroy the managed string
+                    if (p == null) throw new ArgumentNullException(nameof(password));
+                    fixed (char* firstCharPtr = p.ToCharArray())
+                    {
+                        for (var i = 0; i < p.Length; i++)
+                        {
+                            firstCharPtr[i] = 'A';
+                        }
+                    }
                 }
             }
-            var hmacAlg = (HMAC)Activator.CreateInstance(Type.GetType(cryptographicInfo.Hmac.HashAlgorithm));
+
+            // We have to use Dispatcher.Invoke as the current thread can't access these objects
+            Dispatcher.Invoke(() =>
+            {
+                DecryptOutput.Content = "Building objects";
+            });
+            Console.WriteLine("Password managed time: " + watch.ElapsedMilliseconds);
+
+            var hmacAlg = (HMAC)Activator.CreateInstance(Type.GetType(cryptographicInfo.Hmac.HashAlgorithm) ?? securityAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm) ?? coreAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm));
+
+            var decryptor = (ISymmetricCryptoManager)Activator.CreateInstance(Type.GetType(cryptographicInfo.CryptoManager) ?? securityAsm.GetType(cryptographicInfo.CryptoManager) ?? coreAsm.GetType(cryptographicInfo.CryptoManager));
+
             var authenticator = new MessageAuthenticator();
 
-            var decryptor = new AesCryptoManager();
+            // We have to use Dispatcher.Invoke as the current thread can't access these objects
+            Dispatcher.Invoke(() =>
+            {
+                DecryptOutput.Content = "Removing header...";
+            });
+            Console.WriteLine("Object built time: " + watch.ElapsedMilliseconds);
 
             // Create the streams used to write the data, minus the header, to a new file
             using (var reader = new BinaryReader(File.OpenRead(filePath)))
@@ -317,10 +369,12 @@ namespace Encryption_App.UI
                 reader.BaseStream.Seek(cryptographicInfo.HeaderLength, SeekOrigin.Begin);
                 // TODO Manage IO exceptions
 
+                long length = reader.BaseStream.Length - reader.BaseStream.Position;
+                
                 // Continuously reads the stream in 1 mb sections until there is none left
                 while (true)
                 {
-                    if (reader.BaseStream.Length < 1024 * 1024 * 1024)
+                    if (length < 1024 * 1024 * 4)
                     {
                         // Read all bytes into the array and write them
                         var buff = new byte[reader.BaseStream.Length];
@@ -332,12 +386,21 @@ namespace Encryption_App.UI
                     else
                     {
                         // Read as many bytes as we allow into the array from the file and write them
-                        var buff = new byte[1024 * 1024 * 1024];
+                        var buff = new byte[1024 * 1024 * 4];
                         int read = reader.Read(buff, 0, buff.Length);
                         writer.Write(buff, 0, read);
+                        length = length - 1024 * 1024 * 4;
                     }
                 }
             }
+
+            // We have to use Dispatcher.Invoke as the current thread can't access these objects
+            Dispatcher.Invoke(() =>
+            {
+                DecryptOutput.Content = "Creating key and verifying HMAC";
+            });
+            Console.WriteLine("Header removed time: " + watch.ElapsedMilliseconds);
+
 
             // Get the key from this device
             byte[] key = keyDevice.GetBytes(256 / 8);
@@ -345,6 +408,14 @@ namespace Encryption_App.UI
 
             // Check if the file and key make the same HMAC
             bool isVerified = authenticator.VerifyHmac(_headerLessTempFile, key, cryptographicInfo.Hmac.root_Hash, hmacAlg);
+
+            // We have to use Dispatcher.Invoke as the current thread can't access these objects
+            Dispatcher.Invoke(() =>
+            {
+                DecryptOutput.Content = "Verifying the integrity of your data";
+            });
+            Console.WriteLine("HMAC verified time: " + watch.ElapsedMilliseconds);
+
 
             // If that didn't succeed, the file has been tampered with
             if (!isVerified)
@@ -355,12 +426,33 @@ namespace Encryption_App.UI
             // Try decrypting the remaining data
             try
             {
+                // We have to use Dispatcher.Invoke as the current thread can't access these objects
+                Dispatcher.Invoke(() =>
+                {
+                    DecryptOutput.Content = "Decrypting your data";
+                });
+                Console.WriteLine("Pre decryption time: " + watch.ElapsedMilliseconds);
+
                 decryptor.DecryptFileBytes(_headerLessTempFile, _dataTempFile, key, cryptographicInfo.InitializationVector);
+
+                // We have to use Dispatcher.Invoke as the current thread can't access these objects
+                Dispatcher.Invoke(() =>
+                {
+                    DecryptOutput.Content = "Copying file across";
+                });
+                Console.WriteLine("Post decryption time: " + watch.ElapsedMilliseconds);
 
                 MessageBox.Show("Successfully Decrypted");
 
                 // Move the file to the original file location
                 File.Copy(_dataTempFile, filePath, true);
+
+                // We have to use Dispatcher.Invoke as the current thread can't access these objects
+                Dispatcher.Invoke(() =>
+                {
+                    DecryptOutput.Content = "Decrypted";
+                });
+                Console.WriteLine("File copied time: " + watch.ElapsedMilliseconds);
             }
             catch (CryptographicException)
             {
@@ -371,6 +463,40 @@ namespace Encryption_App.UI
                 // Delete the key from memory for security
                 ZeroMemory(gch.AddrOfPinnedObject(), key.Length);
                 gch.Free();
+                GC.Collect();
+            }
+        }
+
+        private void RemoveHeader(string filePath, CryptographicInfo cryptographicInfo)
+        {
+            // Create the streams used to write the data, minus the header, to a new file
+            using (var reader = new BinaryReader(File.OpenRead(filePath)))
+            using (var writer = new BinaryWriter(File.Create(_headerLessTempFile)))
+            {
+                // Seek to the end of the header. IMPORTANT Do not change to Position - Position has no value checking - Seek does
+                reader.BaseStream.Seek(cryptographicInfo.HeaderLength, SeekOrigin.Begin);
+                // TODO Manage IO exceptions
+
+                // Continuously reads the stream in 1 mb sections until there is none left
+                while (true)
+                {
+                    if (reader.BaseStream.Length < 1024 * 1024 * 4)
+                    {
+                        // Read all bytes into the array and write them
+                        var buff = new byte[reader.BaseStream.Length];
+                        int read = reader.Read(buff, 0, buff.Length);
+                        writer.Write(buff, 0, read);
+
+                        break;
+                    }
+                    else
+                    {
+                        // Read as many bytes as we allow into the array from the file and write them
+                        var buff = new byte[1024 * 1024 * 4];
+                        int read = reader.Read(buff, 0, buff.Length);
+                        writer.Write(buff, 0, read);
+                    }
+                }
             }
         }
     }

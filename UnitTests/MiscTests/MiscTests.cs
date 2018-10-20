@@ -17,7 +17,7 @@ namespace UnitTests.MiscTests
             Directory.CreateDirectory(AssetsFolder);
             using (var fs = new FileStream(AssetsFolder + "BigTestFile.txt", FileMode.Create))
             {
-                fs.Seek(1024L * 1024 * 1024, SeekOrigin.Begin);
+                fs.Seek(1024 * 1024 * 4, SeekOrigin.Begin);
                 fs.WriteByte(0);
             }
         }

@@ -25,14 +25,14 @@ namespace CryptoTools
         public AesCryptoManager()
         {
             // Default memory - TODO Calculate to higher numbers if possible
-            _memoryConst = 1024 * 1024;
+            _memoryConst = 1024 * 1024 * 4;
 
-            // As the default aes transformation object is AesCng which is FIPS compliant
+            // As the default aes transformation object is AesCryptoServiceProvider which is FIPS compliant
             IsFipsCompliant = true;
 
             // Create the aes object
             // TODO Customized field values
-            _aes = new AesCng
+            _aes = new AesCryptoServiceProvider
             {
                 BlockSize = 128,
                 KeySize = 256,
@@ -54,7 +54,7 @@ namespace CryptoTools
 
             // Create the aes object
             // TODO Customized field values
-            _aes = new AesCng
+            _aes = new AesCryptoServiceProvider
             {
                 BlockSize = 128,
                 KeySize = 256,
@@ -66,7 +66,7 @@ namespace CryptoTools
         public AesCryptoManager(Aes aes)
         {
             // Default memory - TODO Calculate to higher numbers if possible
-            _memoryConst = 1024 * 1024;
+            _memoryConst = 1024 * 1024 * 4;
 
             // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
             if (aes is AesCng || aes is AesCryptoServiceProvider)
@@ -298,8 +298,6 @@ namespace CryptoTools
                     // Continuously reads the stream until it hits an EndOfStream exception
                     while (true)
                     {
-
-
 #if DEBUG
                         double offset = watch.Elapsed.TotalMilliseconds;
 #endif
@@ -323,9 +321,6 @@ namespace CryptoTools
                         iterations++;
 #endif
                     }
-
-
-
 #if DEBUG
                     // Finalize and write debug values
                     double totalMilliseconds = watch.Elapsed.TotalMilliseconds;

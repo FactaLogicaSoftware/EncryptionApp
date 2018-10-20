@@ -19,7 +19,8 @@ namespace CryptoTools
         [JsonIgnore]
         public long HeaderLength { get; protected set; }
 
-        public InfoType type { get; protected set; }
+        [JsonIgnore]
+        public InfoType Type { get; protected set; }
 
         public enum InfoType
         {
@@ -28,6 +29,7 @@ namespace CryptoTools
         }
 
         // primary data object - see CryptoStructs.cs for documentation
+        public string CryptoManager;
         public HmacInfo Hmac;
         public EncryptionModeInfo EncryptionModeInfo;
         public KeyCreator InstanceKeyCreator;
