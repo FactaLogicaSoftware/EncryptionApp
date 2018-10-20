@@ -1,5 +1,7 @@
-﻿using System;
+﻿using CryptoTools;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -7,8 +9,6 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Markup;
-using CryptoTools;
-
 
 namespace Encryption_App.UI
 {
@@ -48,12 +48,10 @@ namespace Encryption_App.UI
 
         private void MenuItem_Click(RoutedEventArgs e)
         {
-
         }
 
         private void CheckBox_Click(object sender, RoutedEventArgs e)
         {
-
         }
 
         private void FilePath_Click(object sender, RoutedEventArgs e)
@@ -94,6 +92,7 @@ namespace Encryption_App.UI
                 case true:
                     FileTextBox.Text = openFileDialog.FileName;
                     break;
+
                 case null:
                     throw new ExternalException("Directory box failed to open");
             }
@@ -146,7 +145,7 @@ namespace Encryption_App.UI
             };
 
             await Task.Run(() => EncryptDataWithHeader(data, EncryptPasswordBox.SecurePassword, filePath));
-            
+
             //throw new Exception("IF THIS DOESN'T GO I GIVE UP");
             LoadingGif.Visibility = Visibility.Hidden;
         }
@@ -168,9 +167,17 @@ namespace Encryption_App.UI
             LoadingGif.Visibility = Visibility.Hidden;
         }
 
-        private async void EncryptDataWithHeader(AesCryptographicInfo cryptographicInfo, SecureString password, string filePath)
+        private void EncryptDataWithHeader(AesCryptographicInfo cryptographicInfo, SecureString password, string filePath)
         {
+            // We have to use Dispatcher.Invoke as the current thread can't access these objects
+            this.Dispatcher.Invoke(() =>
+            {
+                EncryptOutput.Content = "Beginning encryption...";
+            });
+
+            Stopwatch watch = Stopwatch.StartNew();
             DeriveBytes keyDevice;
+
             // Get the password
             using (password)
             {
@@ -179,7 +186,7 @@ namespace Encryption_App.UI
                 try
                 {
                     valuePtr = Marshal.SecureStringToGlobalAllocUnicode(password);
-                    var parameters = new object[] {Marshal.PtrToStringUni(valuePtr), cryptographicInfo.Salt, 10000};
+                    var parameters = new object[] { Marshal.PtrToStringUni(valuePtr), cryptographicInfo.Salt, 10000 };
 
                     keyDevice = (DeriveBytes)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) ?? throw new InvalidOperationException(), parameters);
                 }
@@ -189,6 +196,7 @@ namespace Encryption_App.UI
                     Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
                 }
             }
+
             HMAC hmacAlg = cryptographicInfo.hmac;
             var authenticator = new MessageAuthenticator();
 
@@ -200,8 +208,22 @@ namespace Encryption_App.UI
             // Create a handle to the key to allow control of it
             GCHandle gch = GCHandle.Alloc(key, GCHandleType.Pinned);
 
+            // We have to use Dispatcher.Invoke as the current thread can't access these objects
+            this.Dispatcher.Invoke(() =>
+            {
+                EncryptOutput.Content = "Encrypting your data";
+            });
+            Console.WriteLine("Pre encryption time: " + watch.ElapsedMilliseconds);
+
             // Encrypt the data to a temporary file
             encryptor.EncryptFileBytes(filePath, _dataTempFile, key, cryptographicInfo.InitializationVector);
+
+            // We have to use Dispatcher.Invoke as the current thread can't access these objects
+            this.Dispatcher.Invoke(() =>
+            {
+                EncryptOutput.Content = "Creating an HMAC";
+            });
+            Console.WriteLine("Post encryption time: " + watch.ElapsedMilliseconds);
 
             // Create the signature derived from the encrypted data and key
             byte[] signature = authenticator.CreateHmac(_dataTempFile, key, hmacAlg);
@@ -213,8 +235,18 @@ namespace Encryption_App.UI
             // Set the signature correctly in the CryptographicInfo object
             cryptographicInfo.Hmac.root_Hash = signature;
 
+            // We have to use Dispatcher.Invoke as the current thread can't access these objects
+            this.Dispatcher.Invoke(() =>
+            {
+                EncryptOutput.Content = "Writing the header to the file";
+            });
+            Console.WriteLine("Post authenticate time: " + watch.ElapsedMilliseconds);
+
             // Write the CryptographicInfo object to a file
             cryptographicInfo.WriteHeaderToFile(filePath);
+
+            // We have to use Dispatcher.Invoke as the current thread cannt access these objects this.dispatcher.Invoke(() => { EncryptOutput.Content = "Transferring the data to the file"; });
+            Console.WriteLine("Post header time: " + watch.ElapsedMilliseconds);
 
             // Create streams to read from the temporary file with the encrypted data to the file with the header
             using (var reader = new BinaryReader(File.OpenRead(_dataTempFile)))
@@ -241,9 +273,17 @@ namespace Encryption_App.UI
                     }
                 }
             }
+
+            // We have to use Dispatcher.Invoke as the current thread can't access these objects
+            this.Dispatcher.Invoke(() =>
+            {
+                EncryptOutput.Content = "Encrypted";
+            });
+            // We have to use Dispatcher.Invoke as the current thread cannt access these objects this.dispatcher.Invoke(() => { EncryptOutput.Content = "Encrypted!"; });
+            Console.WriteLine("File write time: " + watch.ElapsedMilliseconds);
         }
 
-        private async void DecryptDataWithHeader(AesCryptographicInfo cryptographicInfo, SecureString password, string filePath)
+        private void DecryptDataWithHeader(AesCryptographicInfo cryptographicInfo, SecureString password, string filePath)
         {
             DeriveBytes keyDevice;
 
@@ -268,7 +308,7 @@ namespace Encryption_App.UI
             var authenticator = new MessageAuthenticator();
 
             var decryptor = new AesCryptoManager();
-            
+
             // Create the streams used to write the data, minus the header, to a new file
             using (var reader = new BinaryReader(File.OpenRead(filePath)))
             using (var writer = new BinaryWriter(File.Create(_headerLessTempFile)))

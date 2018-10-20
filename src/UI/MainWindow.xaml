@@ -22,7 +22,7 @@
                     <Button Content="Browse" HorizontalAlignment="Left" Margin="156,214.04,0,0" VerticalAlignment="Top" Width="75" Height="23" Click="Button_Click" Grid.Column="1"/>
                     <Button Content="Encrypt" HorizontalAlignment="Left" Margin="50,317,0,0" VerticalAlignment="Top" Width="101" Height="42" Click="Encrypt_Click" Grid.Column="1"/>
                     <PasswordBox HorizontalAlignment="Left" Height="23" Margin="26,143.039,0,0" VerticalAlignment="Top" Width="286" x:Name="EncryptPasswordBox" Grid.ColumnSpan="2"/>
-                    <Label x:Name="EncryptOutput" Grid.Column="1" HorizontalAlignment="Left" Margin="50,271,0,0" VerticalAlignment="Top" Height="41" Width="101"/>
+                    <Label x:Name="EncryptOutput" Grid.Column="1" HorizontalAlignment="Left" Margin="10,271,0,0" VerticalAlignment="Top" Height="41" Width="175"/>
                     <Label Content="Enter password:" HorizontalAlignment="Left" Margin="26,112,0,0" VerticalAlignment="Top" Width="100" Grid.ColumnSpan="2"/>
                     <Label Content="Encrypted file location:" HorizontalAlignment="Left" Margin="26,183,0,0" VerticalAlignment="Top" Width="131" Grid.ColumnSpan="2"/>
                     <Image x:Name="LoadingGif" gif:ImageBehavior.AnimatedSource="/UI/Assets/loading.gif" gif:ImageBehavior.RepeatBehavior="Forever" Grid.Column="1" Margin="213,171,34,-126" ></Image>
