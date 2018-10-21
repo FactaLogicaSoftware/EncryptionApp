@@ -19,6 +19,8 @@ namespace Encryption_App.UI
     /// </summary>
     public sealed partial class MainWindow
     {
+        // TODO change to performance derivative transformation based off algorithm
+        private const int Iterations = 10000;
         private readonly string _headerLessTempFile = Path.GetTempPath() + "headerLessConstructionFile.temp";
         private readonly string _dataTempFile = Path.GetTempPath() + "moveFile.temp";
         private readonly List<string> _dropDownItems = new List<string> { "Choose Option...", "Encrypt a file", "Encrypt a file for sending to someone" };
@@ -46,6 +48,9 @@ namespace Encryption_App.UI
             // Hide loading GIFs
             EncryptLoadingGif.Visibility = Visibility.Hidden;
             DecryptLoadingGif.Visibility = Visibility.Hidden;
+
+            // Run startup
+            var test = new PerformanceTransformer();
         }
 
         /// <summary>
@@ -133,7 +138,7 @@ namespace Encryption_App.UI
                 InstanceKeyCreator = new KeyCreator
                 {
                     root_HashAlgorithm = typeof(Rfc2898DeriveBytes).AssemblyQualifiedName,
-                    Iterations = 10000
+                    Iterations = Iterations,
                 },
 
                 EncryptionModeInfo = new EncryptionModeInfo
@@ -198,7 +203,7 @@ namespace Encryption_App.UI
                     valuePtr = Marshal.SecureStringToGlobalAllocUnicode(password);
                     
                     // Create an object array of parameters
-                    var parameters = new object[] { Marshal.PtrToStringUni(valuePtr), cryptographicInfo.Salt, 10000 };
+                    var parameters = new object[] { Marshal.PtrToStringUni(valuePtr), cryptographicInfo.Salt, Iterations };
 
                     keyDevice = (DeriveBytes)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm), parameters);
                 }
@@ -275,7 +280,7 @@ namespace Encryption_App.UI
             GC.Collect();
         }
 
-        private unsafe void DecryptDataWithHeader(CryptographicInfo cryptographicInfo, SecureString password, string filePath)
+        private void DecryptDataWithHeader(CryptographicInfo cryptographicInfo, SecureString password, string filePath)
         {
 #if DEBUG
             Stopwatch watch = Stopwatch.StartNew();
@@ -310,7 +315,7 @@ namespace Encryption_App.UI
                 try
                 {
                     valuePtr = Marshal.SecureStringToGlobalAllocUnicode(password);
-                    var parameters = new object[] { Marshal.PtrToStringUni(valuePtr), cryptographicInfo.Salt, 10000 };
+                    var parameters = new object[] { Marshal.PtrToStringUni(valuePtr), cryptographicInfo.Salt, Iterations };
                     keyDevice = (DeriveBytes)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) ?? throw new InvalidOperationException(), parameters);
                 }
                 finally

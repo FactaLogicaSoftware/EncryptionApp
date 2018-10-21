@@ -185,5 +185,23 @@ namespace Encryption_App {
                 return ResourceManager.GetString("MainWindow_EncryptDataWithHeader_Pre_encryption_time__", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Derivation time: .
+        /// </summary>
+        internal static string PerformanceTransformer_PerformanceTransformer_Derivation_time__ {
+            get {
+                return ResourceManager.GetString("PerformanceTransformer_PerformanceTransformer_Derivation_time__", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initialization time: .
+        /// </summary>
+        internal static string PerformanceTransformer_PerformanceTransformer_Initialization_time__ {
+            get {
+                return ResourceManager.GetString("PerformanceTransformer_PerformanceTransformer_Initialization_time__", resourceCulture);
+            }
+        }
     }
 }
