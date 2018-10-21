@@ -12,15 +12,15 @@ namespace CryptoTools
     public abstract class CryptographicInfo
     {
         // padding used to find start and end of header object - human readable
-        protected Encoding Encoding;
-        protected string StartChars;
-        protected string EndChars;
+        private protected Encoding Encoding;
+        private protected string StartChars;
+        private protected string EndChars;
         
         [JsonIgnore]
-        public long HeaderLength { get; protected set; }
+        public long HeaderLength { get; private protected set; }
 
         [JsonIgnore]
-        public InfoType Type { get; protected set; }
+        public InfoType Type { get; private protected set; }
 
         public enum InfoType
         {

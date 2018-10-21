@@ -1,21 +1,16 @@
-﻿using System;
+﻿using Microsoft.VisualBasic.Devices;
+using System;
 using System.Diagnostics;
-using System.Dynamic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Text;
-using Microsoft.VisualBasic.Devices;
 using utils;
 using static System.Diagnostics.Stopwatch;
 
 namespace CryptoTools
 {
-    public class AesCryptoManager : ISymmetricCryptoManager
+    public class AesCryptoManager : CryptoManager, ISymmetricCryptoManager
     {
-        // The aes object used for transformation
-        private readonly Aes _aes;
-
         // How many bytes read into memory per chunk - calculated by constructor
         private readonly int _memoryConst;
 
@@ -24,6 +19,8 @@ namespace CryptoTools
 
         public AesCryptoManager()
         {
+            SymmetricAlgorithm = new AesCryptoServiceProvider();
+
             // Default memory - TODO Calculate to higher numbers if possible
             _memoryConst = 1024 * 1024 * 4;
 
@@ -32,7 +29,7 @@ namespace CryptoTools
 
             // Create the aes object
             // TODO Customized field values
-            _aes = new AesCryptoServiceProvider
+            SymmetricAlgorithm = new AesCryptoServiceProvider
             {
                 BlockSize = 128,
                 KeySize = 256,
@@ -54,7 +51,7 @@ namespace CryptoTools
 
             // Create the aes object
             // TODO Customized field values
-            _aes = new AesCryptoServiceProvider
+            SymmetricAlgorithm = new AesCryptoServiceProvider
             {
                 BlockSize = 128,
                 KeySize = 256,
@@ -63,7 +60,7 @@ namespace CryptoTools
             };
         }
 
-        public AesCryptoManager(Aes aes)
+        public AesCryptoManager(SymmetricAlgorithm aes)
         {
             // Default memory - TODO Calculate to higher numbers if possible
             _memoryConst = 1024 * 1024 * 4;
@@ -80,10 +77,10 @@ namespace CryptoTools
 
             // Assign the aes object
             // TODO verify integrity of argument
-            _aes = aes;
+            SymmetricAlgorithm = aes;
         }
 
-        public AesCryptoManager(int memoryConst, Aes aes)
+        public AesCryptoManager(int memoryConst, SymmetricAlgorithm aes)
         {
             // Check if that much memory can be assigned
             if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
@@ -106,13 +103,13 @@ namespace CryptoTools
 
             // Assign the aes object
             // TODO verify integrity of argument
-            _aes = aes;
+            SymmetricAlgorithm = aes;
         }
 
         ~AesCryptoManager()
         {
             // All aes classes implement IDispose so we must dispose of it
-            _aes.Dispose();
+            SymmetricAlgorithm.Dispose();
         }
 
         /// <summary>
@@ -180,7 +177,6 @@ namespace CryptoTools
             // Any cryptographic exception indicates the data is invalid or an incorrect password has been inputted
             try
             {
-
 #if DEBUG
                 // Debug values
                 if (!IsHighResolution) { throw new ExternalException("You don't have a high-res sysclock"); }
@@ -192,18 +188,17 @@ namespace CryptoTools
 #endif
 
                 // Set actual IV and key
-                _aes.Key = key;
-                _aes.IV = iv;
+                SymmetricAlgorithm.Key = key;
+                SymmetricAlgorithm.IV = iv;
 
                 // Creates the streams necessary for reading and writing data
                 using (var outFileStream = new FileStream(outputFile, FileMode.Create))
-                using (var cs = new CryptoStream(outFileStream, _aes.CreateEncryptor(), CryptoStreamMode.Write))
+                using (var cs = new CryptoStream(outFileStream, SymmetricAlgorithm.CreateEncryptor(), CryptoStreamMode.Write))
                 using (var inFile = new BinaryReader(File.OpenRead(inputFile))) // BinaryReader is not a stream, but it's only argument is one
                 {
                     // Continuously reads the stream until it hits an EndOfStream exception
                     while (true)
                     {
-
 #if DEBUG
                         double offset = watch.Elapsed.TotalMilliseconds;
 #endif
@@ -220,7 +215,7 @@ namespace CryptoTools
                         fullIterationTime += perIterationMilliseconds;
                         iterations++;
 #endif
-                        // Break if 
+                        // Break if
                         if (data.Length < _memoryConst)
                         {
                             break;
@@ -250,7 +245,7 @@ namespace CryptoTools
             }
             catch (CryptographicException)  // If something went wrong, we get it here
             {
-                _aes.Dispose();
+                SymmetricAlgorithm.Dispose();
                 throw;
             }
         }
@@ -265,11 +260,9 @@ namespace CryptoTools
         /// <returns>true if successful, else false</returns>
         public void DecryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
         {
-
             // Any cryptographic exception indicates the data is invalid or an incorrect password has been inputted
             try
             {
-
 #if DEBUG
                 // Debug values
                 if (!IsHighResolution)
@@ -284,14 +277,13 @@ namespace CryptoTools
                 var avgIterationMilliseconds = 0D;
 #endif
 
-
                 // Set actual IV and key
-                _aes.Key = key;
-                _aes.IV = iv;
+                SymmetricAlgorithm.Key = key;
+                SymmetricAlgorithm.IV = iv;
 
                 // Creates the streams necessary for reading and writing data
                 using (FileStream outFileStream = File.Create(outputFile))
-                using (var cs = new CryptoStream(outFileStream, _aes.CreateDecryptor(), CryptoStreamMode.Write))
+                using (var cs = new CryptoStream(outFileStream, SymmetricAlgorithm.CreateDecryptor(), CryptoStreamMode.Write))
                 using (var inFile = new BinaryReader(File.OpenRead(inputFile))
                 ) // BinaryReader is not a stream, but it's only argument is one
                 {
@@ -307,7 +299,7 @@ namespace CryptoTools
                         // Write it through the cryptostream so it is transformed
                         cs.Write(data, 0, data.Length);
 
-                        // Break if 
+                        // Break if
                         if (data.Length < _memoryConst)
                         {
                             break;
@@ -340,15 +332,46 @@ namespace CryptoTools
 
                     Utils.WriteToDiagnosticsFile(toWrite);
 #endif
-
                 }
             }
-
-
             catch (CryptographicException) // If something went wrong, we get it here
             {
-                _aes.Dispose();
+                SymmetricAlgorithm.Dispose();
                 throw;
+            }
+        }
+
+        public override byte[] EncryptBytes(byte[] data, byte[] key, byte[] iv)
+        {
+            SymmetricAlgorithm.KeySize = key.Length * 8;
+            SymmetricAlgorithm.Key = key;
+            SymmetricAlgorithm.IV = iv;
+            SymmetricAlgorithm.Mode = CipherMode.CBC;
+            SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
+
+            using (var memStream = new MemoryStream(data))
+            using (var cryptoStream = new CryptoStream(memStream, SymmetricAlgorithm.CreateEncryptor(), CryptoStreamMode.Read))
+            using (var binReader = new BinaryReader(cryptoStream))
+            {
+                // TODO manage checked exception
+                return binReader.ReadBytes(checked((int)memStream.Length));
+            }
+        }
+
+        public override byte[] DecryptBytes(byte[] data, byte[] key, byte[] iv)
+        {
+            SymmetricAlgorithm.KeySize = key.Length * 8;
+            SymmetricAlgorithm.Key = key;
+            SymmetricAlgorithm.IV = iv;
+            SymmetricAlgorithm.Mode = CipherMode.CBC;
+            SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
+
+            using (var memStream = new MemoryStream(data))
+            using (var cryptoStream = new CryptoStream(memStream, SymmetricAlgorithm.CreateDecryptor(), CryptoStreamMode.Read))
+            using (var binReader = new BinaryReader(cryptoStream))
+            {
+                // TODO manage checked exception
+                return binReader.ReadBytes(checked((int)memStream.Length));
             }
         }
     }
