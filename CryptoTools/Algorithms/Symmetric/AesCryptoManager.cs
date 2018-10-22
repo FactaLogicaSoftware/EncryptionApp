@@ -1,13 +1,13 @@
-﻿using Microsoft.VisualBasic.Devices;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using Encryption_App;
+using Microsoft.VisualBasic.Devices;
 using utils;
-using static System.Diagnostics.Stopwatch;
 
-namespace CryptoTools
+namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {
     public class AesCryptoManager : CryptoManager, ISymmetricCryptoManager
     {
@@ -179,8 +179,8 @@ namespace CryptoTools
             {
 #if DEBUG
                 // Debug values
-                if (!IsHighResolution) { throw new ExternalException("You don't have a high-res sysclock"); }
-                Stopwatch watch = StartNew();
+                if (!Stopwatch.IsHighResolution) { throw new ExternalException("You don't have a high-res sysclock"); }
+                Stopwatch watch = Stopwatch.StartNew();
 
                 var iterations = 0L;
                 var fullIterationTime = 0.0D;
@@ -265,12 +265,12 @@ namespace CryptoTools
             {
 #if DEBUG
                 // Debug values
-                if (!IsHighResolution)
+                if (!Stopwatch.IsHighResolution)
                 {
                     throw new Exception("You don't have a high-res sysclock");
                 }
 
-                Stopwatch watch = StartNew();
+                Stopwatch watch = Stopwatch.StartNew();
 
                 var iterations = 0L;
                 var fullIterationTime = 0.0D;

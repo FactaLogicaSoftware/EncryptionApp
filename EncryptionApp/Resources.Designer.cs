@@ -142,6 +142,24 @@ namespace Encryption_App {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Actual key derivation time: .
+        /// </summary>
+        internal static string MainWindow_EncryptDataWithHeader_Actual_key_derivation_time__ {
+            get {
+                return ResourceManager.GetString("MainWindow_EncryptDataWithHeader_Actual_key_derivation_time__", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected key derivation time: .
+        /// </summary>
+        internal static string MainWindow_EncryptDataWithHeader_Expected_key_derivation_time__ {
+            get {
+                return ResourceManager.GetString("MainWindow_EncryptDataWithHeader_Expected_key_derivation_time__", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File write time: .
         /// </summary>
         internal static string MainWindow_EncryptDataWithHeader_File_write_time__ {
