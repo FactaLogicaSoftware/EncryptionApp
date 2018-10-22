@@ -5,6 +5,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using CryptoTools;
+using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
+using FactaLogicaSoftware.CryptoTools.Information;
 using Xunit;
 
 namespace UnitTests.CryptoTests
@@ -100,7 +102,7 @@ namespace UnitTests.CryptoTests
             {
                 InitializationVector = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 },
                 EncryptionModeInfo = new EncryptionModeInfo { root_Algorithm = "AES", KeySize = 256, BlockSize = 128, Mode = CipherMode.CBC },
-                InstanceKeyCreator = new KeyCreator { root_HashAlgorithm = nameof(Rfc2898DeriveBytes), Iterations = 10000 },
+                InstanceKeyCreator = new KeyCreator { root_HashAlgorithm = nameof(Rfc2898DeriveBytes), PerformanceDerivative = 14 },
                 Hmac = new HmacInfo { root_Hash = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, HashAlgorithm = nameof(HMACSHA384) },
                 Salt = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }
             };

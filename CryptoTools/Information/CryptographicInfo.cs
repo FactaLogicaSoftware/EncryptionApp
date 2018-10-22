@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
+using Encryption_App;
 using Newtonsoft.Json;
 
-namespace CryptoTools
+namespace FactaLogicaSoftware.CryptoTools.Information
 {
     public abstract class CryptographicInfo
     {

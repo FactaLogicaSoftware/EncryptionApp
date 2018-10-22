@@ -111,7 +111,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Compile Include="FileStatics.cs" />
-    <Compile Include="PerformanceTransformer.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -179,6 +178,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>echo F|xcopy /Y "$(SolutionDir)\src\UI\Assets\loading.gif" "$(TargetDir)\UI\Assets"</PostBuildEvent>
+    <PostBuildEvent>echo F|xcopy /Y "$(SolutionDir)\EncryptionApp\UI\Assets\loading.gif" "$(TargetDir)\UI\Assets"</PostBuildEvent>
   </PropertyGroup>
 </Project>

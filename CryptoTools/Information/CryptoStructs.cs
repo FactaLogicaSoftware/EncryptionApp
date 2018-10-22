@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
+﻿using System.Security.Cryptography;
+using Encryption_App;
 
 // Don't edit the line below please 
 // ReSharper disable InconsistentNaming
 
-namespace CryptoTools
+namespace FactaLogicaSoftware.CryptoTools.Information
 {
     // The data about the Hash Message Authentication Code (HMAC)
     public struct HmacInfo : ICryptoStruct
@@ -17,14 +12,14 @@ namespace CryptoTools
         // The byte[] of the actual hash
         public byte[] root_Hash;
 
-        // The string that is the nameof() the type used
+        // The string that is the typeof() or GetType() of the object
         public string HashAlgorithm;
     }
 
     // The data about the encryption mode used
     public struct EncryptionModeInfo : ICryptoStruct
     {
-        // The string that is the nameof() the type used
+        // The string that is the typeof() or GetType() of the object
         public string root_Algorithm;
 
         // The CipherMode used
@@ -40,11 +35,11 @@ namespace CryptoTools
     // The data about the device used to derive or create the key
     public struct KeyCreator : ICryptoStruct
     {
-        // The string that is the nameof() the type used
+        // The string that is the typeof() or GetType() of the object
         public string root_HashAlgorithm;
 
         // The number of iterations
-        public uint Iterations;
+        public ulong PerformanceDerivative;
 
         // The byte[] of the salt used
         public byte[] salt;

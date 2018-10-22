@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Security.Cryptography;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace CryptoTools
+namespace FactaLogicaSoftware.CryptoTools.Information
 {
     public class AesCryptographicInfo : CryptographicInfo
     {
@@ -52,7 +48,7 @@ namespace CryptoTools
             {
                 // The header limit is 5KB, so read that and we know we have it all
                 // TODO define limit size more precisely
-                var header = new string(binReader.ReadChars(1024));
+                var header = new string(binReader.ReadChars(1024 * 3));
 
                 // Get the index of the start and end of the JSON object
                 int start = header.IndexOf("BEGIN ENCRYPTION HEADER STRING", StringComparison.Ordinal) + /*IMPORTANT*/ StartChars.Length; // + StartChars.Length, IndexOf gets the first character of the string search, so adding the length pushes it to the end of that
@@ -61,7 +57,7 @@ namespace CryptoTools
                 // If either search failed and returned -1, fail, as the header is corrupted
                 if (start == -1 || end == -1)
                 {
-                    throw new FileFormatException($"{(start == -1 ? start : end)} validation string corrupted");
+                    throw new FileFormatException($"{(start == -1 ? "Start" : "End")} validation string corrupted");
                 }
 
                 // Get the data between the indexes : that's why we added the length of StartChars earlier

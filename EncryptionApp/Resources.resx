@@ -140,4 +140,16 @@
   <data name="MainWindow_EncryptDataWithHeader_Pre_encryption_time__" xml:space="preserve">
     <value>Pre encryption time: </value>
   </data>
+  <data name="PerformanceTransformer_PerformanceTransformer_Initialization_time__" xml:space="preserve">
+    <value>Initialization time: </value>
+  </data>
+  <data name="PerformanceTransformer_PerformanceTransformer_Derivation_time__" xml:space="preserve">
+    <value>Derivation time: </value>
+  </data>
+  <data name="MainWindow_EncryptDataWithHeader_Actual_key_derivation_time__" xml:space="preserve">
+    <value>Actual key derivation time: </value>
+  </data>
+  <data name="MainWindow_EncryptDataWithHeader_Expected_key_derivation_time__" xml:space="preserve">
+    <value>Expected key derivation time: </value>
+  </data>
 </root>
