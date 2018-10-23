@@ -80,6 +80,7 @@
   <ItemGroup>
     <Compile Include="Algorithms\Asymmetric\RsaCryptoManager.cs" />
     <Compile Include="Algorithms\Symmetric\TripleDesCryptoManager.cs" />
+    <Compile Include="Digests\KeyDerivation\Argon2KeyDerive.cs" />
     <Compile Include="Digests\KeyDerivation\BCryptKeyDerive.cs" />
     <Compile Include="Exceptions\InvalidCryptographicOperationException.cs" />
     <Compile Include="Exceptions\InvalidKeyException.cs" />
@@ -116,4 +117,7 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Liphsoft.Crypto.Argon2.1.0.5\build\Liphsoft.Crypto.Argon2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Liphsoft.Crypto.Argon2.1.0.5\build\Liphsoft.Crypto.Argon2.targets'))" />
   </Target>
+  <PropertyGroup>
+    <PostBuildEvent>echo F|xcopy /Y "$(SolutionDir)\packages\Liphsoft.Crypto.Argon2.1.0.5\Argon2\x64\libargon2.dll" "$(TargetDir)"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

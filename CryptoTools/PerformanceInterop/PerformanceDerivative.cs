@@ -100,5 +100,11 @@ namespace Encryption_App
             // TODO manage overflow
             return (checked((int)Math.Pow(2, 19)), 8, 1);
         }
+
+#warning "Parameter has no signficance at the moment"
+        public (int N, int r, int p) TransformToArgon2Tuning(ulong milliseconds)
+        {
+            return (3, 1024 * 128, 1);
+        }
     }
 }

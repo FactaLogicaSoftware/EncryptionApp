@@ -24,8 +24,6 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             }
         }
 
-        private byte[] _backPassword;
-
         /// <inheritdoc />
         /// <summary>
         /// </summary>
@@ -37,7 +35,6 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             {
                 BackEncryptedArray = ProtectedData.Protect(value, null, DataProtectionScope.CurrentUser);
 
-                _backPassword = value;
                 if ((_tuneFlags.N & (_tuneFlags.N - 1)) == 0 && _tuneFlags.r > 0 && _tuneFlags.p > 0)
                 {
                     Usable = true;

@@ -1,5 +1,8 @@
-﻿using System.Security.Cryptography;
+﻿using System;
+using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
+using Liphsoft.Crypto.Argon2;
 using Encryption_App;
 using FactaLogicaSoftware.CryptoTools.Exceptions;
 
@@ -8,20 +11,33 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
     /// <inheritdoc />
     /// <summary>
     /// </summary>
-    public sealed class Pbkdf2KeyDerive : KeyDerive
+    /// TODO Make based off Konscious security, better lib, but not on nuGet
+    public sealed class Argon2KeyDerive : KeyDerive
     {
-        private readonly Rfc2898DeriveBytes _baseObject;
+        private readonly PasswordHasher _baseObject;
 
-        private int _iterations;
+        private (ulong N, uint r, uint p) _tuneFlags;
+        private uint _read;
 
         /// <inheritdoc />
         /// <summary>
-        /// The performance values for this pbkdf2 function
         /// </summary>
         public override object PerformanceValues
         {
-            get => _iterations;
-            private protected set => _iterations = (int)value;
+            get => _tuneFlags;
+
+            private protected set
+            {
+                try
+                {
+                    var newCastTuple = (ValueTuple<int, int, int>)value;
+                    _tuneFlags = ((ulong)newCastTuple.Item1, (uint)newCastTuple.Item2, (uint)newCastTuple.Item3);
+                }
+                catch (InvalidCastException)
+                {
+                    _tuneFlags = (ValueTuple<ulong, uint, uint>)value;
+                }
+            }
         }
 
         /// <inheritdoc />
@@ -31,6 +47,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         public override byte[] Password
         {
             get => ProtectedData.Unprotect(BackEncryptedArray, null, DataProtectionScope.CurrentUser);
+
             private protected set
             {
                 BackEncryptedArray = ProtectedData.Protect(value, null, DataProtectionScope.CurrentUser);
@@ -41,7 +58,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// <summary>
         /// Default constructor that isn't valid for derivation
         /// </summary>
-        public Pbkdf2KeyDerive()
+        public Argon2KeyDerive()
         {
             Usable = false;
         }
@@ -51,62 +68,53 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// </summary>
         /// <param name="password">The bytes of the password to hash</param>
         /// <param name="salt">The salt used to hash</param>
-        /// <param name="iterations">The number of iterations to use on the
-        /// underlying Rfc2898DeriveBytes objects</param>
-        public Pbkdf2KeyDerive(byte[] password, byte[] salt, int iterations)
+        /// <param name="tuneFlags">The tuning parameters</param>
+        public Argon2KeyDerive(byte[] password, byte[] salt, (ulong N, uint r, uint p) tuneFlags)
         {
-            PerformanceValues = iterations;
+            PerformanceValues = tuneFlags;
             Salt = salt;
             Password = password;
-            _baseObject = new Rfc2898DeriveBytes(Password, Salt, (int)PerformanceValues);
+            _baseObject = new PasswordHasher((uint)_tuneFlags.N, tuneFlags.r, tuneFlags.p, Argon2Type.Argon2d, 1024 * 1024);
             Usable = true;
         }
 
         /// <summary>
         /// Creates an instance of an object used to hash
         /// </summary>
-        /// <param name="password">The string of the password to hash</param>
+        /// <param name="password">The string the password to hash</param>
         /// <param name="salt">The salt used to hash</param>
-        /// <param name="iterations">The number of iterations to use on the
-        /// underlying Rfc2898DeriveBytes objects</param>
-        public Pbkdf2KeyDerive(string password, byte[] salt, int iterations)
+        /// <param name="tuneFlags">The tuning parameters</param>
+        public Argon2KeyDerive(string password, byte[] salt, (ulong N, uint r, uint p) tuneFlags)
         {
-            PerformanceValues = iterations;
+            PerformanceValues = tuneFlags;
             Salt = salt;
             Password = Encoding.UTF8.GetBytes(password);
-            _baseObject = new Rfc2898DeriveBytes(Password, Salt, (int)PerformanceValues);
+            _baseObject = new PasswordHasher((uint)_tuneFlags.N, tuneFlags.r, tuneFlags.p, Argon2Type.Argon2d, 1024 * 1024);
             Usable = true;
         }
 
         /// <inheritdoc />
         /// <summary>
-        /// Fills an array with hashed bytes
         /// </summary>
-        /// <param name="toFill">The array to fill</param>
+        /// <param name="toFill"></param>
         public override void GetBytes(byte[] toFill)
         {
             if (!Usable)
             {
                 throw new InvalidCryptographicOperationException("Password not set");
             }
-            toFill = _baseObject.GetBytes(toFill.Length);
+            _baseObject.HashLength = _read + (uint)toFill.Length;
+            toFill = _baseObject.HashRaw(Password, Salt).Skip((int)_read).ToArray();
         }
 
-        /// <inheritdoc />
-        /// <summary>
-        /// </summary>
         public override void Reset()
         {
-            _baseObject.Reset();
+            _read = 0;
         }
 
-        /// <inheritdoc />
-        /// <summary>
-        /// </summary>
-        /// <param name="performanceDerivative"></param>
         public override void TransformPerformance(PerformanceDerivative performanceDerivative)
         {
-            PerformanceValues = checked((int)performanceDerivative.TransformToRfc2898(performanceDerivative.Milliseconds));
+            PerformanceValues = performanceDerivative.TransformToArgon2Tuning(2000);
         }
     }
 }

@@ -187,7 +187,7 @@ namespace Encryption_App.UI
 
                 InstanceKeyCreator = new KeyCreator
                 {
-                    root_HashAlgorithm = typeof(SCryptKeyDerive).AssemblyQualifiedName,
+                    root_HashAlgorithm = typeof(Argon2KeyDerive).AssemblyQualifiedName,
                     PerformanceDerivative = _performanceDerivative.PerformanceDerivativeValue,
                 },
 
@@ -238,7 +238,6 @@ namespace Encryption_App.UI
             // Load the assemblies necessary for reflection
             Assembly securityAsm = Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Security.dll"));
             Assembly coreAsm = Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Core.dll"));
-            //Assembly scyptAsm = Assembly.LoadFile(Path);
 
             var performanceDerivative = new PerformanceDerivative(cryptographicInfo.InstanceKeyCreator.PerformanceDerivative);
 
@@ -257,6 +256,7 @@ namespace Encryption_App.UI
                     var tempTransformationDevice = (KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm));
                     tempTransformationDevice.TransformPerformance(performanceDerivative);
                     parameters[2] = tempTransformationDevice.PerformanceValues;
+                    Console.WriteLine(parameters[2].GetType());
                     
                     keyDevice = (KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm), parameters);
                 }

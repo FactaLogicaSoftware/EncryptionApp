@@ -64,6 +64,8 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
+    <DocumentationFile>
+    </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
@@ -178,7 +180,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>echo F|xcopy /Y "$(SolutionDir)\EncryptionApp\UI\Assets\loading.gif" "$(TargetDir)\UI\Assets"</PostBuildEvent>
+    <PostBuildEvent>echo F|xcopy /Y "$(SolutionDir)\EncryptionApp\UI\Assets\loading.gif" "$(TargetDir)\UI\Assets"
+echo F|xcopy /Y "$(SolutionDir)\packages\Liphsoft.Crypto.Argon2.1.0.5\Argon2\x64\libargon2.dll" "$(TargetDir)"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>echo D|xcopy /Y "$(SolutionDir)\libs" "$(TargetDir)\CryptoTools\bin\Debug\" /s/h/e/k/f/c</PreBuildEvent>
