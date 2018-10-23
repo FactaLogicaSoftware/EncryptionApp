@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Security.Cryptography;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Asymmetric
 {
@@ -8,6 +9,12 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Asymmetric
     /// </summary>
     public abstract class AsymmetricCryptoManager
     {
+
+        /// <summary>
+        /// Whether the current aes object is FIPS 140-2 compliant
+        /// </summary>
+        public bool IsFipsCompliant { get; private protected set; }
+
         /// <summary>
         /// If overriden in a derived class, encrypts bytes using the public key
         /// </summary>

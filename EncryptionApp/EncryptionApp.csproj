@@ -180,4 +180,7 @@
   <PropertyGroup>
     <PostBuildEvent>echo F|xcopy /Y "$(SolutionDir)\EncryptionApp\UI\Assets\loading.gif" "$(TargetDir)\UI\Assets"</PostBuildEvent>
   </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>echo D|xcopy /Y "$(SolutionDir)\libs" "$(TargetDir)\CryptoTools\bin\Debug\" /s/h/e/k/f/c</PreBuildEvent>
+  </PropertyGroup>
 </Project>

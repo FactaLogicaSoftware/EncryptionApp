@@ -10,6 +10,13 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
     {
         private protected SymmetricAlgorithm SymmetricAlgorithm;
 
+        public abstract int KeySize { get; set; }
+        
+        /// <summary>
+        /// Whether the current SymmetricAlgorithm is FIPS 140-2 compliant
+        /// </summary>
+        public bool IsFipsCompliant { get; private protected set; }
+
         /// <summary>
         /// If overriden in a derived class, encrypts bytes of a given file into another one
         /// </summary>

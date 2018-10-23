@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using Encryption_App;
 
 namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
@@ -10,13 +11,17 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
     /// </summary>
     public sealed class SCryptKeyDerive : KeyDerive
     {
-        private readonly (ulong N, uint r, uint p) _tuneFlags;
         private uint _read;
-        private (int N, int r, int p) _backTuple;
+        private (ulong N, uint r, uint p) _tuneFlags;
+
         public override object PerformanceValues
         {
-            get => _backTuple;
-            private protected set => _backTuple = (ValueTuple<int, int, int>)value;
+            get => _tuneFlags;
+            private protected set
+            {
+                var newCastTuple = (ValueTuple<int, int, int>) value;
+                _tuneFlags = ((ulong)newCastTuple.Item1, (uint)newCastTuple.Item2, (uint)newCastTuple.Item3);
+            }
         }
 
         private byte[] _backPassword;
@@ -31,9 +36,9 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             private protected set
             {
                 BackEncryptedArray = ProtectedData.Protect(value, null, DataProtectionScope.CurrentUser);
-            
+
                 _backPassword = value;
-                if ((_backTuple.N & (_backTuple.N - 1)) == 0 && _backTuple.r > 0 && _backTuple.p > 0)
+                if ((_tuneFlags.N & (_tuneFlags.N - 1)) == 0 && _tuneFlags.r > 0 && _tuneFlags.p > 0)
                 {
                     Usable = true;
                 }
@@ -61,6 +66,23 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             _tuneFlags = tuneFlags;
             Salt = salt;
             Password = password;
+            _read = 0;
+            Usable = true;
+        }
+
+        /// <summary>
+        /// Creates an instance of an object used to hash
+        /// </summary>
+        /// <param name="password">The string of the password to hash</param>
+        /// <param name="salt">The salt used to hash
+        /// underlying Rfc2898DeriveBytes objects</param>
+        /// <param name="tuneFlags">The tuple containing the SCrypt tuning
+        /// parameters (N, r, and p)</param>
+        public SCryptKeyDerive(string password, byte[] salt, (ulong N, uint r, uint p) tuneFlags)
+        {
+            _tuneFlags = tuneFlags;
+            Salt = salt;
+            Password = Encoding.UTF8.GetBytes(password);
             _read = 0;
             Usable = true;
         }
