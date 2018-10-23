@@ -2,12 +2,12 @@
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms
 {
+    /// <summary>
+    /// The base class of the any CryptoManager classes which
+    /// either implement ISymmetricCryptoManager or AISymmetricCryptoManager
+    /// </summary>
     public abstract class CryptoManager
     {
-        private protected SymmetricAlgorithm SymmetricAlgorithm;
-
-        public abstract byte[] EncryptBytes(byte[] data, byte[] key, byte[] iv);
-
-        public abstract byte[] DecryptBytes(byte[] data, byte[] key, byte[] iv);
+        // TODO
     }
 }

@@ -4,6 +4,9 @@ using Newtonsoft.Json;
 
 namespace FactaLogicaSoftware.CryptoTools.Information
 {
+    /// <summary>
+    /// The abstract class that all CryptographicInfo objects derive from
+    /// </summary>
     public abstract class CryptographicInfo
     {
         // padding used to find start and end of header object - human readable

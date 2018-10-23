@@ -147,7 +147,7 @@ namespace Encryption_App.UI
 
                 EncryptionModeInfo = new EncryptionModeInfo
                 {
-                    root_Algorithm = typeof(AesCryptoServiceProvider).AssemblyQualifiedName,
+                    root_Algorithm = typeof(AesCng).AssemblyQualifiedName,
                     KeySize = 256,
                     BlockSize = 128,
                     Mode = CipherMode.CBC
@@ -363,7 +363,16 @@ namespace Encryption_App.UI
 #endif
             var hmacAlg = (HMAC)Activator.CreateInstance(Type.GetType(cryptographicInfo.Hmac.HashAlgorithm) ?? securityAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm) ?? coreAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm));
 
-            var decryptor = (ISymmetricCryptoManager)Activator.CreateInstance(Type.GetType(cryptographicInfo.CryptoManager) ?? securityAsm.GetType(cryptographicInfo.CryptoManager) ?? coreAsm.GetType(cryptographicInfo.CryptoManager));
+            // We have to use Dispatcher.Invoke as the current thread can't access these objects
+            Dispatcher.Invoke(() =>
+            {
+                DecryptOutput.Content = "HMAC object instantiated";
+            });
+#if DEBUG
+            Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Object_built_time__ + watch.ElapsedMilliseconds);
+#endif
+
+            var decryptor = (SymmetricCryptoManager)Activator.CreateInstance(Type.GetType(cryptographicInfo.CryptoManager) ?? securityAsm.GetType(cryptographicInfo.CryptoManager) ?? coreAsm.GetType(cryptographicInfo.CryptoManager));
 
             // We have to use Dispatcher.Invoke as the current thread can't access these objects
             Dispatcher.Invoke(() =>
@@ -427,7 +436,7 @@ namespace Encryption_App.UI
 #if DEBUG
                 Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Post_decryption_time__ + watch.ElapsedMilliseconds);
 #endif
-                MessageBox.Show("Successfully Decrypted");
+                
 
                 // Move the file to the original file location
                 File.Copy(_dataTempFile, filePath, true);
@@ -440,6 +449,7 @@ namespace Encryption_App.UI
 #if DEBUG
                 Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_File_copied_time__ + watch.ElapsedMilliseconds);
 #endif
+                MessageBox.Show("Successfully Decrypted");
             }
             catch (CryptographicException)
             {

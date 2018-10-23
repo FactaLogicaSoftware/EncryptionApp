@@ -76,6 +76,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Digests\KeyDerivation\BCryptKeyDerive.cs" />
+    <Compile Include="Exceptions\InvalidCryptographicOperationException.cs" />
+    <Compile Include="Exceptions\InvalidKeyException.cs" />
     <Compile Include="Information\AesCryptographicInfo.cs" />
     <Compile Include="Algorithms\Symmetric\AesCryptoManager.cs" />
     <Compile Include="Information\CryptographicInfo.cs" />
@@ -83,7 +85,7 @@
     <Compile Include="Information\CryptoStructs.cs" />
     <Compile Include="Algorithms\Asymmetric\IAsymmetricCryptoManager.cs" />
     <Compile Include="Information\ICryptoStruct.cs" />
-    <Compile Include="Algorithms\Symmetric\ISymmetricCryptoManager.cs" />
+    <Compile Include="Algorithms\Symmetric\SymmetricCryptoManager.cs" />
     <Compile Include="Digests\KeyDerivation\KeyDerive.cs" />
     <Compile Include="HMAC\MessageAuthenticator.cs" />
     <Compile Include="Digests\KeyDerivation\Pbkdf2KeyDerive.cs" />
