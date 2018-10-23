@@ -79,6 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Algorithms\Asymmetric\RsaCryptoManager.cs" />
+    <Compile Include="Algorithms\Symmetric\Rc2CryptoManager.cs" />
     <Compile Include="Algorithms\Symmetric\TripleDesCryptoManager.cs" />
     <Compile Include="Digests\KeyDerivation\Argon2KeyDerive.cs" />
     <Compile Include="Digests\KeyDerivation\BCryptKeyDerive.cs" />
