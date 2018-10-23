@@ -98,7 +98,7 @@
       <Project>{bd173487-6aa1-4376-9464-7090a1925f6a}</Project>
       <Name>EncryptionApp.Library.CryptoTools</Name>
     </ProjectReference>
-    <ProjectReference Include="..\src\EncryptionApp.csproj">
+    <ProjectReference Include="..\EncryptionApp\EncryptionApp.csproj">
       <Project>{701b9935-7bf8-4ba2-861a-7764761c1318}</Project>
       <Name>EncryptionApp</Name>
     </ProjectReference>

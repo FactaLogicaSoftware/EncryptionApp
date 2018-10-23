@@ -4,6 +4,7 @@ using Encryption_App;
 namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {
     // TODO implement this, the BCrypt library i found doesn't have wide enough methods for this wrapper
+    [Obsolete("Not implemented yet")]
     public sealed class BCryptKeyDerive : KeyDerive
     {
         private uint _cost;

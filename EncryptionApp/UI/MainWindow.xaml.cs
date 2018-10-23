@@ -28,7 +28,11 @@ namespace Encryption_App.UI
         private readonly string _dataTempFile = Path.GetTempPath() + "moveFile.temp";
         private readonly List<string> _dropDownItems = new List<string> { "Choose Option...", "Encrypt a file", "Encrypt a file for sending to someone" };
         private PerformanceDerivative _performanceDerivative;
-        
+        private readonly string[] _encryptStepStrings;
+        private readonly string[] _decryptStepStrings;
+        private int _encryptStringStepCount;
+        private int _decryptStringStepCount;
+
         /// <inheritdoc />
         /// <summary>
         /// Constructor for window. Don't mess with
@@ -53,6 +57,30 @@ namespace Encryption_App.UI
             EncryptLoadingGif.Visibility = Visibility.Hidden;
             DecryptLoadingGif.Visibility = Visibility.Hidden;
 
+            _encryptStepStrings = new[]
+            {
+                "Beginning encryption...",
+                "Encrypting your data",
+                "Creating an HMAC",
+                "Writing the header to the file",
+                "Encrypted"
+            };
+
+            _decryptStepStrings = new[]
+            {
+                "Loading assemblies...",
+                "Securely managing password",
+                "Building objects",
+                "HMAC object instantiated",
+                "Removing header...",
+                "Creating key and verifying HMAC",
+                "Verifying the integrity of your data",
+                "Decrypting your data",
+                "Copying file across",
+                "Decrypted"
+            };
+
+
             // Run startup
             _performanceDerivative = new PerformanceDerivative();
         }
@@ -65,6 +93,24 @@ namespace Encryption_App.UI
         /// <returns></returns>
         [DllImport("KERNEL32.DLL", EntryPoint = "RtlZeroMemory")]
         private static extern bool ZeroMemory(IntPtr destination, int length);
+
+        private void StepEncryptStrings()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                EncryptOutput.Content = _encryptStepStrings[_encryptStringStepCount];
+                _encryptStringStepCount++;
+            });
+        }
+
+        private void StepDecryptStrings()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                DecryptOutput.Content = _decryptStepStrings[_decryptStringStepCount];
+                _decryptStringStepCount++;
+            });
+        }
 
         private void MenuItem_Click(RoutedEventArgs e)
         {
@@ -141,13 +187,13 @@ namespace Encryption_App.UI
 
                 InstanceKeyCreator = new KeyCreator
                 {
-                    root_HashAlgorithm = typeof(Pbkdf2KeyDerive).AssemblyQualifiedName,
+                    root_HashAlgorithm = typeof(Argon2KeyDerive).AssemblyQualifiedName,
                     PerformanceDerivative = _performanceDerivative.PerformanceDerivativeValue,
                 },
 
                 EncryptionModeInfo = new EncryptionModeInfo
                 {
-                    root_Algorithm = typeof(AesCryptoServiceProvider).AssemblyQualifiedName,
+                    root_Algorithm = typeof(AesCng).AssemblyQualifiedName,
                     KeySize = 256,
                     BlockSize = 128,
                     Mode = CipherMode.CBC
@@ -181,11 +227,7 @@ namespace Encryption_App.UI
 
         private void EncryptDataWithHeader(CryptographicInfo cryptographicInfo, SecureString password, string filePath)
         {
-            // We have to use Dispatcher.Invoke as the current thread can't access these objects
-            Dispatcher.Invoke(() =>
-            {
-                EncryptOutput.Content = "Beginning encryption...";
-            });
+            StepEncryptStrings();
 
 #if DEBUG
             Stopwatch watch = Stopwatch.StartNew();
@@ -198,7 +240,7 @@ namespace Encryption_App.UI
             Assembly coreAsm = Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Core.dll"));
 
             var performanceDerivative = new PerformanceDerivative(cryptographicInfo.InstanceKeyCreator.PerformanceDerivative);
-            
+
             // Get the password
             using (password)
             {
@@ -207,18 +249,15 @@ namespace Encryption_App.UI
                 try
                 {
                     valuePtr = Marshal.SecureStringToGlobalAllocUnicode(password);
-                    
+
                     // Create an object array of parameters
                     var parameters = new object[] { Marshal.PtrToStringUni(valuePtr), cryptographicInfo.Salt, null };
 
                     var tempTransformationDevice = (KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm));
                     tempTransformationDevice.TransformPerformance(performanceDerivative);
                     parameters[2] = tempTransformationDevice.PerformanceValues;
-                    foreach (object c in parameters)
-                    {
-                        Console.WriteLine();
-                    }
-                    Console.WriteLine((int)parameters[2]);
+                    Console.WriteLine(parameters[2].GetType());
+                    
                     keyDevice = (KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm), parameters);
                 }
                 finally
@@ -245,22 +284,14 @@ namespace Encryption_App.UI
             // Create a handle to the key to allow control of it
             GCHandle keyHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
 
-            // We have to use Dispatcher.Invoke as the current thread can't access these objects
-            Dispatcher.Invoke(() =>
-            {
-                EncryptOutput.Content = "Encrypting your data";
-            });
+            StepEncryptStrings();
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Pre_encryption_time__ + watch.ElapsedMilliseconds);
 #endif
             // Encrypt the data to a temporary file
             encryptor.EncryptFileBytes(filePath, _dataTempFile, key, cryptographicInfo.InitializationVector);
 
-            // We have to use Dispatcher.Invoke as the current thread can't access these objects
-            Dispatcher.Invoke(() =>
-            {
-                EncryptOutput.Content = "Creating an HMAC";
-            });
+            StepEncryptStrings();
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Post_encryption_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -274,11 +305,7 @@ namespace Encryption_App.UI
             // Set the signature correctly in the CryptographicInfo object
             cryptographicInfo.Hmac.root_Hash = signature;
 
-            // We have to use Dispatcher.Invoke as the current thread can't access these objects
-            Dispatcher.Invoke(() =>
-            {
-                EncryptOutput.Content = "Writing the header to the file";
-            });
+            StepEncryptStrings();
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Post_authenticate_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -290,11 +317,7 @@ namespace Encryption_App.UI
 #endif
             FileStatics.AppendToFile(filePath, _dataTempFile);
 
-            // We have to use Dispatcher.Invoke as the current thread can't access these objects
-            Dispatcher.Invoke(() =>
-            {
-                EncryptOutput.Content = "Encrypted";
-            });
+            StepEncryptStrings();
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_File_write_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -308,11 +331,7 @@ namespace Encryption_App.UI
 #endif
             KeyDerive keyDevice;
 
-            // We have to use Dispatcher.Invoke as the current thread can't access these objects
-            Dispatcher.Invoke(() =>
-            {
-                DecryptOutput.Content = "Loading assemblies...";
-            });
+            StepDecryptStrings();
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Start_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -320,11 +339,7 @@ namespace Encryption_App.UI
             Assembly securityAsm = Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Security.dll"));
             Assembly coreAsm = Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Core.dll"));
 
-            // We have to use Dispatcher.Invoke as the current thread can't access these objects
-            Dispatcher.Invoke(() =>
-            {
-                DecryptOutput.Content = "Securely managing password";
-            });
+            StepDecryptStrings();
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Assembly_loaded_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -353,33 +368,26 @@ namespace Encryption_App.UI
                 }
             }
 
-            // We have to use Dispatcher.Invoke as the current thread can't access these objects
-            Dispatcher.Invoke(() =>
-            {
-                DecryptOutput.Content = "Building objects";
-            });
+            StepDecryptStrings();
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Password_managed_time__ + watch.ElapsedMilliseconds);
 #endif
             var hmacAlg = (HMAC)Activator.CreateInstance(Type.GetType(cryptographicInfo.Hmac.HashAlgorithm) ?? securityAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm) ?? coreAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm));
 
-            var decryptor = (ISymmetricCryptoManager)Activator.CreateInstance(Type.GetType(cryptographicInfo.CryptoManager) ?? securityAsm.GetType(cryptographicInfo.CryptoManager) ?? coreAsm.GetType(cryptographicInfo.CryptoManager));
+            StepDecryptStrings();
+#if DEBUG
+            Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Object_built_time__ + watch.ElapsedMilliseconds);
+#endif
 
-            // We have to use Dispatcher.Invoke as the current thread can't access these objects
-            Dispatcher.Invoke(() =>
-            {
-                DecryptOutput.Content = "Removing header...";
-            });
+            var decryptor = (SymmetricCryptoManager)Activator.CreateInstance(Type.GetType(cryptographicInfo.CryptoManager) ?? securityAsm.GetType(cryptographicInfo.CryptoManager) ?? coreAsm.GetType(cryptographicInfo.CryptoManager));
+
+            StepDecryptStrings();
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Object_built_time__ + watch.ElapsedMilliseconds);
 #endif
             FileStatics.RemovePrependData(filePath, _headerLessTempFile, cryptographicInfo.HeaderLength);
-            
-            // We have to use Dispatcher.Invoke as the current thread can't access these objects
-            Dispatcher.Invoke(() =>
-            {
-                DecryptOutput.Content = "Creating key and verifying HMAC";
-            });
+
+            StepDecryptStrings();
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Header_removed_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -391,11 +399,7 @@ namespace Encryption_App.UI
             // Check if the file and key make the same HMAC
             bool isVerified = MessageAuthenticator.VerifyHmac(_headerLessTempFile, key, cryptographicInfo.Hmac.root_Hash, hmacAlg);
 
-            // We have to use Dispatcher.Invoke as the current thread can't access these objects
-            Dispatcher.Invoke(() =>
-            {
-                DecryptOutput.Content = "Verifying the integrity of your data";
-            });
+            StepDecryptStrings();
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_HMAC_verified_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -410,36 +414,26 @@ namespace Encryption_App.UI
             try
             {
                 // We have to use Dispatcher.Invoke as the current thread can't access these objects
-                Dispatcher.Invoke(() =>
-                {
-                    DecryptOutput.Content = "Decrypting your data";
-                });
+                StepDecryptStrings();
 #if DEBUG
                 Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Pre_decryption_time__ + watch.ElapsedMilliseconds);
 #endif
                 decryptor.DecryptFileBytes(_headerLessTempFile, _dataTempFile, key, cryptographicInfo.InitializationVector);
 
-                // We have to use Dispatcher.Invoke as the current thread can't access these objects
-                Dispatcher.Invoke(() =>
-                {
-                    DecryptOutput.Content = "Copying file across";
-                });
+                StepDecryptStrings();
 #if DEBUG
                 Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Post_decryption_time__ + watch.ElapsedMilliseconds);
 #endif
-                MessageBox.Show("Successfully Decrypted");
+
 
                 // Move the file to the original file location
                 File.Copy(_dataTempFile, filePath, true);
 
-                // We have to use Dispatcher.Invoke as the current thread can't access these objects
-                Dispatcher.Invoke(() =>
-                {
-                    DecryptOutput.Content = "Decrypted";
-                });
+                StepDecryptStrings();
 #if DEBUG
                 Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_File_copied_time__ + watch.ElapsedMilliseconds);
 #endif
+                MessageBox.Show("Successfully Decrypted");
             }
             catch (CryptographicException)
             {

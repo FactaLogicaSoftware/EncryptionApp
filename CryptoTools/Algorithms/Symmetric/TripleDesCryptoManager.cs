@@ -8,19 +8,22 @@ using utils;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {
-    public sealed class AesCryptoManager : SymmetricCryptoManager
+    public sealed class TripleDesCryptoManager : SymmetricCryptoManager
     {
         // How many bytes read into memory per chunk - calculated by constructor
         private readonly int _memoryConst;
+
+        // Max file size allowed - 24GB
+        private const long _maxSecureFileSize = 1024 * 1024 * 1024 * 24L;
 
         public override int KeySize
         {
             get => SymmetricAlgorithm.KeySize;
             set
             {
-                if (value != 128 && value != 192 && value != 256)
+                if (value != 128 && value != 192)
                 {
-                    throw new ArgumentException("Key is not a valid length (128/192/256)");
+                    throw new ArgumentException("Key is not a valid length (128/192)");
                 }
 
                 SymmetricAlgorithm.KeySize = value;
@@ -28,32 +31,29 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         }
 
         /// <summary>
-        /// The default constructor which uses 4mb of memory and uses AesCng
+        /// The default constructor which uses 4mb of memory and uses TripleDESCng
         /// </summary>
-        public AesCryptoManager()
+        public TripleDesCryptoManager()
         {
             // Base class value
             // TODO Customized field values
-            SymmetricAlgorithm = new AesCng
+            SymmetricAlgorithm = new TripleDESCng()
             {
-                BlockSize = 128,
-                KeySize = 256,
+                BlockSize = 64,
+                KeySize = 192,
                 Mode = CipherMode.CBC,
                 Padding = PaddingMode.PKCS7
             };
 
             // Default memory - TODO Calculate to higher numbers if possible
             _memoryConst = 1024 * 1024 * 4;
-
-            // As the default aes transformation object is AesCng which is FIPS compliant
-            IsFipsCompliant = true;
         }
 
         /// <summary>
-        /// Defines the maximum size read through streams and uses AesCng
+        /// Defines the maximum size read through streams and uses TripleDESCng
         /// </summary>
         /// <param name="memoryConst">The number of bytes to read and write</param>
-        public AesCryptoManager(int memoryConst)
+        public TripleDesCryptoManager(int memoryConst)
         {
             // Check if that much memory can be assigned
             if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
@@ -64,28 +64,28 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             // Assign to class field
             _memoryConst = memoryConst;
 
-            // Create the aes object
+            // Base class value
             // TODO Customized field values
-            SymmetricAlgorithm = new AesCng()
+            SymmetricAlgorithm = new TripleDESCng()
             {
-                BlockSize = 128,
-                KeySize = 256,
+                BlockSize = 64,
+                KeySize = 192,
                 Mode = CipherMode.CBC,
                 Padding = PaddingMode.PKCS7
             };
         }
 
         /// <summary>
-        /// Uses 4mb read/write values and an AES algorithm of your choice
+        /// Uses 4mb read/write values and an TripleDES algorithm of your choice
         /// </summary>
-        /// <param name="aes">The AES algorithm to use</param>
-        public AesCryptoManager(Aes aes)
+        /// <param name="tripleDes">The TripleDES algorithm to use</param>
+        public TripleDesCryptoManager(TripleDES tripleDes)
         {
             // Default memory - TODO Calculate to higher numbers if possible
             _memoryConst = 1024 * 1024 * 4;
 
             // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
-            if (aes is AesCng || aes is AesCryptoServiceProvider)
+            if (tripleDes is TripleDESCng || tripleDes is TripleDESCryptoServiceProvider)
             {
                 IsFipsCompliant = true;
             }
@@ -94,17 +94,17 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 IsFipsCompliant = false;
             }
 
-            // Assign the aes object
+            // Assign the TripleDES object
             // TODO verify integrity of argument
-            SymmetricAlgorithm = aes;
+            SymmetricAlgorithm = tripleDes;
         }
 
         /// <summary>
-        /// Uses custom read/write values and an AES algorithm of your choice
+        /// Uses custom read/write values and an TripleDES algorithm of your choice
         /// </summary>
         /// <param name="memoryConst">The number of bytes to read and write</param>
-        /// <param name="aes">The AES algorithm to use</param>
-        public AesCryptoManager(int memoryConst, Aes aes)
+        /// <param name="tripleDes">The TripleDES algorithm to use</param>
+        public TripleDesCryptoManager(int memoryConst, TripleDES tripleDes)
         {
             // Check if that much memory can be assigned
             if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
@@ -116,7 +116,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             _memoryConst = memoryConst;
 
             // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
-            if (aes is AesCng || aes is AesCryptoServiceProvider)
+            if (tripleDes is TripleDESCng || tripleDes is TripleDESCryptoServiceProvider)
             {
                 IsFipsCompliant = true;
             }
@@ -125,14 +125,14 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 IsFipsCompliant = false;
             }
 
-            // Assign the aes object
+            // Assign the TripleDES object
             // TODO verify integrity of argument
-            SymmetricAlgorithm = aes;
+            SymmetricAlgorithm = tripleDes;
         }
 
-        ~AesCryptoManager()
+        ~TripleDesCryptoManager()
         {
-            // All aes classes implement IDispose so we must dispose of it
+            // All TripleDES classes implement IDispose so we must dispose of it
             SymmetricAlgorithm.Dispose();
         }
 
@@ -154,7 +154,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
         /// <inheritdoc />
         /// <summary>
-        /// Encrypts data from one file to another using AES
+        /// Encrypts data from one file to another using TripleDES
         /// </summary>
         /// <param name="inputFile">The file path to the unencrypted data</param>
         /// <param name="outputFile">The file path to output the encrypted data to</param>
@@ -185,10 +185,14 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 throw new ArgumentException(
                     $"{(File.Exists(inputFile) ? "Input file" : "Output file")} does not exist");
             }
-
-            if (key.Length != 128 / 8 && key.Length != 192 / 8 && key.Length != 256 / 8)
+            if (new FileInfo(inputFile).Length > _maxSecureFileSize)
             {
-                throw new InvalidKeyException("Key is not a valid length (128/192/256)");
+                throw new ArgumentException("Input file is larger than max secure TripleDES encryption size");
+            }
+
+            if (key.Length != 128 / 8 && key.Length != 192 / 8)
+            {
+                throw new InvalidKeyException("Key is not a valid length (128/192)");
             }
             // Set actual IV and key
             SymmetricAlgorithm.Key = key;
@@ -199,7 +203,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
         /// <inheritdoc />
         /// <summary>
-        /// Decrypts data from one file to another using AES
+        /// Decrypts data from one file to another using TripleDES
         /// </summary>
         /// <param name="inputFile">The file path to the encrypted data</param>
         /// <param name="outputFile">The file path to output the decrypted data to</param>
@@ -229,10 +233,14 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 throw new ArgumentException(
                     $"{(File.Exists(inputFile) ? "Input file" : "Output file")} does not exist");
             }
-
-            if (key.Length != 128 / 8 && key.Length != 192 / 8 && key.Length != 256 / 8)
+            if (new FileInfo(inputFile).Length > _maxSecureFileSize)
             {
-                throw new InvalidKeyException("Key is not a valid length (128/192/256)");
+                throw new ArgumentException("Input file is larger than max secure TripleDES encryption size");
+            }
+
+            if (key.Length != 128 / 8 && key.Length != 192 / 8)
+            {
+                throw new InvalidKeyException("Key is not a valid length (128/192)");
             }
 
             // Set actual IV and key
@@ -333,7 +341,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <returns>The encrypted byte array</returns>
         public override byte[] EncryptBytes(byte[] data, byte[] key, byte[] iv)
         {
-            // AES values
+            // TripleDES values
             SymmetricAlgorithm.KeySize = key.Length * 8;
             SymmetricAlgorithm.Key = key;
             SymmetricAlgorithm.IV = iv;
@@ -360,7 +368,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <returns>The decrypted byte array</returns>
         public override byte[] DecryptBytes(byte[] data, byte[] key, byte[] iv)
         {
-            // AES values
+            // TripleDES values
             SymmetricAlgorithm.KeySize = key.Length * 8;
             SymmetricAlgorithm.Key = key;
             SymmetricAlgorithm.IV = iv;

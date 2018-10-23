@@ -7,6 +7,9 @@ namespace FactaLogicaSoftware.CryptoTools.Information
 {
     public class AesCryptographicInfo : CryptographicInfo
     {
+        /// <summary>
+        /// The default constructor
+        /// </summary>
         public AesCryptographicInfo() : base()
         {
             // Define the encoding used and the strings used to represent the start and end of the header object
@@ -15,11 +18,22 @@ namespace FactaLogicaSoftware.CryptoTools.Information
             EndChars = "END ENCRYPTION HEADER STRING";
         }
 
-        public AesCryptographicInfo(CryptographicInfo a) : base()
+        /// <summary>
+        /// The constructor that creates the object from another
+        /// CryptographicInfo object
+        /// </summary>
+        /// <param name="info">The CryptographicInfo object to derive it from</param>
+        public AesCryptographicInfo(CryptographicInfo info) : base()
         {
             // TODO
+            throw new NotImplementedException();
         }
 
+        /// <inheritdoc />
+        /// <summary>
+        /// Writes the current version of the write object to a file
+        /// </summary>
+        /// <param name="path">The file path to write to</param>
         public override void WriteHeaderToFile(string path)
         {
             // Create the JSON representative of the JSON object
@@ -40,6 +54,12 @@ namespace FactaLogicaSoftware.CryptoTools.Information
             Type = InfoType.Write;
         }
 
+        /// <inheritdoc />
+        /// <summary>
+        /// Read a header and return the object created from it
+        /// </summary>
+        /// <param name="path">The file path to read rom</param>
+        /// <returns>The cryptographic info object created from the file data</returns>
         public override CryptographicInfo ReadHeaderFromFile(string path)
         {
             // Create the streams needed to read from the file
@@ -78,11 +98,22 @@ namespace FactaLogicaSoftware.CryptoTools.Information
             }
         }
 
+        /// <inheritdoc />
+        /// <summary>
+        /// Create the JSON data for the current object
+        /// </summary>
+        /// <returns>The string of JSON data</returns>
         public override string GenerateHeader()
         {
             return JsonConvert.SerializeObject(this);
         }
 
+        /// <inheritdoc />
+        /// <summary>
+        /// Read a header from a string and return the object
+        /// </summary>
+        /// <param name="header">The string of header DATA</param>
+        /// <returns>The cryptographic info object created from the data</returns>
         public override CryptographicInfo ReadHeader(string header)
         {
             // Get the index of the start and end of the JSON object
