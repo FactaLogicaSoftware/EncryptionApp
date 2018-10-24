@@ -2,17 +2,14 @@
 using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
+using FactaLogicaSoftware.CryptoTools.Debug;
 using FactaLogicaSoftware.CryptoTools.Exceptions;
 using Microsoft.VisualBasic.Devices;
-using utils;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {
     public sealed class TripleDesCryptoManager : SymmetricCryptoManager
     {
-        // How many bytes read into memory per chunk - calculated by constructor
-        private readonly int _memoryConst;
-
         // Max file size allowed - 24GB
         private const long _maxSecureFileSize = 1024 * 1024 * 1024 * 24L;
 
@@ -37,7 +34,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         {
             // Base class value
             // TODO Customized field values
-            SymmetricAlgorithm = new TripleDESCng()
+            SymmetricAlgorithm = new TripleDESCng
             {
                 BlockSize = 64,
                 KeySize = 192,
@@ -320,7 +317,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                             "Iterations:" + iterations
                         };
 
-                    Utils.WriteToDiagnosticsFile(toWrite);
+                    InternalDebug.WriteToDiagnosticsFile(toWrite);
 #endif
                 }
             }

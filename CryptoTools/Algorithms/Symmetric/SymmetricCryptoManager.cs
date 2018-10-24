@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
+using Encryption_App;
 using utils;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
