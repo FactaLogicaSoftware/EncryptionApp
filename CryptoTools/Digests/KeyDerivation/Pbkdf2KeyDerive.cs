@@ -83,13 +83,13 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// Fills an array with hashed bytes
         /// </summary>
         /// <param name="toFill">The array to fill</param>
-        public override void GetBytes(byte[] toFill)
+        public override byte[] GetBytes(int size)
         {
             if (!Usable)
             {
                 throw new InvalidCryptographicOperationException("Password not set");
             }
-            toFill = _baseObject.GetBytes(toFill.Length);
+            return _baseObject.GetBytes(size);
         }
 
         /// <inheritdoc />

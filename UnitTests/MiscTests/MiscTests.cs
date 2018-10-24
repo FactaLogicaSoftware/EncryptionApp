@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using CryptoTools;
 using Xunit;
 
 namespace UnitTests.MiscTests

@@ -88,10 +88,13 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// <summary>
         /// </summary>
         /// <param name="toFill"></param>
-        public override void GetBytes(byte[] toFill)
+        public override byte[] GetBytes(int size)
         {
+#if DEBUG
+            Console.WriteLine(size);
+#endif
             // TODO manage checked overflows
-            toFill = Replicon.Cryptography.SCrypt.SCrypt.DeriveKey(Password, Salt, _tuneFlags.N, _tuneFlags.r, _tuneFlags.p, (uint)toFill.Length + _read).Skip(checked((int)_read)).ToArray();
+            return Replicon.Cryptography.SCrypt.SCrypt.DeriveKey(Password, Salt, _tuneFlags.N, _tuneFlags.r, _tuneFlags.p, (uint)size + _read).Skip(checked((int)_read)).ToArray();
         }
 
         /// <inheritdoc />
@@ -106,6 +109,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// <summary>
         /// </summary>
         /// <param name="performanceDerivative"></param>
+        /// <param name="milliseconds"></param>
         public override void TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
         {
             PerformanceValues = performanceDerivative.TransformToScryptTuning(milliseconds);

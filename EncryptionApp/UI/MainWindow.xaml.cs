@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Markup;
@@ -23,6 +24,7 @@ namespace Encryption_App.UI
     public sealed partial class MainWindow
     {
         private const int DesiredKeyDerivationMilliseconds = 2000;
+        private const int KeySize = 192;
         internal string TempFilePath;
         private string _headerLessTempFile;
         private string _dataTempFile;
@@ -179,7 +181,7 @@ namespace Encryption_App.UI
             {
                 FileTextBox.Text = openFileDialog.FileName;
             }
-            else if (result == null)
+            else if (result is null)
             {
                 throw new ExternalException("Directory box failed to open");
             }
@@ -209,26 +211,21 @@ namespace Encryption_App.UI
             // Assign the values to the CryptographicInfo object
             var data = new AesCryptographicInfo
             {
-                CryptoManager = typeof(AesCryptoManager).AssemblyQualifiedName,
-                InitializationVector = iv,
-                Salt = salt,
+                CryptoManager = typeof(TripleDesCryptoManager).AssemblyQualifiedName,
 
-                Hmac = new HmacInfo
-                {
-                    // root_Hash is set later
-                    HashAlgorithm = typeof(HMACMD5).AssemblyQualifiedName
-                },
+                Hmac = null,
 
                 InstanceKeyCreator = new KeyCreator
                 {
-                    root_HashAlgorithm = typeof(Pbkdf2KeyDerive).AssemblyQualifiedName,
+                    root_HashAlgorithm = typeof(SCryptKeyDerive).AssemblyQualifiedName,
                     PerformanceDerivative = _performanceDerivative.PerformanceDerivativeValue,
+                    salt = salt
                 },
 
                 EncryptionModeInfo = new EncryptionModeInfo
                 {
-                    root_Algorithm = typeof(AesCng).AssemblyQualifiedName,
-                    KeySize = 256,
+                    InitializationVector = iv,
+                    KeySize = KeySize,
                     BlockSize = 128,
                     Mode = CipherMode.CBC
                 }
@@ -267,7 +264,7 @@ namespace Encryption_App.UI
             Stopwatch watch = Stopwatch.StartNew();
 #endif
             // Forward declaration of the device used to derive the key 
-            KeyDerive keyDevice;
+            KeyDerive keyDevice = null;
 
             // Load the assemblies necessary for reflection
             Assembly securityAsm = Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Security.dll"));
@@ -296,11 +293,12 @@ namespace Encryption_App.UI
                     valuePtr = Marshal.SecureStringToGlobalAllocUnicode(password);
 
                     // Create an object array of parameters
-                    var parameters = new object[] { Marshal.PtrToStringUni(valuePtr), cryptographicInfo.Salt, null };
+                    var parameters = new object[] { Marshal.PtrToStringUni(valuePtr), cryptographicInfo.InstanceKeyCreator.salt, null };
 
                     var tempTransformationDevice = (KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
                                                                                        ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
                                                                                        ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm));
+
                     tempTransformationDevice.TransformPerformance(performanceDerivative, 2000UL);
 
 #if DEBUG
@@ -311,6 +309,7 @@ namespace Encryption_App.UI
                     keyDevice = (KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
                                                                     ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
                                                                     ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm), parameters);
+
                 }
                 finally
                 {
@@ -325,21 +324,20 @@ namespace Encryption_App.UI
             {
 
                 // Create the algorithm using reflection
-                hmacAlg = (HMAC) Activator.CreateInstance(Type.GetType(cryptographicInfo.Hmac.HashAlgorithm)
+                hmacAlg = (HMAC)Activator.CreateInstance(Type.GetType(cryptographicInfo.Hmac.HashAlgorithm)
                                                               ?? securityAsm.GetType(cryptographicInfo.Hmac
                                                                   .HashAlgorithm)
                                                               ?? coreAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm));
             }
 
-            var encryptor = new AesCryptoManager();
-
-            // Create the key
-            var key = new byte[256 / 8];
+            var encryptor = (SymmetricCryptoManager)Activator.CreateInstance(Type.GetType(cryptographicInfo.CryptoManager)
+                                                     ?? securityAsm.GetType(cryptographicInfo.CryptoManager)
+                                                     ?? coreAsm.GetType(cryptographicInfo.CryptoManager));
 
 #if DEBUG
             long offset = watch.ElapsedMilliseconds;
 #endif
-            keyDevice.GetBytes(key);
+            byte[] key = keyDevice.GetBytes(KeySize / 8);
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Actual_key_derivation_time__ + (watch.ElapsedMilliseconds - offset));
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Expected_key_derivation_time__ + DesiredKeyDerivationMilliseconds);
@@ -352,7 +350,7 @@ namespace Encryption_App.UI
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Pre_encryption_time__ + watch.ElapsedMilliseconds);
 #endif
             // Encrypt the data to a temporary file
-            encryptor.EncryptFileBytes(filePath, _dataTempFile, key, cryptographicInfo.InitializationVector);
+            encryptor.EncryptFileBytes(filePath, _dataTempFile, key, cryptographicInfo.EncryptionModeInfo.InitializationVector);
 
             StepEncryptStrings();
 #if DEBUG
@@ -420,7 +418,7 @@ namespace Encryption_App.UI
                 {
                     valuePtr = Marshal.SecureStringToGlobalAllocUnicode(password);
                     // Create an object array of parameters
-                    var parameters = new object[] { Marshal.PtrToStringUni(valuePtr), cryptographicInfo.Salt, null };
+                    var parameters = new object[] { Marshal.PtrToStringUni(valuePtr), cryptographicInfo.InstanceKeyCreator.salt, null };
 
                     var tempTransformationDevice = ((KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
                                                                                         ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
@@ -446,9 +444,8 @@ namespace Encryption_App.UI
 
             if (cryptographicInfo.Hmac != null)
             {
-                hmacAlg = (HMAC) Activator.CreateInstance(Type.GetType(cryptographicInfo.Hmac.HashAlgorithm)
-                                                              ?? securityAsm.GetType(cryptographicInfo.Hmac
-                                                                  .HashAlgorithm)
+                hmacAlg = (HMAC)Activator.CreateInstance(Type.GetType(cryptographicInfo.Hmac.HashAlgorithm)
+                                                              ?? securityAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm)
                                                               ?? coreAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm));
             }
 
@@ -471,9 +468,8 @@ namespace Encryption_App.UI
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Header_removed_time__ + watch.ElapsedMilliseconds);
 #endif
-            // Get the key from this device
-            var key = new byte[256 / 8];
-            keyDevice.GetBytes(key);
+            byte[] key = keyDevice.GetBytes((int)cryptographicInfo.EncryptionModeInfo.KeySize / 8);
+
             GCHandle gch = GCHandle.Alloc(key, GCHandleType.Pinned);
 
             var isVerified = false;
@@ -504,7 +500,7 @@ namespace Encryption_App.UI
 #if DEBUG
                 Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Pre_decryption_time__ + watch.ElapsedMilliseconds);
 #endif
-                decryptor.DecryptFileBytes(_headerLessTempFile, _dataTempFile, key, cryptographicInfo.InitializationVector);
+                decryptor.DecryptFileBytes(_headerLessTempFile, _dataTempFile, key, cryptographicInfo.EncryptionModeInfo.InitializationVector);
 
                 StepDecryptStrings();
 #if DEBUG

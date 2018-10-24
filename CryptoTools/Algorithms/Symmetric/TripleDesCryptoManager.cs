@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using FactaLogicaSoftware.CryptoTools.Debug;
 using FactaLogicaSoftware.CryptoTools.Exceptions;
@@ -11,7 +12,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
     public sealed class TripleDesCryptoManager : SymmetricCryptoManager
     {
         // Max file size allowed - 24GB
-        private const long _maxSecureFileSize = 1024 * 1024 * 1024 * 24L;
+        private const long MaxSecureFileSize = 1024 * 1024 * 1024 * 24L;
 
         public override int KeySize
         {
@@ -177,12 +178,11 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 throw new ArgumentNullException(nameof(inputFile));
             }
 
-            if (!File.Exists(inputFile) || !File.Exists(outputFile))
+            if (!File.Exists(inputFile))
             {
-                throw new ArgumentException(
-                    $"{(File.Exists(inputFile) ? "Input file" : "Output file")} does not exist");
+                throw new ArgumentException("Input file does not exist");
             }
-            if (new FileInfo(inputFile).Length > _maxSecureFileSize)
+            if (new FileInfo(inputFile).Length > MaxSecureFileSize)
             {
                 throw new ArgumentException("Input file is larger than max secure TripleDES encryption size");
             }
@@ -191,9 +191,20 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             {
                 throw new InvalidKeyException("Key is not a valid length (128/192)");
             }
+
+#if DEBUG
+            KeySizes sampleKeySize = SymmetricAlgorithm.LegalKeySizes[0];
+            Console.WriteLine("Minimum key size: " + sampleKeySize.MinSize);
+            Console.WriteLine("Maximum key size: " + sampleKeySize.MaxSize);
+            Console.WriteLine("Key skip size: " + sampleKeySize.SkipSize);
+            Console.WriteLine();
+            Console.WriteLine("Key: " + Convert.ToBase64String(key));
+#endif
+
             // Set actual IV and key
+            SymmetricAlgorithm.KeySize = key.Length * 8;
             SymmetricAlgorithm.Key = key;
-            SymmetricAlgorithm.IV = iv;
+            SymmetricAlgorithm.IV = iv.Take(8).ToArray();
 
             TransformFile(inputFile, outputFile, SymmetricAlgorithm.CreateEncryptor());
         }
@@ -225,24 +236,23 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 throw new ArgumentNullException(nameof(inputFile));
             }
 
-            if (!File.Exists(inputFile) || !File.Exists(outputFile))
+            if (!File.Exists(inputFile))
             {
-                throw new ArgumentException(
-                    $"{(File.Exists(inputFile) ? "Input file" : "Output file")} does not exist");
+                throw new ArgumentException("Input file does not exist");
             }
-            if (new FileInfo(inputFile).Length > _maxSecureFileSize)
+            if (new FileInfo(inputFile).Length > MaxSecureFileSize)
             {
                 throw new ArgumentException("Input file is larger than max secure TripleDES encryption size");
             }
 
-            if (key.Length != 128 / 8 && key.Length != 192 / 8)
+            if (key.Length != 192 / 8)
             {
                 throw new InvalidKeyException("Key is not a valid length (128/192)");
             }
 
             // Set actual IV and key
             SymmetricAlgorithm.Key = key;
-            SymmetricAlgorithm.IV = iv;
+            SymmetricAlgorithm.IV = iv.Take(8).ToArray();
 
             TransformFile(inputFile, outputFile, SymmetricAlgorithm.CreateDecryptor());
         }

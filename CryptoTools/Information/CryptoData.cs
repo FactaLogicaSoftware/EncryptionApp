@@ -25,8 +25,8 @@ namespace FactaLogicaSoftware.CryptoTools.Information
     /// </summary>
     public class EncryptionModeInfo : ICryptoData
     {
-        // The string that is the typeof() or GetType() of the object
-        public string root_Algorithm;
+        //
+        public byte[] InitializationVector;
 
         // The CipherMode used
         public CipherMode Mode;

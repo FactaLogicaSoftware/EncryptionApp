@@ -66,15 +66,15 @@ namespace Encryption_App
 
             long a = watch.ElapsedMilliseconds;
 
-            test.GetBytes(buff);
+            test.GetBytes(buff.Length);
 
             long b = watch.ElapsedMilliseconds - a;
 
             PerformanceDerivativeValue = (ulong)b;
 
 #if DEBUG
-            Console.WriteLine("Initialization time" + Convert.ToString(a));
-            Console.WriteLine("Derivation time" + Convert.ToString(b));
+            Console.WriteLine("Initialization time: " + Convert.ToString(a));
+            Console.WriteLine("Derivation time: " + Convert.ToString(b));
 #endif
 
             return PerformanceDerivativeValue;

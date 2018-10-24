@@ -97,14 +97,14 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// <summary>
         /// </summary>
         /// <param name="toFill"></param>
-        public override void GetBytes(byte[] toFill)
+        public override byte[] GetBytes(int size)
         {
             if (!Usable)
             {
                 throw new InvalidCryptographicOperationException("Password not set");
             }
-            _baseObject.HashLength = _read + (uint)toFill.Length;
-            toFill = _baseObject.HashRaw(Password, Salt).Skip((int)_read).ToArray();
+            _baseObject.HashLength = _read + (uint)size;
+            return _baseObject.HashRaw(Password, Salt).Skip((int)_read).ToArray();
         }
 
         public override void Reset()
