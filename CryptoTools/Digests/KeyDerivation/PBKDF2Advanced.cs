@@ -140,9 +140,9 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             _begin = _end = 0;
         }
 
-        public override void TransformPerformance(PerformanceDerivative performanceDerivative)
+        public override void TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
         {
-            PerformanceValues = performanceDerivative.TransformToRfc2898(performanceDerivative.Milliseconds);
+            PerformanceValues = performanceDerivative.TransformToRfc2898(milliseconds);
         }
 
         private byte[] Transform()

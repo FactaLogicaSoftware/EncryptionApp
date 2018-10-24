@@ -56,12 +56,17 @@ namespace Encryption_App
         {
             Stopwatch watch = Stopwatch.StartNew();
 
+            var rand = new Random();
+            var salt = new byte[256 / 8];
+            var buff = new byte[256 / 8];
+            rand.NextBytes(salt);
+
             // TODO manage overflow
-            var test = new Rfc2898DeriveBytes("Hello World", 32, checked((int)Pbkdf2Iterations));
+            var test = new Pbkdf2KeyDerive("Hello World", salt, checked((int)Pbkdf2Iterations));
 
             long a = watch.ElapsedMilliseconds;
 
-            test.GetBytes(64); // we should never need more than 512 bits of a hash
+            test.GetBytes(buff);
 
             long b = watch.ElapsedMilliseconds - a;
 
@@ -84,7 +89,7 @@ namespace Encryption_App
         /// desired time</returns>
         public ulong TransformToRfc2898(ulong milliseconds)
         {
-            return milliseconds / PerformanceDerivativeValue * 1000;
+            return milliseconds / PerformanceDerivativeValue * 1250;
         }
 
 #warning "Parameter has no signficance at the moment"

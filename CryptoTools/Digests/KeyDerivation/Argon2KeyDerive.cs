@@ -112,9 +112,9 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             _read = 0;
         }
 
-        public override void TransformPerformance(PerformanceDerivative performanceDerivative)
+        public override void TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
         {
-            PerformanceValues = performanceDerivative.TransformToArgon2Tuning(2000);
+            PerformanceValues = performanceDerivative.TransformToArgon2Tuning(milliseconds);
         }
     }
 }

@@ -46,6 +46,6 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// to tuning values for that class
         /// </summary>
         /// <param name="performanceDerivative"></param>
-        public abstract void TransformPerformance(PerformanceDerivative performanceDerivative);
+        public abstract void TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds);
     }
 }

@@ -18,7 +18,7 @@ namespace UnitTests.CryptoTests
 
         public AesUnitTests()
         {
-            _assetsFolder = MiscTests.MiscTests.AssetsFolder;
+            //_assetsFolder = MiscTests.MiscTests.AssetsFolder;
 
             var data = new byte[1024 * 1024 * 4];
             var rng = new Random();

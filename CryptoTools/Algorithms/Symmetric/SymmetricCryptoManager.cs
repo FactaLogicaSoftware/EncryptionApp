@@ -103,7 +103,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                         "Iterations:" + iterations
                     };
 
-                    Utils.WriteToDiagnosticsFile(toWrite);
+                    InternalDebug.WriteToDiagnosticsFile(toWrite);
 #endif
                 }
             }
