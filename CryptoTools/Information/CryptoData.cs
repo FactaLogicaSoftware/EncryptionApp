@@ -6,11 +6,11 @@ using Encryption_App;
 
 namespace FactaLogicaSoftware.CryptoTools.Information
 {
-    /// <inheritdoc cref="ICryptoStruct" />
+    /// <inheritdoc cref="ICryptoData" />
     /// <summary>
     /// The data about the Hash Message Authentication Code (HMAC)
     /// </summary>
-    public struct HmacInfo : ICryptoStruct
+    public class HmacInfo : ICryptoData
     {
         // The byte[] of the actual hash
         public byte[] root_Hash;
@@ -19,11 +19,11 @@ namespace FactaLogicaSoftware.CryptoTools.Information
         public string HashAlgorithm;
     }
 
-    /// <inheritdoc cref="ICryptoStruct"/>
+    /// <inheritdoc cref="ICryptoData"/>
     /// <summary>
     /// The data about the encryption mode used
     /// </summary>
-    public struct EncryptionModeInfo : ICryptoStruct
+    public class EncryptionModeInfo : ICryptoData
     {
         // The string that is the typeof() or GetType() of the object
         public string root_Algorithm;
@@ -37,11 +37,11 @@ namespace FactaLogicaSoftware.CryptoTools.Information
         // The block size used
         public uint BlockSize;
     }
-    /// <inheritdoc cref="ICryptoStruct"/>
+    /// <inheritdoc cref="ICryptoData"/>
     /// <summary>
     /// The data about the device used to derive or create the key
     /// </summary>
-    public struct KeyCreator : ICryptoStruct
+    public class KeyCreator : ICryptoData
     {
         // The string that is the typeof() or GetType() of the object
         public string root_HashAlgorithm;
