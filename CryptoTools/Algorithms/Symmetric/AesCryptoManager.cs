@@ -175,10 +175,9 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 throw new ArgumentNullException(nameof(inputFile));
             }
 
-            if (!File.Exists(inputFile) || !File.Exists(outputFile))
+            if (!File.Exists(inputFile))
             {
-                throw new ArgumentException(
-                    $"{(File.Exists(inputFile) ? "Input file" : "Output file")} does not exist");
+                throw new ArgumentException("Input file does not exist");
             }
 
             if (key.Length != 128 / 8 && key.Length != 192 / 8 && key.Length != 256 / 8)
@@ -219,10 +218,9 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 throw new ArgumentNullException(nameof(inputFile));
             }
 
-            if (!File.Exists(inputFile) || !File.Exists(outputFile))
+            if (!File.Exists(inputFile))
             {
-                throw new ArgumentException(
-                    $"{(File.Exists(inputFile) ? "Input file" : "Output file")} does not exist");
+                throw new ArgumentException("Input file does not exist");
             }
 
             if (key.Length != 128 / 8 && key.Length != 192 / 8 && key.Length != 256 / 8)
