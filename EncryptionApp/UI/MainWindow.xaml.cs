@@ -88,9 +88,6 @@ namespace Encryption_App.UI
             // Run startup
             _performanceDerivative = new PerformanceDerivative();
             BuildFileSystem();
-#if DEBUG
-            var debug = new InternalDebug();
-#endif
         }
 
         /// <summary>
@@ -104,7 +101,7 @@ namespace Encryption_App.UI
 
         private void BuildFileSystem()
         {
-            Directory.CreateDirectory("LocalFiles");
+            Directory.CreateDirectory("EncryptionApp/LocalFiles");
             TempFilePath = @"LocalFiles\";
             _headerLessTempFile = TempFilePath + "headerLessConstructionFile.temp";
             _dataTempFile = TempFilePath + "moveFile.temp";

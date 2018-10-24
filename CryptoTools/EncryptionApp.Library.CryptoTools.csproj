@@ -98,6 +98,7 @@
     <Compile Include="Digests\KeyDerivation\KeyDerive.cs" />
     <Compile Include="HMAC\MessageAuthenticator.cs" />
     <Compile Include="Digests\KeyDerivation\Pbkdf2KeyDerive.cs" />
+    <Compile Include="Debug\InternalDebug.cs" />
     <Compile Include="PerformanceInterop\PerformanceDerivative.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Digests\KeyDerivation\SCryptKeyDerive.cs" />
