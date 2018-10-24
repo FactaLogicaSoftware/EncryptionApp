@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Markup;
@@ -14,6 +13,7 @@ using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
 using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
 using FactaLogicaSoftware.CryptoTools.HMAC;
 using FactaLogicaSoftware.CryptoTools.Information;
+using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
 
 namespace Encryption_App.UI
 {
@@ -258,8 +258,6 @@ namespace Encryption_App.UI
 
         private void EncryptDataWithHeader(CryptographicInfo cryptographicInfo, SecureString password, string filePath)
         {
-            StepEncryptStrings();
-
 #if DEBUG
             Stopwatch watch = Stopwatch.StartNew();
 #endif
@@ -344,15 +342,13 @@ namespace Encryption_App.UI
 #endif
             // Create a handle to the key to allow control of it
             GCHandle keyHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
-
-            StepEncryptStrings();
+            
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Pre_encryption_time__ + watch.ElapsedMilliseconds);
 #endif
             // Encrypt the data to a temporary file
             encryptor.EncryptFileBytes(filePath, _dataTempFile, key, cryptographicInfo.EncryptionModeInfo.InitializationVector);
-
-            StepEncryptStrings();
+            
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Post_encryption_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -379,8 +375,7 @@ namespace Encryption_App.UI
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Post_header_time___0_, watch.ElapsedMilliseconds);
 #endif
             FileStatics.AppendToFile(filePath, _dataTempFile);
-
-            StepEncryptStrings();
+            
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_File_write_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -394,16 +389,14 @@ namespace Encryption_App.UI
             Stopwatch watch = Stopwatch.StartNew();
 #endif
             KeyDerive keyDevice;
-
-            StepDecryptStrings();
+            
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Start_time__ + watch.ElapsedMilliseconds);
 #endif
             // Load the assemblies necessary for reflection
             Assembly securityAsm = Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Security.dll"));
             Assembly coreAsm = Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Core.dll"));
-
-            StepDecryptStrings();
+            
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Assembly_loaded_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -423,6 +416,7 @@ namespace Encryption_App.UI
                     var tempTransformationDevice = ((KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
                                                                                         ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
                                                                                         ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)));
+
                     tempTransformationDevice.TransformPerformance(performanceDerivative, 2000); // TODO put in crypto-info
                     parameters[2] = tempTransformationDevice.PerformanceValues;
                     keyDevice = (KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
@@ -435,8 +429,7 @@ namespace Encryption_App.UI
                     Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
                 }
             }
-
-            StepDecryptStrings();
+            
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Password_managed_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -448,8 +441,7 @@ namespace Encryption_App.UI
                                                               ?? securityAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm)
                                                               ?? coreAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm));
             }
-
-            StepDecryptStrings();
+            
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Object_built_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -457,14 +449,12 @@ namespace Encryption_App.UI
             var decryptor = (SymmetricCryptoManager)Activator.CreateInstance(Type.GetType(cryptographicInfo.CryptoManager)
                                                                              ?? securityAsm.GetType(cryptographicInfo.CryptoManager)
                                                                              ?? coreAsm.GetType(cryptographicInfo.CryptoManager));
-
-            StepDecryptStrings();
+            
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Object_built_time__ + watch.ElapsedMilliseconds);
 #endif
             FileStatics.RemovePrependData(filePath, _headerLessTempFile, cryptographicInfo.HeaderLength);
-
-            StepDecryptStrings();
+            
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Header_removed_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -480,8 +470,7 @@ namespace Encryption_App.UI
                 isVerified = MessageAuthenticator.VerifyHmac(_headerLessTempFile, key,
                     cryptographicInfo.Hmac.root_Hash, hmacAlg);
             }
-
-            StepDecryptStrings();
+            
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_HMAC_verified_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -495,8 +484,6 @@ namespace Encryption_App.UI
             // Try decrypting the remaining data
             try
             {
-                // We have to use Dispatcher.Invoke as the current thread can't access these objects
-                StepDecryptStrings();
 #if DEBUG
                 Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Pre_decryption_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -506,12 +493,9 @@ namespace Encryption_App.UI
 #if DEBUG
                 Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Post_decryption_time__ + watch.ElapsedMilliseconds);
 #endif
-
-
                 // Move the file to the original file location
                 File.Copy(_dataTempFile, filePath, true);
-
-                StepDecryptStrings();
+                
 #if DEBUG
                 Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_File_copied_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -526,7 +510,6 @@ namespace Encryption_App.UI
                 // Delete the key from memory for security
                 ZeroMemory(gch.AddrOfPinnedObject(), key.Length);
                 gch.Free();
-                StepDecryptStrings();
                 GC.Collect();
             }
         }

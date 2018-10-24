@@ -4,7 +4,7 @@ using System;
 using System.Globalization;
 using System.IO;
 
-namespace FactaLogicaSoftware.CryptoTools.Debug
+namespace FactaLogicaSoftware.CryptoTools.DebugTools
 {
     public static class InternalDebug
     {
@@ -22,8 +22,8 @@ namespace FactaLogicaSoftware.CryptoTools.Debug
                 File.Create(TempFilePath + "DiagnosticsAndDebug.data");
             }
 
-            using (var fHandle = new FileStream(TempFilePath + "DiagnosticsAndDebug.data", FileMode.Append))
-            using (var fWriter = new StreamWriter(fHandle))
+            using (var handleToWrite = new FileStream(TempFilePath + "DiagnosticsAndDebug.data", FileMode.Append))
+            using (var fWriter = new StreamWriter(handleToWrite))
             {
                 fWriter.WriteLine('\n' + DateTime.Now.ToString(CultureInfo.CurrentCulture));
                 foreach (string item in items)

@@ -12,11 +12,11 @@ namespace UnitTests.CryptoTests
 {
     public class AesUnitTests
     {
-
         private readonly string _assetsFolder;
 
-        public AesUnitTests()
+        public AesUnitTests(string assetsFolder)
         {
+            _assetsFolder = assetsFolder;
             //_assetsFolder = MiscTests.MiscTests.AssetsFolder;
 
             var data = new byte[1024 * 1024 * 4];

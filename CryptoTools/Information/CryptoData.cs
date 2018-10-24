@@ -1,5 +1,4 @@
 ﻿using System.Security.Cryptography;
-using Encryption_App;
 
 // Don't edit the line below please 
 // ReSharper disable InconsistentNaming

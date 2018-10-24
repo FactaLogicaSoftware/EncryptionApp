@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Encryption_App;
 using Newtonsoft.Json;
 
 namespace FactaLogicaSoftware.CryptoTools.Information

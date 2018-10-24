@@ -8,6 +8,7 @@ namespace FactaLogicaSoftware.CryptoTools.Exceptions
     /// An exception which represents an invalid transformation key being
     /// passed to a method or constructor
     /// </summary>
+    [Serializable]
     public class InvalidKeyException : CryptographicException
     {
         /// <inheritdoc />

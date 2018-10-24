@@ -1,14 +1,16 @@
-﻿using System.Security.Cryptography;
+﻿using System;
+using System.Diagnostics.Contracts;
+using System.Security.Cryptography;
 using System.Text;
-using Encryption_App;
 using FactaLogicaSoftware.CryptoTools.Exceptions;
+using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
 
 namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="KeyDerive" />
     /// <summary>
     /// </summary>
-    public sealed class Pbkdf2KeyDerive : KeyDerive
+    public sealed class Pbkdf2KeyDerive : KeyDerive, IDisposable
     {
         private readonly Rfc2898DeriveBytes _baseObject;
 
@@ -89,6 +91,9 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             {
                 throw new InvalidCryptographicOperationException("Password not set");
             }
+
+            Contract.EndContractBlock();
+
             return _baseObject.GetBytes(size);
         }
 
@@ -108,6 +113,11 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         public override void TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
         {
             PerformanceValues = checked((int)performanceDerivative.TransformToRfc2898(milliseconds));
+        }
+
+        public void Dispose()
+        {
+            _baseObject?.Dispose();
         }
     }
 }

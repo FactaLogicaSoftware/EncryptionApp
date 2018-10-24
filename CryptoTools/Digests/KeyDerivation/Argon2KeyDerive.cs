@@ -3,8 +3,8 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Liphsoft.Crypto.Argon2;
-using Encryption_App;
 using FactaLogicaSoftware.CryptoTools.Exceptions;
+using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
 
 namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {

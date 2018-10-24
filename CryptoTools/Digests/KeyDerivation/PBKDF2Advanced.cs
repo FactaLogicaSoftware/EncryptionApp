@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Security.Cryptography;
 using System.Text;
-using Encryption_App;
+using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
 
 namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {

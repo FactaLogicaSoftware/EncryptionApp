@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using FactaLogicaSoftware.CryptoTools.Debug;
 using FactaLogicaSoftware.CryptoTools.Exceptions;
 using Microsoft.VisualBasic.Devices;
 
@@ -192,6 +192,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 throw new InvalidKeyException("Key is not a valid length (128/192)");
             }
 
+            Contract.EndContractBlock();
+
 #if DEBUG
             KeySizes sampleKeySize = SymmetricAlgorithm.LegalKeySizes[0];
             Console.WriteLine("Minimum key size: " + sampleKeySize.MinSize);
@@ -249,6 +251,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             {
                 throw new InvalidKeyException("Key is not a valid length (128/192)");
             }
+
+            Contract.EndContractBlock();
 
             // Set actual IV and key
             SymmetricAlgorithm.Key = key;

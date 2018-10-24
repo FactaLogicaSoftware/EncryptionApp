@@ -2,7 +2,9 @@
 using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
-using FactaLogicaSoftware.CryptoTools.Debug;
+#if DEBUG
+using FactaLogicaSoftware.CryptoTools.DebugTools;
+#endif
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {

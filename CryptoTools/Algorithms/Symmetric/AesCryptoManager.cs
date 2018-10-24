@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Security.Cryptography;
 using FactaLogicaSoftware.CryptoTools.Exceptions;
@@ -76,9 +77,6 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="aes">The AES algorithm to use</param>
         public AesCryptoManager(Aes aes)
         {
-            // Default memory - TODO Calculate to higher numbers if possible
-            _memoryConst = 1024 * 1024 * 4;
-
             // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
             if (aes is AesCng || aes is AesCryptoServiceProvider)
             {
@@ -88,6 +86,11 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             {
                 IsFipsCompliant = false;
             }
+
+            Contract.EndContractBlock();
+
+            // Default memory - TODO Calculate to higher numbers if possible
+            _memoryConst = 1024 * 1024 * 4;
 
             // Assign the aes object
             // TODO verify integrity of argument
@@ -107,9 +110,6 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 throw new ArgumentException("Not enough memory to use that chunking size");
             }
 
-            // Assign to class field
-            _memoryConst = memoryConst;
-
             // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
             if (aes is AesCng || aes is AesCryptoServiceProvider)
             {
@@ -119,6 +119,11 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             {
                 IsFipsCompliant = false;
             }
+
+            Contract.EndContractBlock();
+
+            // Assign to class field
+            _memoryConst = memoryConst;
 
             // Assign the aes object
             // TODO verify integrity of argument
@@ -184,6 +189,9 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             {
                 throw new InvalidKeyException("Key is not a valid length (128/192/256)");
             }
+
+            Contract.EndContractBlock();
+
             // Set actual IV and key
             SymmetricAlgorithm.Key = key;
             SymmetricAlgorithm.IV = iv;
@@ -227,6 +235,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             {
                 throw new InvalidKeyException("Key is not a valid length (128/192/256)");
             }
+
+            Contract.EndContractBlock();
 
             // Set actual IV and key
             SymmetricAlgorithm.Key = key;

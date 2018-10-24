@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
+
+#pragma warning disable 0414
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Asymmetric
 {
-    public sealed class RsaCryptoManager : AsymmetricCryptoManager
+    public sealed class RsaCryptoManager : AsymmetricCryptoManager, IDisposable
     {
         private readonly int _memoryConst;
         private readonly RSA _algorithm;
@@ -42,6 +40,11 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Asymmetric
         public override byte[] DecryptBytesWithPrivKey(byte[] data, byte[] key)
         {
             throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            _algorithm?.Dispose();
         }
     }
 }

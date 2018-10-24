@@ -10,7 +10,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
     public class Rc2CryptoManager : SymmetricCryptoManager
     {
         // Max file size allowed - 24GB
-        private const long _maxSecureFileSize = 1024 * 1024 * 1024 * 24L;
+        private const long MaxSecureFileSize = 1024 * 1024 * 1024 * 24L;
 
         public override int KeySize
         {
