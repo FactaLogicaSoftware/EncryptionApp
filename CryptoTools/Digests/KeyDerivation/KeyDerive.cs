@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
+﻿using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
 
 namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {
@@ -27,7 +25,6 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// The bytes of the password that is stored encrypted
         /// </summary>
         public abstract byte[] Password { get; private protected set; }
-
 
         /// <summary>
         /// If overriden in a derived class, fills the array with

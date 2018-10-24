@@ -1,10 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
-using Xunit;
-
-namespace UnitTests.MiscTests
+﻿namespace UnitTests.MiscTests
 {
     // CURRENTLY UNUSED
     public class MiscTests
@@ -22,4 +16,3 @@ namespace UnitTests.MiscTests
         //}
     }
 }
-

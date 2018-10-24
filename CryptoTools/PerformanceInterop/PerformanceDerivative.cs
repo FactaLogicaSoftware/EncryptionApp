@@ -1,6 +1,6 @@
-﻿using System;
+﻿using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
+using System;
 using System.Diagnostics;
-using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
 
 namespace FactaLogicaSoftware.CryptoTools.PerformanceInterop
 {
@@ -88,6 +88,7 @@ namespace FactaLogicaSoftware.CryptoTools.PerformanceInterop
         }
 
 #warning "Parameter has no signficance at the moment"
+
         /// <summary>
         /// Transforms the current performance derivative value to
         /// to a tuple (N, r, p) of SCrypt tuning values
@@ -102,6 +103,7 @@ namespace FactaLogicaSoftware.CryptoTools.PerformanceInterop
         }
 
 #warning "Parameter has no signficance at the moment"
+
         public (int N, int r, int p) TransformToArgon2Tuning(ulong milliseconds)
         {
             return (3, 1024 * 128, 1);

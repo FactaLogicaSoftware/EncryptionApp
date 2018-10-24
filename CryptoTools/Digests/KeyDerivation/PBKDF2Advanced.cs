@@ -1,8 +1,8 @@
+using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
 using System;
 using System.Collections;
 using System.Security.Cryptography;
 using System.Text;
-using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
 
 namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {
@@ -18,6 +18,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 
         //needs to be fixed
         private const int BlockSize = 20;
+
         //something about mode needing to be const or default
         public Pbkdf2Advanced(string password, int saltSize, uint iterations/*1000*/, Type mode/* = typeof(HMACSHA256)*/)
         {
@@ -42,7 +43,9 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             Reset();
         }
 
-        public Pbkdf2Advanced(string password, byte[] salt, uint iterations/*=1000*/, Type mode/* = typeof(HMACSHA256)*/) : this(new UTF8Encoding(false).GetBytes(password), salt, iterations, mode) { }
+        public Pbkdf2Advanced(string password, byte[] salt, uint iterations/*=1000*/, Type mode/* = typeof(HMACSHA256)*/) : this(new UTF8Encoding(false).GetBytes(password), salt, iterations, mode)
+        {
+        }
 
         public Pbkdf2Advanced(IEnumerable password, byte[] salt, uint iterations/*=1000*/, Type mode/* = typeof(HMACSHA256)*/)
         {

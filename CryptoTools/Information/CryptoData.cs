@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 
-// Don't edit the line below please 
+// Don't edit the line below please
 // ReSharper disable InconsistentNaming
 
 namespace FactaLogicaSoftware.CryptoTools.Information
@@ -36,6 +36,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information
         // The block size used
         public uint BlockSize;
     }
+
     /// <inheritdoc cref="ICryptoData"/>
     /// <summary>
     /// The data about the device used to derive or create the key

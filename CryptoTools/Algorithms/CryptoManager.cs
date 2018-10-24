@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-
-namespace FactaLogicaSoftware.CryptoTools.Algorithms
+﻿namespace FactaLogicaSoftware.CryptoTools.Algorithms
 {
     /// <summary>
     /// The base class of the any CryptoManager classes which

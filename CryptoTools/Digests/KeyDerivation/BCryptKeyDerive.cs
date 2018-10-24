@@ -1,5 +1,5 @@
-﻿using System;
-using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
+﻿using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
+using System;
 
 #pragma warning disable 0414
 

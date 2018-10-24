@@ -1,9 +1,9 @@
-﻿using System;
+﻿using FactaLogicaSoftware.CryptoTools.Exceptions;
+using Microsoft.VisualBasic.Devices;
+using System;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using FactaLogicaSoftware.CryptoTools.Exceptions;
-using Microsoft.VisualBasic.Devices;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {

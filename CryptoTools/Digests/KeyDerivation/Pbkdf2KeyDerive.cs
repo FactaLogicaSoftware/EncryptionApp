@@ -1,9 +1,11 @@
-﻿using System;
+﻿using FactaLogicaSoftware.CryptoTools.Exceptions;
+using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
+using System;
 using System.Diagnostics.Contracts;
 using System.Security.Cryptography;
 using System.Text;
-using FactaLogicaSoftware.CryptoTools.Exceptions;
-using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
+
+#pragma warning disable 2213
 
 namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {
@@ -116,7 +118,6 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 
         public void Dispose()
         {
-#pragma warning disable 2213
             _baseObject?.Dispose();
         }
     }

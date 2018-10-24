@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Encryption_App.UI;
+﻿using System.IO;
 
 namespace Encryption_App
 {
@@ -14,7 +8,7 @@ namespace Encryption_App
     public static class FileStatics
     {
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="filePath">Path to the file with all data</param>
         /// <param name="outFile">Path to the file to write the data without the prepended data to</param>

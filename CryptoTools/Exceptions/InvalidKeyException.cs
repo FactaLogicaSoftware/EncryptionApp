@@ -27,7 +27,6 @@ namespace FactaLogicaSoftware.CryptoTools.Exceptions
         /// <param name="message">The string to be the message</param>
         public InvalidKeyException(string message) : base(message)
         {
-
         }
 
         /// <inheritdoc />
@@ -39,8 +38,6 @@ namespace FactaLogicaSoftware.CryptoTools.Exceptions
         /// <param name="inner">The inner exception</param>
         public InvalidKeyException(string message, Exception inner) : base(message, inner)
         {
-
         }
-
     }
 }

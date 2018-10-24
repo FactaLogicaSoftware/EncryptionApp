@@ -1,4 +1,9 @@
-﻿using System;
+﻿using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
+using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
+using FactaLogicaSoftware.CryptoTools.HMAC;
+using FactaLogicaSoftware.CryptoTools.Information;
+using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -9,11 +14,6 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Markup;
-using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
-using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
-using FactaLogicaSoftware.CryptoTools.HMAC;
-using FactaLogicaSoftware.CryptoTools.Information;
-using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
 
 namespace Encryption_App.UI
 {
@@ -85,7 +85,6 @@ namespace Encryption_App.UI
                 "Copying file across",
                 "Decrypted"
             };
-
 
             // Run startup
             _performanceDerivative = new PerformanceDerivative();
@@ -261,7 +260,7 @@ namespace Encryption_App.UI
 #if DEBUG
             Stopwatch watch = Stopwatch.StartNew();
 #endif
-            // Forward declaration of the device used to derive the key 
+            // Forward declaration of the device used to derive the key
             KeyDerive keyDevice = null;
 
             // Load the assemblies necessary for reflection
@@ -307,7 +306,6 @@ namespace Encryption_App.UI
                     keyDevice = (KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
                                                                     ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
                                                                     ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm), parameters);
-
                 }
                 finally
                 {
@@ -320,7 +318,6 @@ namespace Encryption_App.UI
 
             if (cryptographicInfo.Hmac != null)
             {
-
                 // Create the algorithm using reflection
                 hmacAlg = (HMAC)Activator.CreateInstance(Type.GetType(cryptographicInfo.Hmac.HashAlgorithm)
                                                               ?? securityAsm.GetType(cryptographicInfo.Hmac
@@ -342,13 +339,13 @@ namespace Encryption_App.UI
 #endif
             // Create a handle to the key to allow control of it
             GCHandle keyHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
-            
+
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Pre_encryption_time__ + watch.ElapsedMilliseconds);
 #endif
             // Encrypt the data to a temporary file
             encryptor.EncryptFileBytes(filePath, _dataTempFile, key, cryptographicInfo.EncryptionModeInfo.InitializationVector);
-            
+
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Post_encryption_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -375,7 +372,7 @@ namespace Encryption_App.UI
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Post_header_time___0_, watch.ElapsedMilliseconds);
 #endif
             FileStatics.AppendToFile(filePath, _dataTempFile);
-            
+
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_File_write_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -389,14 +386,14 @@ namespace Encryption_App.UI
             Stopwatch watch = Stopwatch.StartNew();
 #endif
             KeyDerive keyDevice;
-            
+
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Start_time__ + watch.ElapsedMilliseconds);
 #endif
             // Load the assemblies necessary for reflection
             Assembly securityAsm = Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Security.dll"));
             Assembly coreAsm = Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Core.dll"));
-            
+
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Assembly_loaded_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -429,7 +426,7 @@ namespace Encryption_App.UI
                     Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
                 }
             }
-            
+
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Password_managed_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -441,7 +438,7 @@ namespace Encryption_App.UI
                                                               ?? securityAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm)
                                                               ?? coreAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm));
             }
-            
+
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Object_built_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -449,12 +446,12 @@ namespace Encryption_App.UI
             var decryptor = (SymmetricCryptoManager)Activator.CreateInstance(Type.GetType(cryptographicInfo.CryptoManager)
                                                                              ?? securityAsm.GetType(cryptographicInfo.CryptoManager)
                                                                              ?? coreAsm.GetType(cryptographicInfo.CryptoManager));
-            
+
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Object_built_time__ + watch.ElapsedMilliseconds);
 #endif
             FileStatics.RemovePrependData(filePath, _headerLessTempFile, cryptographicInfo.HeaderLength);
-            
+
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Header_removed_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -470,7 +467,7 @@ namespace Encryption_App.UI
                 isVerified = MessageAuthenticator.VerifyHmac(_headerLessTempFile, key,
                     cryptographicInfo.Hmac.root_Hash, hmacAlg);
             }
-            
+
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_HMAC_verified_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -495,7 +492,7 @@ namespace Encryption_App.UI
 #endif
                 // Move the file to the original file location
                 File.Copy(_dataTempFile, filePath, true);
-                
+
 #if DEBUG
                 Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_File_copied_time__ + watch.ElapsedMilliseconds);
 #endif

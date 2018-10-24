@@ -1,15 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Security.Cryptography;
-
-namespace FactaLogicaSoftware.CryptoTools.Algorithms.Asymmetric
+﻿namespace FactaLogicaSoftware.CryptoTools.Algorithms.Asymmetric
 {
     /// <summary>
     /// An interface that defines the contract of any asymmetric encryption algorithm
-    /// that uses a public-private key system 
+    /// that uses a public-private key system
     /// </summary>
     public abstract class AsymmetricCryptoManager
     {
-
         /// <summary>
         /// Whether the current aes object is FIPS 140-2 compliant
         /// </summary>

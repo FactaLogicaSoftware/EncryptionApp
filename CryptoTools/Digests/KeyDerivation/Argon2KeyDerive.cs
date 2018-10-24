@@ -1,10 +1,10 @@
-﻿using System;
+﻿using FactaLogicaSoftware.CryptoTools.Exceptions;
+using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
+using Liphsoft.Crypto.Argon2;
+using System;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using Liphsoft.Crypto.Argon2;
-using FactaLogicaSoftware.CryptoTools.Exceptions;
-using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
 
 namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {

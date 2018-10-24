@@ -12,7 +12,6 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Asymmetric
 
         public RsaCryptoManager()
         {
-
             // Default memory - TODO Calculate to higher numbers if possible
             _memoryConst = 1024 * 1024 * 4;
 
