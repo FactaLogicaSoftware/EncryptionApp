@@ -56,6 +56,7 @@ namespace Encryption_App.UI
             EncryptLoadingGif.Visibility = Visibility.Hidden;
             DecryptLoadingGif.Visibility = Visibility.Hidden;
 
+            // TODO fix bug here, doesn't work as expected
             _encryptStepStrings = new[]
             {
                 "Beginning encryption...",
@@ -65,6 +66,7 @@ namespace Encryption_App.UI
                 "Encrypted"
             };
 
+            // TODO fix bug here, doesn't work as expected
             _decryptStepStrings = new[]
             {
                 "Loading assemblies...",
@@ -286,9 +288,9 @@ namespace Encryption_App.UI
                                                          ?? coreAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm));
 
             var encryptor = new AesCryptoManager();
-
+#if DEBUG
             long offset = watch.ElapsedMilliseconds;
-
+#endif
             // Create the key
             var key = new byte[256 / 8];
             keyDevice.GetBytes(key);
@@ -336,6 +338,7 @@ namespace Encryption_App.UI
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_File_write_time__ + watch.ElapsedMilliseconds);
 #endif
+            StepEncryptStrings();
             GC.Collect();
         }
 
@@ -467,6 +470,7 @@ namespace Encryption_App.UI
                 // Delete the key from memory for security
                 ZeroMemory(gch.AddrOfPinnedObject(), key.Length);
                 gch.Free();
+                StepDecryptStrings();
                 GC.Collect();
             }
         }

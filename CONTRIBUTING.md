@@ -5,10 +5,11 @@
 ## Documentation:
 
 ## Directories
-* `src` contains UI and logic. It is the `.exe`
+* `src` is the root directory for all code.
+* `EncryptionApp` contains UI and logic. It is the `.exe`
 * `CryptoTools` contains the encryption tools. It is a `.dll` that can be used by other applications
 * `utils` contains mixed utilites
-* `UnitTests` are the tests for `src` and `CryptoTools`
+* `UnitTests` are the tests for `EncryptionApp` and `CryptoTools`
 
 ## Branches
 * `master` is the branch the current stable release is built off

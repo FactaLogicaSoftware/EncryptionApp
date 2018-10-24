@@ -29,12 +29,12 @@ namespace utils
         {
             if (!Directory.Exists(Path.GetTempPath() + @"EncryptionApp\"))
             {
-                Directory.Create(Path.GetTempPath() + @"EncryptionApp\");
+                Directory.CreateDirectory(Path.GetTempPath() + @"EncryptionApp\");
             }
                 
             if (!File.Exists(Path.GetTempPath() + @"EncryptionApp\" + "DiagnosticsAndDebug.data"))
             {
-                File.Create(Path.GetTempPath() + @"EncryptionApp\" + "DiagnosticsAndDebug.data"):
+                File.Create(Path.GetTempPath() + @"EncryptionApp\" + "DiagnosticsAndDebug.data");
             }
 
             using (var fHandle = new FileStream(Path.GetTempPath() + @"EncryptionApp\" + "DiagnosticsAndDebug.data", FileMode.Append))
