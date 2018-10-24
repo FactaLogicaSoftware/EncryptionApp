@@ -101,8 +101,8 @@ namespace Encryption_App.UI
 
         private void BuildFileSystem()
         {
-            Directory.CreateDirectory("EncryptionApp/LocalFiles");
-            TempFilePath = @"LocalFiles\";
+            Directory.CreateDirectory(@"EncryptionApp\LocalFiles");
+            TempFilePath = @"EncryptionApp\LocalFiles";
             _headerLessTempFile = TempFilePath + "headerLessConstructionFile.temp";
             _dataTempFile = TempFilePath + "moveFile.temp";
         }
@@ -216,7 +216,7 @@ namespace Encryption_App.UI
                 Hmac = new HmacInfo
                 {
                     // root_Hash is set later
-                    HashAlgorithm = typeof(HMACSHA384).AssemblyQualifiedName
+                    HashAlgorithm = typeof(HMACMD5).AssemblyQualifiedName
                 },
 
                 InstanceKeyCreator = new KeyCreator
@@ -304,7 +304,7 @@ namespace Encryption_App.UI
                     tempTransformationDevice.TransformPerformance(performanceDerivative, 2000UL);
 
 #if DEBUG
-                    Console.WriteLine("Iteration value: " + tempTransformationDevice.PerformanceValues);
+                    Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Iteration_value__ + tempTransformationDevice.PerformanceValues);
 #endif
                     parameters[2] = tempTransformationDevice.PerformanceValues;
                     
@@ -416,7 +416,7 @@ namespace Encryption_App.UI
                     var tempTransformationDevice = ((KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) 
                                                                                         ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) 
                                                                                         ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)));
-                    tempTransformationDevice.TransformPerformance(performanceDerivative, 2000); // TODO put in cryptoinfo
+                    tempTransformationDevice.TransformPerformance(performanceDerivative, 2000); // TODO put in crypto-info
                     parameters[2] = tempTransformationDevice.PerformanceValues;
                     keyDevice = (KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) 
                                                                     ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) 

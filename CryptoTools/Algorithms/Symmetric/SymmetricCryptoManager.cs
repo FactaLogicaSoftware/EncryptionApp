@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
-using Encryption_App;
-using utils;
+using FactaLogicaSoftware.CryptoTools.Debug;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {

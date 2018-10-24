@@ -169,6 +169,15 @@ namespace Encryption_App {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Iteration value: .
+        /// </summary>
+        internal static string MainWindow_EncryptDataWithHeader_Iteration_value__ {
+            get {
+                return ResourceManager.GetString("MainWindow_EncryptDataWithHeader_Iteration_value__", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Post authenticate time: .
         /// </summary>
         internal static string MainWindow_EncryptDataWithHeader_Post_authenticate_time__ {

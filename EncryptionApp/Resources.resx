@@ -152,4 +152,7 @@
   <data name="MainWindow_EncryptDataWithHeader_Expected_key_derivation_time__" xml:space="preserve">
     <value>Expected key derivation time: </value>
   </data>
+  <data name="MainWindow_EncryptDataWithHeader_Iteration_value__" xml:space="preserve">
+    <value>Iteration value: </value>
+  </data>
 </root>
