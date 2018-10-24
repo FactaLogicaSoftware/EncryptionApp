@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 
-#pragma warning disable 0414
+#pragma warning disable 0414, 2213
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Asymmetric
 {

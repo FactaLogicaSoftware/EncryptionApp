@@ -84,7 +84,6 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// <summary>
         /// Fills an array with hashed bytes
         /// </summary>
-        /// <param name="toFill">The array to fill</param>
         public override byte[] GetBytes(int size)
         {
             if (!Usable)
@@ -117,6 +116,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 
         public void Dispose()
         {
+#pragma warning disable 2213
             _baseObject?.Dispose();
         }
     }

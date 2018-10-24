@@ -263,8 +263,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
 
             // Put the plaintext byte array into memory, and read it through the crypto stream to encrypt it
-            using (var memStream = new MemoryStream(data))
-            using (var cryptoStream = new CryptoStream(memStream, SymmetricAlgorithm.CreateEncryptor(), CryptoStreamMode.Read))
+            var memStream = new MemoryStream(data);
+            var cryptoStream = new CryptoStream(memStream, SymmetricAlgorithm.CreateEncryptor(), CryptoStreamMode.Read);
             using (var binReader = new BinaryReader(cryptoStream))
             {
                 // TODO manage checked exception
@@ -290,8 +290,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
 
             // Put the ciphertext byte array into memory, and read it through the crypto stream to decrypt it
-            using (var memStream = new MemoryStream(data))
-            using (var cryptoStream = new CryptoStream(memStream, SymmetricAlgorithm.CreateDecryptor(), CryptoStreamMode.Read))
+            var memStream = new MemoryStream(data);
+            var cryptoStream = new CryptoStream(memStream, SymmetricAlgorithm.CreateDecryptor(), CryptoStreamMode.Read);
             using (var binReader = new BinaryReader(cryptoStream))
             {
                 // TODO manage checked exception

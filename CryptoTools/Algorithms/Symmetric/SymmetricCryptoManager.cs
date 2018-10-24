@@ -53,7 +53,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 #endif
 
                 // Creates the streams necessary for reading and writing data
-                using (FileStream outFileStream = File.Create(outputFile))
+                FileStream outFileStream = File.Create(outputFile);
                 using (var cs = new CryptoStream(outFileStream, transformer, CryptoStreamMode.Write))
                 using (var inFile = new BinaryReader(File.OpenRead(inputFile)))
                 // BinaryReader is not a stream, but it's only argument is one

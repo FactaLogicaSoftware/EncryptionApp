@@ -22,7 +22,7 @@ namespace FactaLogicaSoftware.CryptoTools.DebugTools
                 File.Create(TempFilePath + "DiagnosticsAndDebug.data");
             }
 
-            using (var handleToWrite = new FileStream(TempFilePath + "DiagnosticsAndDebug.data", FileMode.Append))
+            var handleToWrite = new FileStream(TempFilePath + "DiagnosticsAndDebug.data", FileMode.Append);
             using (var fWriter = new StreamWriter(handleToWrite))
             {
                 fWriter.WriteLine('\n' + DateTime.Now.ToString(CultureInfo.CurrentCulture));
