@@ -9,7 +9,6 @@ using Microsoft.VisualBasic.Devices;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {
-    [Obsolete("Currently not working")]
     public sealed class TripleDesCryptoManager : SymmetricCryptoManager
     {
         // Max file size allowed - 24GB

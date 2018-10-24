@@ -6,7 +6,7 @@ using Encryption_App;
 
 namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {
-    public sealed class Pbkdf2Advanced
+    public sealed class Pbkdf2Advanced : KeyDerive
     {
         private byte[] _buffer;
         private readonly byte[] _salt;
@@ -60,18 +60,18 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             Reset();
         }
 
-        public void GetBytes(byte[] toFill)
+        public override byte[] GetBytes(int length)
         {
-            if (toFill.Length <= 0)
-                throw new ArgumentOutOfRangeException(nameof(toFill.Length));
-            var password = new byte[toFill.Length];
+            if (length <= 0)
+                throw new ArgumentOutOfRangeException(nameof(length));
+            var password = new byte[length];
 
             var offset = 0;
             int size = _end - _begin;
 
             if (size > 0)
             {
-                if (toFill.Length >= size)
+                if (length >= size)
                 {
                     Buffer.BlockCopy(_buffer, _begin, password, 0, size);
                     _begin = _end = 0;
@@ -79,18 +79,18 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
                 }
                 else
                 {
-                    Buffer.BlockCopy(_buffer, _begin, password, 0, toFill.Length);
-                    _begin += toFill.Length;
-                    toFill = password;
+                    Buffer.BlockCopy(_buffer, _begin, password, 0, length);
+                    _begin += length;
+                    return password;
                 }
             }
 
             System.Diagnostics.Debug.Assert(_begin == 0 && _end == 0, "Invalid start or end indexes in the buffer!");
 
-            while (offset < toFill.Length)
+            while (offset < length)
             {
                 byte[] block = Transform();
-                int remainder = toFill.Length - offset;
+                int remainder = length - offset;
 
                 if (remainder > BlockSize)
                 {
@@ -102,26 +102,23 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
                     Buffer.BlockCopy(block, 0, password, offset, remainder);
                     Buffer.BlockCopy(block, remainder, _buffer, _begin, BlockSize - remainder);
                     _end += (BlockSize - remainder);
-                    toFill = password;
+                    return password;
                 }
             }
-            toFill = password;
+            return password;
         }
 
-        public object PerformanceValues
+        public override object PerformanceValues
         {
             get => _iterations;
             private protected set => _iterations = (uint)value;
         }
 
-        private byte[] BackEncryptedArray;
-        private bool Usable;
-
         /// <inheritdoc />
         /// <summary>
         /// The password, stored encrypted
         /// </summary>
-        public byte[] Password
+        public override byte[] Password
         {
             get => ProtectedData.Unprotect(BackEncryptedArray, null, DataProtectionScope.CurrentUser);
             private protected set
@@ -131,7 +128,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             }
         }
 
-        public void Reset()
+        public override void Reset()
         {
             if (_buffer != null)
             {
@@ -143,7 +140,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             _begin = _end = 0;
         }
 
-        public void TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
+        public override void TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
         {
             PerformanceValues = performanceDerivative.TransformToRfc2898(milliseconds);
         }
