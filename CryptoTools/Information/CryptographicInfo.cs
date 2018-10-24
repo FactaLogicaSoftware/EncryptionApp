@@ -31,8 +31,6 @@ namespace FactaLogicaSoftware.CryptoTools.Information
         public HmacInfo Hmac;
         public EncryptionModeInfo EncryptionModeInfo;
         public KeyCreator InstanceKeyCreator;
-        public byte[] InitializationVector { get; set; }
-        public byte[] Salt { get; set; }
 
         /// <summary>
         /// If overriden in a derived class, writes a header representation of the object to a file as JSON

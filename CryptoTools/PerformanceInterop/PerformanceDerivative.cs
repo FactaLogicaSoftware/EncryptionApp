@@ -66,7 +66,7 @@ namespace Encryption_App
 
             long a = watch.ElapsedMilliseconds;
 
-            test.GetBytes(buff);
+            buff = test.GetBytes(buff.Length);
 
             long b = watch.ElapsedMilliseconds - a;
 

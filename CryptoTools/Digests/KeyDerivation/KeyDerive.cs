@@ -34,7 +34,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// secure random values
         /// </summary>
         /// <param name="toFill">The byte array to fill</param>
-        public abstract void GetBytes(byte[] toFill);
+        public abstract byte[] GetBytes(int toFill);
 
         /// <summary>
         /// If overriden in a derived class, resets the base object

@@ -21,9 +21,9 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         public override object PerformanceValues { get; private protected set; }
         public override byte[] Password { get; private protected set; }
 
-        public override void GetBytes(byte[] toFill)
+        public override byte[] GetBytes(int size)
         {
-            
+            throw new NotImplementedException();
         }
 
         public override void Reset()

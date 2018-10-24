@@ -165,10 +165,6 @@
       <Project>{bd173487-6aa1-4376-9464-7090a1925f6a}</Project>
       <Name>EncryptionApp.Library.CryptoTools</Name>
     </ProjectReference>
-    <ProjectReference Include="..\utils\utils.csproj">
-      <Project>{0fa675c6-6565-4f9a-b9d0-56118c9ae1a8}</Project>
-      <Name>utils</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7.1">

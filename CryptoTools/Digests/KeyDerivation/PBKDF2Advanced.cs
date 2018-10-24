@@ -6,7 +6,7 @@ using Encryption_App;
 
 namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {
-    public sealed class Pbkdf2Advanced : KeyDerive
+    public sealed class Pbkdf2Advanced
     {
         private byte[] _buffer;
         private readonly byte[] _salt;
@@ -60,7 +60,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             Reset();
         }
 
-        public override void GetBytes(byte[] toFill)
+        public void GetBytes(byte[] toFill)
         {
             if (toFill.Length <= 0)
                 throw new ArgumentOutOfRangeException(nameof(toFill.Length));
@@ -108,17 +108,20 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             toFill = password;
         }
 
-        public override object PerformanceValues
+        public object PerformanceValues
         {
             get => _iterations;
             private protected set => _iterations = (uint)value;
         }
 
+        private byte[] BackEncryptedArray;
+        private bool Usable;
+
         /// <inheritdoc />
         /// <summary>
         /// The password, stored encrypted
         /// </summary>
-        public override byte[] Password
+        public byte[] Password
         {
             get => ProtectedData.Unprotect(BackEncryptedArray, null, DataProtectionScope.CurrentUser);
             private protected set
@@ -128,7 +131,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             }
         }
 
-        public override void Reset()
+        public void Reset()
         {
             if (_buffer != null)
             {
@@ -140,7 +143,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             _begin = _end = 0;
         }
 
-        public override void TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
+        public void TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
         {
             PerformanceValues = performanceDerivative.TransformToRfc2898(milliseconds);
         }
