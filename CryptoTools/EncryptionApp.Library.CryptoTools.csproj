@@ -84,6 +84,7 @@
     <Compile Include="Algorithms\Symmetric\TripleDesCryptoManager.cs" />
     <Compile Include="Digests\KeyDerivation\Argon2KeyDerive.cs" />
     <Compile Include="Digests\KeyDerivation\BCryptKeyDerive.cs" />
+    <Compile Include="Digests\KeyDerivation\Pbkdf2Advanced.cs" />
     <Compile Include="Exceptions\InvalidCryptographicOperationException.cs" />
     <Compile Include="Exceptions\InvalidKeyException.cs" />
     <Compile Include="Information\AesCryptographicInfo.cs" />

@@ -23,7 +23,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 
         public override void GetBytes(byte[] toFill)
         {
-            throw new NotImplementedException();
+            
         }
 
         public override void Reset()
@@ -31,7 +31,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             throw new NotImplementedException();
         }
 
-        public override void TransformPerformance(PerformanceDerivative performanceDerivative)
+        public override void TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
         {
             throw new NotImplementedException();
         }

@@ -106,9 +106,9 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// <summary>
         /// </summary>
         /// <param name="performanceDerivative"></param>
-        public override void TransformPerformance(PerformanceDerivative performanceDerivative)
+        public override void TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
         {
-            PerformanceValues = performanceDerivative.TransformToScryptTuning(performanceDerivative.Milliseconds);
+            PerformanceValues = performanceDerivative.TransformToScryptTuning(milliseconds);
         }
     }
 }

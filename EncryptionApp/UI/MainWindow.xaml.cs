@@ -23,8 +23,9 @@ namespace Encryption_App.UI
     public sealed partial class MainWindow
     {
         private const int DesiredKeyDerivationMilliseconds = 2000;
-        private readonly string _headerLessTempFile = Path.GetTempPath() + "headerLessConstructionFile.temp";
-        private readonly string _dataTempFile = Path.GetTempPath() + "moveFile.temp";
+        internal string TempFilePath;
+        private string _headerLessTempFile;
+        private string _dataTempFile;
         private readonly List<string> _dropDownItems = new List<string> { "Choose Option...", "Encrypt a file", "Encrypt a file for sending to someone" };
         private readonly PerformanceDerivative _performanceDerivative;
         private readonly string[] _encryptStepStrings;
@@ -44,6 +45,8 @@ namespace Encryption_App.UI
             }
             catch (XamlParseException e)
             {
+                // If this happens, the XAML was invalid at runtime. We aren't
+                // trying to fix this, just write the inner exception
                 Console.WriteLine(e);
                 Console.WriteLine(e.InnerException);
                 throw;
@@ -84,6 +87,10 @@ namespace Encryption_App.UI
 
             // Run startup
             _performanceDerivative = new PerformanceDerivative();
+            BuildFileSystem();
+#if DEBUG
+            var debug = new InternalDebug();
+#endif
         }
 
         /// <summary>
@@ -95,6 +102,15 @@ namespace Encryption_App.UI
         [DllImport("KERNEL32.DLL", EntryPoint = "RtlZeroMemory")]
         private static extern bool ZeroMemory(IntPtr destination, int length);
 
+        private void BuildFileSystem()
+        {
+            Directory.CreateDirectory("LocalFiles");
+            TempFilePath = @"LocalFiles\";
+            _headerLessTempFile = TempFilePath + "headerLessConstructionFile.temp";
+            _dataTempFile = TempFilePath + "moveFile.temp";
+        }
+        
+        // TODO buggy
         private void StepEncryptStrings()
         {
             Dispatcher.Invoke(() =>
@@ -109,6 +125,7 @@ namespace Encryption_App.UI
             });
         }
 
+        // TODO buggy
         private void StepDecryptStrings()
         {
             Dispatcher.Invoke(() =>
@@ -140,11 +157,11 @@ namespace Encryption_App.UI
 
             bool? result = openFileDialog.ShowDialog();
 
-            if (result == true)
+            if (result is true)
             {
                 DecryptFileLocBox.Text = openFileDialog.FileName;
             }
-            else
+            else if (result == null)
             {
                 throw new ExternalException("Directory box failed to open");
             }
@@ -165,7 +182,10 @@ namespace Encryption_App.UI
             {
                 FileTextBox.Text = openFileDialog.FileName;
             }
-            else if (result == null) throw new ExternalException("Directory box failed to open");
+            else if (result == null)
+            {
+                throw new ExternalException("Directory box failed to open");
+            }
         }
 
         // TODO Make values dependent on settings
@@ -183,6 +203,12 @@ namespace Encryption_App.UI
             // Pre declaration of them for assigning during the secure string scope
             string filePath = FileTextBox.Text;
 
+            if (!File.Exists(filePath))
+            {
+                EncryptOutput.Content = "File not valid";
+                return;
+            }
+
             // Assign the values to the CryptographicInfo object
             var data = new AesCryptographicInfo
             {
@@ -198,7 +224,7 @@ namespace Encryption_App.UI
 
                 InstanceKeyCreator = new KeyCreator
                 {
-                    root_HashAlgorithm = typeof(Argon2KeyDerive).AssemblyQualifiedName,
+                    root_HashAlgorithm = typeof(Pbkdf2KeyDerive).AssemblyQualifiedName,
                     PerformanceDerivative = _performanceDerivative.PerformanceDerivativeValue,
                 },
 
@@ -255,6 +281,17 @@ namespace Encryption_App.UI
             // Get the password
             using (password)
             {
+                if (password.Length == 0)
+                {
+                    EncryptOutput.Content = "You must enter a password";
+                    return;
+                }
+                if (password.Length < 4)
+                {
+                    EncryptOutput.Content = "Password to short";
+                    return;
+                }
+
                 // Turn the secure string into a string to pass it into keyDevice for the shortest interval possible
                 IntPtr valuePtr = IntPtr.Zero;
                 try
@@ -267,9 +304,12 @@ namespace Encryption_App.UI
                     var tempTransformationDevice = (KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) 
                                                                                        ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) 
                                                                                        ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm));
-                    tempTransformationDevice.TransformPerformance(performanceDerivative);
+                    tempTransformationDevice.TransformPerformance(performanceDerivative, 2000UL);
+
+#if DEBUG
+                    Console.WriteLine("Iteration value: " + tempTransformationDevice.PerformanceValues);
+#endif
                     parameters[2] = tempTransformationDevice.PerformanceValues;
-                    Console.WriteLine(parameters[2].GetType());
                     
                     keyDevice = (KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) 
                                                                     ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) 
@@ -288,11 +328,13 @@ namespace Encryption_App.UI
                                                          ?? coreAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm));
 
             var encryptor = new AesCryptoManager();
+
+            // Create the key
+            var key = new byte[256 / 8];
+
 #if DEBUG
             long offset = watch.ElapsedMilliseconds;
 #endif
-            // Create the key
-            var key = new byte[256 / 8];
             keyDevice.GetBytes(key);
 #if DEBUG
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Actual_key_derivation_time__ + (watch.ElapsedMilliseconds - offset));
@@ -377,7 +419,7 @@ namespace Encryption_App.UI
                     var tempTransformationDevice = ((KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) 
                                                                                         ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) 
                                                                                         ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)));
-                    tempTransformationDevice.TransformPerformance(performanceDerivative);
+                    tempTransformationDevice.TransformPerformance(performanceDerivative, 2000); // TODO put in cryptoinfo
                     parameters[2] = tempTransformationDevice.PerformanceValues;
                     keyDevice = (KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) 
                                                                     ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm) 

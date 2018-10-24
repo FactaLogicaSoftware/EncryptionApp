@@ -104,9 +104,10 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// <summary>
         /// </summary>
         /// <param name="performanceDerivative"></param>
-        public override void TransformPerformance(PerformanceDerivative performanceDerivative)
+        /// <param name="milliseconds">The desired number of milliseconds</param>
+        public override void TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
         {
-            PerformanceValues = checked((int)performanceDerivative.TransformToRfc2898(performanceDerivative.Milliseconds));
+            PerformanceValues = checked((int)performanceDerivative.TransformToRfc2898(milliseconds));
         }
     }
 }
