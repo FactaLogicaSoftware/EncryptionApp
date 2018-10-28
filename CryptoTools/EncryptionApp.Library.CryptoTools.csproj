@@ -95,8 +95,11 @@
     <Compile Include="Digests\KeyDerivation\Argon2KeyDerive.cs" />
     <Compile Include="Digests\KeyDerivation\BCryptKeyDerive.cs" />
     <Compile Include="Digests\KeyDerivation\Pbkdf2Advanced.cs" />
+    <Compile Include="Exceptions\DataTooLargeException.cs" />
     <Compile Include="Exceptions\InvalidCryptographicOperationException.cs" />
+    <Compile Include="Exceptions\InvalidCryptographicPropertyException.cs" />
     <Compile Include="Exceptions\InvalidKeyException.cs" />
+    <Compile Include="Exceptions\InvalidKeyLengthException.cs" />
     <Compile Include="Information\AesCryptographicInfo.cs" />
     <Compile Include="Algorithms\Symmetric\AesCryptoManager.cs" />
     <Compile Include="Information\CryptographicInfo.cs" />
@@ -117,7 +120,8 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="WindowsDerivedCryptoManager.cs" />
+    <Compile Include="Exceptions\WeakKeyException.cs" />
+    <Compile Include="Algorithms\WindowsDerivedCryptoManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

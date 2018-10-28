@@ -410,9 +410,9 @@ namespace Encryption_App.UI
                     // Create an object array of parameters
                     var parameters = new object[] { Marshal.PtrToStringUni(valuePtr), cryptographicInfo.InstanceKeyCreator.salt, null };
 
-                    var tempTransformationDevice = ((KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
-                                                                                        ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
-                                                                                        ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)));
+                    var tempTransformationDevice = (KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
+                                                                                       ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
+                                                                                       ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm));
 
                     tempTransformationDevice.TransformPerformance(performanceDerivative, 2000); // TODO put in crypto-info
                     parameters[2] = tempTransformationDevice.PerformanceValues;

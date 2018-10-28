@@ -187,7 +187,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             if (key.Length != 128 / 8 && key.Length != 192 / 8 && key.Length != 256 / 8)
             {
-                throw new InvalidKeyException("Key is not a valid length (128/192/256)");
+                throw new InvalidKeyLengthException("Key is not a valid length (128/192/256)");
             }
 
             Contract.EndContractBlock();
@@ -233,7 +233,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             if (key.Length != 128 / 8 && key.Length != 192 / 8 && key.Length != 256 / 8)
             {
-                throw new InvalidKeyException("Key is not a valid length (128/192/256)");
+                throw new InvalidKeyLengthException("Key is not a valid length (128/192/256)");
             }
 
             Contract.EndContractBlock();

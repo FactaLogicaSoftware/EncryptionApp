@@ -185,7 +185,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             if (key.Length < 1 || key.Length > 128)
             {
-                throw new InvalidKeyException("Key is not a valid length (1 - 128 bytes)");
+                throw new InvalidKeyLengthException("Key is not a valid length (1 - 128 bytes)");
             }
 
             // Set actual IV and key
@@ -229,7 +229,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             if (key.Length < 1 || key.Length > 128)
             {
-                throw new InvalidKeyException("Key is not a valid length (1 - 128 bytes)");
+                throw new InvalidKeyLengthException("Key is not a valid length (1 - 128 bytes)");
             }
 
             // Set actual IV and key
