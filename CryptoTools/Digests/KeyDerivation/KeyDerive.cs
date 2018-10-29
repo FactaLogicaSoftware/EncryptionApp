@@ -19,7 +19,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// If overriden in a derived class, the universal performance derivative that can be
         /// transformed with the PerformanceDerivative class
         /// </summary>
-        public abstract object PerformanceValues { get; private protected set; }
+        public abstract object /* TODO Make dynamic */ PerformanceValues { get; private protected set; }
 
         /// <summary>
         /// The bytes of the password that is stored encrypted
