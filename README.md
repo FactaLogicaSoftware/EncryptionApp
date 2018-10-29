@@ -1,20 +1,8 @@
-# EncryptorAppVS
+# EncryptorApp
 
-## Documentation:
 
-## Right now
-* Build header spec
-* Input sanitisation and error handling
+[![Build Status](https://dev.azure.com/johnkellyoxford/EncryptionApp/_apis/build/status/EncryptionApp-.NET%20Desktop-CI)](https://dev.azure.com/johnkellyoxford/EncryptionApp/_build/latest?definitionId=1) [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-## To do
-* Let user know when the decryption has not taken place due to incorrect pwd
-* RSA
-* Incorporate microsoft data protector
-* .crypt header files
-* Create documentation and tutorial
-* create a microsoft installer application with certificates --> trust
 
-## Updates
-* Add error handling if encryption/decryption fails
-
-"Copied this from John's cause why not" @nightraven3142
+Encryptor app is a free encryption tool for Windows. It uses modern encryption algorithms and advanced techniques to ensure your data is secure
+//TODO

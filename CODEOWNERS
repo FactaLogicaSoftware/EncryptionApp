@@ -1,0 +1,12 @@
+# Lines starting with '#' are comments.
+# Each line is a file pattern followed by one or more owners.
+
+# Default owner
+* @johnkellyoxford @nathanmc158 @NightRaven3142
+
+# File endings owner
+*.xaml @NightRaven3142
+*.xaml.cs @NightRaven3142 @nathanmc158 @johnkellyoxford
+*.md @NightRaven3142 @nathanmc158 @johnkellyoxford
+
+# You can also use email addresses if you prefer.

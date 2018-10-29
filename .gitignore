@@ -13,7 +13,6 @@
 *.userprefs
 
 # Build results
-[Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
@@ -328,3 +327,7 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+# Specific unit test images
+UnitTests\Resources\EncryptedLargeImage.png
+UnitTests\Resources\DecryptedLargeImage.png
