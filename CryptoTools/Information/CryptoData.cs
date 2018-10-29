@@ -22,7 +22,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information
     /// <summary>
     /// The data about the encryption mode used
     /// </summary>
-    public class EncryptionModeInfo : ICryptoData
+    public struct EncryptionModeInfo : ICryptoData
     {
         //
         public byte[] InitializationVector;
@@ -41,7 +41,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information
     /// <summary>
     /// The data about the device used to derive or create the key
     /// </summary>
-    public class KeyCreator : ICryptoData
+    public struct KeyCreator : ICryptoData
     {
         // The string that is the typeof() or GetType() of the object
         public string root_HashAlgorithm;

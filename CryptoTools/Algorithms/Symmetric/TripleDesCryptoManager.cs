@@ -63,7 +63,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             // Base class value
             // TODO Customized field values
-            SymmetricAlgorithm = new TripleDESCng()
+            SymmetricAlgorithm = new TripleDESCng
             {
                 BlockSize = 64,
                 KeySize = 192,
@@ -188,7 +188,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             if (key.Length != 128 / 8 && key.Length != 192 / 8)
             {
-                throw new InvalidKeyLengthException("Key is not a valid length (128/192)");
+                throw new InvalidKeyLengthException("Key is not a valid length (192)");
             }
 
             Contract.EndContractBlock();
@@ -199,7 +199,10 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             Console.WriteLine("Maximum key size: " + sampleKeySize.MaxSize);
             Console.WriteLine("Key skip size: " + sampleKeySize.SkipSize);
             Console.WriteLine();
+#if NON_SECURE_DEBUG
+            
             Console.WriteLine("Key: " + Convert.ToBase64String(key));
+#endif
 #endif
 
             // Set actual IV and key
@@ -234,7 +237,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
             if (iv == null)
             {
-                throw new ArgumentNullException(nameof(inputFile));
+                throw new ArgumentNullException(nameof(iv));
             }
 
             if (!File.Exists(inputFile))
@@ -248,7 +251,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             if (key.Length != 192 / 8)
             {
-                throw new InvalidKeyLengthException("Key is not a valid length (128/192)");
+                throw new InvalidKeyLengthException("Key is not a valid length (192)");
             }
 
             Contract.EndContractBlock();

@@ -160,6 +160,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="outputFile">The file path to output the encrypted data to</param>
         /// <param name="key">The key bytes</param>
         /// <param name="iv">The initialization vector</param>
+        /// <exception cref="ArgumentNullException"></exception>
         public override void EncryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
         {
             if (inputFile == null)
@@ -174,10 +175,10 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             {
                 throw new ArgumentNullException(nameof(key));
             }
-
             if (iv == null)
             {
-                throw new ArgumentNullException(nameof(inputFile));
+                throw new ArgumentNullException(nameof(iv));
+
             }
 
             if (!File.Exists(inputFile))

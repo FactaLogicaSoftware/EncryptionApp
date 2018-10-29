@@ -319,10 +319,9 @@ namespace Encryption_App.UI
             if (cryptographicInfo.Hmac != null)
             {
                 // Create the algorithm using reflection
-                hmacAlg = (HMAC)Activator.CreateInstance(Type.GetType(cryptographicInfo.Hmac.HashAlgorithm)
-                                                              ?? securityAsm.GetType(cryptographicInfo.Hmac
-                                                                  .HashAlgorithm)
-                                                              ?? coreAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm));
+                hmacAlg = (HMAC)Activator.CreateInstance(Type.GetType(cryptographicInfo.Hmac?.HashAlgorithm)
+                                                              ?? securityAsm.GetType(cryptographicInfo.Hmac?.HashAlgorithm)
+                                                              ?? coreAsm.GetType(cryptographicInfo.Hmac?.HashAlgorithm));
             }
 
             var encryptor = (SymmetricCryptoManager)Activator.CreateInstance(Type.GetType(cryptographicInfo.CryptoManager)
