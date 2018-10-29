@@ -1,21 +1,14 @@
 ﻿using System;
-using System.Security.Cryptography;
 
 namespace FactaLogicaSoftware.CryptoTools.Exceptions
 {
-    /// <inheritdoc />
-    /// <summary>
-    /// An exception which represents an invalid transformation key being
-    /// passed to a method or constructor
-    /// </summary>
-    [Serializable]
-    public class BadKeyException : CryptographicException
+    public class DataTooLargeException : InvalidCryptographicOperationException
     {
         /// <inheritdoc />
         /// <summary>
         /// The default constructor
         /// </summary>
-        public BadKeyException() : base("Key is not valid")
+        public DataTooLargeException() : base("Key is not valid")
         {
         }
 
@@ -25,7 +18,7 @@ namespace FactaLogicaSoftware.CryptoTools.Exceptions
         /// exception
         /// </summary>
         /// <param name="message">The string to be the message</param>
-        public BadKeyException(string message) : base(message)
+        public DataTooLargeException(string message) : base(message)
         {
         }
 
@@ -36,7 +29,7 @@ namespace FactaLogicaSoftware.CryptoTools.Exceptions
         /// </summary>
         /// <param name="message">The string to be the message</param>
         /// <param name="inner">The inner exception</param>
-        public BadKeyException(string message, Exception inner) : base(message, inner)
+        public DataTooLargeException(string message, Exception inner) : base(message, inner)
         {
         }
     }

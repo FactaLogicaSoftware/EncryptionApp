@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.IO;
 using System.Text;
-using Newtonsoft.Json;
 
 namespace FactaLogicaSoftware.CryptoTools.Information
 {
@@ -40,7 +40,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information
             string json = JsonConvert.SerializeObject(this, Formatting.Indented);
 
             // Create a stream to overwrite the path file to write the header file and a StreamWriter to write
-            using (var writeFileStream = new FileStream(path, FileMode.Create))
+            var writeFileStream = new FileStream(path, FileMode.Create);
             using (var writer = new StreamWriter(writeFileStream, Encoding))
             {
                 // Write the data
@@ -63,7 +63,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information
         public override CryptographicInfo ReadHeaderFromFile(string path)
         {
             // Create the streams needed to read from the file
-            using (var fileStream = new FileStream(path, FileMode.Open))
+            var fileStream = new FileStream(path, FileMode.Open);
             using (var binReader = new BinaryReader(fileStream, Encoding))
             {
                 // The header limit is 5KB, so read that and we know we have it all

@@ -1,5 +1,7 @@
-﻿using System;
-using Encryption_App;
+﻿using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
+using System;
+
+#pragma warning disable 0414
 
 namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {

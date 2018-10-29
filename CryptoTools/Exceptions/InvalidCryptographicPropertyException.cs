@@ -1,21 +1,15 @@
 ﻿using System;
-using System.Security.Cryptography;
+using System.Runtime.Serialization;
 
 namespace FactaLogicaSoftware.CryptoTools.Exceptions
 {
-    /// <inheritdoc />
-    /// <summary>
-    /// An exception which represents an invalid transformation key being
-    /// passed to a method or constructor
-    /// </summary>
-    [Serializable]
-    public class BadKeyException : CryptographicException
+    public class InvalidCryptographicPropertyException : Exception
     {
         /// <inheritdoc />
         /// <summary>
         /// The default constructor
         /// </summary>
-        public BadKeyException() : base("Key is not valid")
+        public InvalidCryptographicPropertyException() : base("Key is not valid")
         {
         }
 
@@ -25,7 +19,7 @@ namespace FactaLogicaSoftware.CryptoTools.Exceptions
         /// exception
         /// </summary>
         /// <param name="message">The string to be the message</param>
-        public BadKeyException(string message) : base(message)
+        public InvalidCryptographicPropertyException(string message) : base(message)
         {
         }
 
@@ -36,7 +30,7 @@ namespace FactaLogicaSoftware.CryptoTools.Exceptions
         /// </summary>
         /// <param name="message">The string to be the message</param>
         /// <param name="inner">The inner exception</param>
-        public BadKeyException(string message, Exception inner) : base(message, inner)
+        public InvalidCryptographicPropertyException(string message, Exception inner) : base(message, inner)
         {
         }
     }

@@ -1,22 +1,21 @@
-﻿using System;
+﻿using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
-using FactaLogicaSoftware.CryptoTools.Information;
 using Xunit;
 
 namespace UnitTests.CryptoTests
 {
     public class AesUnitTests
     {
-
         private readonly string _assetsFolder;
 
-        public AesUnitTests()
+        public AesUnitTests(string assetsFolder)
         {
+            _assetsFolder = assetsFolder;
             //_assetsFolder = MiscTests.MiscTests.AssetsFolder;
 
             var data = new byte[1024 * 1024 * 4];

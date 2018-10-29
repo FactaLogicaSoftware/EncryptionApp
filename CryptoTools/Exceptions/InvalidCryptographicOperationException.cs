@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FactaLogicaSoftware.CryptoTools.Exceptions
 {
@@ -12,6 +8,7 @@ namespace FactaLogicaSoftware.CryptoTools.Exceptions
     /// An exception which represents an invalid call or operation on
     /// certain cryptographic objects
     /// </summary>
+    [Serializable]
     public class InvalidCryptographicOperationException : CryptographicException
     {
         /// <inheritdoc />

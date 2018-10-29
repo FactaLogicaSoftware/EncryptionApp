@@ -1,8 +1,8 @@
-﻿using System;
+﻿using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
+using System;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using Encryption_App;
 
 namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {
@@ -19,7 +19,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             get => _tuneFlags;
             private protected set
             {
-                var newCastTuple = (ValueTuple<int, int, int>) value;
+                var newCastTuple = (ValueTuple<int, int, int>)value;
                 _tuneFlags = ((ulong)newCastTuple.Item1, (uint)newCastTuple.Item2, (uint)newCastTuple.Item3);
             }
         }

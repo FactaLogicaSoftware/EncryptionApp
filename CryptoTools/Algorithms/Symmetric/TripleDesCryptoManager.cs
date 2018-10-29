@@ -1,11 +1,10 @@
-﻿using System;
-using System.Diagnostics;
+﻿using FactaLogicaSoftware.CryptoTools.Exceptions;
+using Microsoft.VisualBasic.Devices;
+using System;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using FactaLogicaSoftware.CryptoTools.Debug;
-using FactaLogicaSoftware.CryptoTools.Exceptions;
-using Microsoft.VisualBasic.Devices;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {
@@ -189,8 +188,10 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             if (key.Length != 128 / 8 && key.Length != 192 / 8)
             {
-                throw new InvalidKeyException("Key is not a valid length (128/192)");
+                throw new InvalidKeyLengthException("Key is not a valid length (128/192)");
             }
+
+            Contract.EndContractBlock();
 
 #if DEBUG
             KeySizes sampleKeySize = SymmetricAlgorithm.LegalKeySizes[0];
@@ -247,8 +248,10 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             if (key.Length != 192 / 8)
             {
-                throw new InvalidKeyException("Key is not a valid length (128/192)");
+                throw new InvalidKeyLengthException("Key is not a valid length (128/192)");
             }
+
+            Contract.EndContractBlock();
 
             // Set actual IV and key
             SymmetricAlgorithm.Key = key;
@@ -275,8 +278,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
 
             // Put the plaintext byte array into memory, and read it through the crypto stream to encrypt it
-            using (var memStream = new MemoryStream(data))
-            using (var cryptoStream = new CryptoStream(memStream, SymmetricAlgorithm.CreateEncryptor(), CryptoStreamMode.Read))
+            var memStream = new MemoryStream(data);
+            var cryptoStream = new CryptoStream(memStream, SymmetricAlgorithm.CreateEncryptor(), CryptoStreamMode.Read);
             using (var binReader = new BinaryReader(cryptoStream))
             {
                 // TODO manage checked exception
@@ -302,8 +305,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
 
             // Put the ciphertext byte array into memory, and read it through the crypto stream to decrypt it
-            using (var memStream = new MemoryStream(data))
-            using (var cryptoStream = new CryptoStream(memStream, SymmetricAlgorithm.CreateDecryptor(), CryptoStreamMode.Read))
+            var memStream = new MemoryStream(data);
+            var cryptoStream = new CryptoStream(memStream, SymmetricAlgorithm.CreateDecryptor(), CryptoStreamMode.Read);
             using (var binReader = new BinaryReader(cryptoStream))
             {
                 // TODO manage checked exception

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -107,7 +106,6 @@ namespace FactaLogicaSoftware.CryptoTools.HMAC
             return hash.SequenceEqual(hashKey);
         }
 
-
         /// <summary>
         /// A function that verifies a HMAC file with a hash algorithm of your choice
         /// </summary>
@@ -148,7 +146,6 @@ namespace FactaLogicaSoftware.CryptoTools.HMAC
 
             return hash.SequenceEqual(hashKey);
         }
-
 
         /// <summary>
         /// A function that verifies a HMAC file with a hash algorithm of your choice
