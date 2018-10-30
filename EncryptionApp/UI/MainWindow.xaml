@@ -4,44 +4,122 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Encryption_App.UI"
-        xmlns:gif="http://wpfanimatedgif.codeplex.com"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="392">
-    <Grid>
+        Title="MainWindow" Height="450" Width="392" ResizeMode="NoResize">
 
-        <TabControl HorizontalAlignment="Left" Height="397" VerticalAlignment="Top" Width="792" Margin="0,22,0,0">
-            <TabItem Header="Encryption">
-                <Grid Background="#FFE5E5E5" Margin="0,0,405,0">
+    <Window.Resources>
+        <SolidColorBrush x:Key="DeselectedColour" Color="#FF424242"/>
+
+        <SolidColorBrush x:Key="SolidBorderBrush" Color="#FF707070" />
+
+        <SolidColorBrush x:Key="SelectedColour" Color="#FF0288D1" />
+
+        <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="#EEE" />
+
+        <SolidColorBrush x:Key="DisabledBorderBrush" Color="#AAA" />
+
+        <SolidColorBrush x:Key="DisabledForegroundBrush" Color="#FF707070" />
+
+        <Style TargetType="{x:Type TabItem}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TabItem}">
+                        <Grid>
+                            <Border 
+                                Name="Border"
+                                Margin="0,0,-4,0" 
+                                Background="{StaticResource DeselectedColour}"
+                                BorderBrush="{StaticResource  SolidBorderBrush}" 
+                                BorderThickness="1,1,1,1" 
+                                CornerRadius="2,12,0,0" >
+                                <ContentPresenter x:Name="ContentSite"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Center"
+                                    ContentSource="Header"
+                                    Margin="12,2,12,2"
+                                    RecognizesAccessKey="True"/>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Panel.ZIndex" Value="100" />
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource SelectedColour}" />
+                                <Setter TargetName="Border" Property="BorderThickness" Value="1,1,1,0" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource DisabledBackgroundBrush}" />
+                                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource DisabledBorderBrush}" />
+                                <Setter Property="Foreground" Value="{StaticResource DisabledForegroundBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Window.Background>
+        <SolidColorBrush Color="#FF3C3C3C"/>
+    </Window.Background>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="87*"/>
+            <ColumnDefinition Width="41*"/>
+        </Grid.ColumnDefinitions>
+
+        <TabControl HorizontalAlignment="Left" Height="397" VerticalAlignment="Top" Width="792" Margin="0,22,-408,0" Grid.ColumnSpan="2" Foreground="White">
+            <TabItem Header="Encryption" Background="#FF606060" Foreground="White" FontFamily="Segoe UI Light" BorderBrush="#FF707070" FontSize="15">
+
+                <Grid Margin="-6,-3,405,-5">
+                    <Grid.Background>
+                        <SolidColorBrush Color="#FF303030"/>
+                    </Grid.Background>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="91*" />
-                        <ColumnDefinition Width="290*" />
+                        <ColumnDefinition Width="91*"/>
+                        <ColumnDefinition Width="290*"/>
                     </Grid.ColumnDefinitions>
-                    <ComboBox HorizontalAlignment="Left" Margin="26,53.04,0,0" VerticalAlignment="Top" Width="286" Height="25.96" x:Name="DropDown" Grid.ColumnSpan="2" />
-                    <CheckBox Content="File?" HorizontalAlignment="Left" Margin="177.695,122.941,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.14,0.464" Click="CheckBox_Click" Grid.Column="1" />
-                    <TextBox HorizontalAlignment="Left" Height="23" Margin="26,214.04,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="216" x:Name="FileTextBox" Grid.ColumnSpan="2" />
-                    <Button Content="Browse" HorizontalAlignment="Left" Margin="156,214.04,0,0" VerticalAlignment="Top" Width="75" Height="23" Click="Button_Click" Grid.Column="1" />
-                    <Button Content="Encrypt" HorizontalAlignment="Left" Margin="50,317,0,0" VerticalAlignment="Top" Width="101" Height="42" Click="Encrypt_Click" Grid.Column="1" />
-                    <PasswordBox HorizontalAlignment="Left" Height="23" Margin="26,143.039,0,0" VerticalAlignment="Top" Width="286" x:Name="EncryptPasswordBox" Grid.ColumnSpan="2" />
-                    <Label x:Name="EncryptOutput" Grid.Column="1" HorizontalAlignment="Center" Margin="10,271,105,0" VerticalAlignment="Top" Height="41" Width="175" />
-                    <Label Content="Enter password:" HorizontalAlignment="Left" Margin="26,112,0,0" VerticalAlignment="Top" Width="100" Grid.ColumnSpan="2" />
-                    <Label Content="Encrypted file location:" HorizontalAlignment="Left" Margin="26,183,0,0" VerticalAlignment="Top" Width="131" Grid.ColumnSpan="2" />
-                    <Image x:Name="EncryptLoadingGif" gif:ImageBehavior.AnimatedSource="/UI/Assets/loading.gif" gif:ImageBehavior.RepeatBehavior="Forever" Grid.Column="1" Margin="213,171,34,-126" ></Image>
+                    <ComboBox HorizontalAlignment="Left" Margin="26,54,0,0" VerticalAlignment="Top" Width="297" Height="23" x:Name="DropDown" Grid.ColumnSpan="2" Foreground="White" Background="#FF707070" FontFamily="Segoe UI Light" FontSize="12">
+                        <ComboBox.ItemContainerStyle>
+                            <Style TargetType="ComboBoxItem">
+                                <Setter Property="Background" Value="#FF424242"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                            </Style>
+                        </ComboBox.ItemContainerStyle>
+
+                    </ComboBox>
+                    <CheckBox Content="File?" HorizontalAlignment="Left" Margin="177.695,122.941,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.14,0.464" Click="CheckBox_Click" Grid.Column="1" FontFamily="Segoe UI Light" Foreground="White" Background="#FF818181"/>
+                    <TextBox HorizontalAlignment="Left" Height="23" Margin="26,214,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="217" x:Name="FileTxtBox" Grid.ColumnSpan="2" Background="#FF424242" BorderBrush="#FF707070" Foreground="White" FontFamily="Segoe UI Light" FontSize="12"/>
+                    <Button Content="Browse" HorizontalAlignment="Left" Margin="156,214.04,0,0" VerticalAlignment="Top" Width="75" Height="23" Click="FilePath_Click" Grid.Column="1" Background="#FF606060" Foreground="White"/>
+                    <Button Content="Encrypt" HorizontalAlignment="Left" Margin="50,317,0,0" VerticalAlignment="Top" Width="101" Height="42" Click="Encrypt_Click" Grid.Column="1" FontFamily="Segoe UI Light" Background="#FF606060" Foreground="White" FontSize="18"/>
+                    <Label x:Name="EncryptOutput" Grid.Column="1" HorizontalAlignment="Left" Margin="50,271,0,0" VerticalAlignment="Top" Height="41" Width="101">
+
+                    </Label>
+                    <Label Content="Enter password:" HorizontalAlignment="Left" Margin="26,112,0,0" VerticalAlignment="Top" Width="122" Grid.ColumnSpan="2" FontFamily="Segoe UI Light" FontSize="15" Foreground="White"/>
+                    <Label Content="Encrypted File Location:" HorizontalAlignment="Left" Margin="26,184,0,0" VerticalAlignment="Top" Width="162" Grid.ColumnSpan="2" FontSize="15" Foreground="White" FontFamily="Segoe UI Light"/>
+                    <PasswordBox HorizontalAlignment="Left" Margin="26,147,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Width="297" Height="23" Background="#FF424242" BorderBrush="#FF707070" x:Name="InpTxtBox" Foreground="White" FontSize="12"/>
                 </Grid>
             </TabItem>
-            <TabItem Header="Decryption">
-                <Grid Background="#FFE5E5E5">
+            <TabItem Header="Decryption" Background="#FF606060" Foreground="White" FontFamily="Segoe UI Light" BorderBrush="#FF707070" FontSize="15">
+                <Grid Background="#FF303030" Margin="-6,-3,396,-4">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="6*" />
-                        <ColumnDefinition Width="125*" />
+                        <ColumnDefinition Width="6*"/>
+                        <ColumnDefinition Width="125*"/>
                     </Grid.ColumnDefinitions>
-                    <Label x:Name="DecryptOutput" Grid.Column="1" HorizontalAlignment="Center" Margin="62,271,513,0" VerticalAlignment="Top" Height="41" Width="175" />
-                    <Button Content="Decrypt" HorizontalAlignment="Left" Margin="101,317,0,0" VerticalAlignment="Top" Width="101" Height="42" Grid.Column="1" Click="Decrypt_Click" />
-                    <TextBox HorizontalAlignment="Left" Height="23" Margin="35,35.04,0,0" TextWrapping="Wrap" Text="File Path" VerticalAlignment="Top" Width="238" x:Name="DecryptFileLocBox" Grid.ColumnSpan="2" />
-                    <Button Content="Browse" HorizontalAlignment="Left" Margin="242,35.04,0,0" VerticalAlignment="Top" Width="75" Height="23" Grid.Column="1" Click="FilePath_Click" />
-                    <PasswordBox Grid.Column="1" HorizontalAlignment="Left" Height="23" Margin="7,114.04,0,0" VerticalAlignment="Top" Width="195" x:Name="DecryptPasswordBox" />
-                    <Image x:Name="DecryptLoadingGif" gif:ImageBehavior.AnimatedSource="/UI/Assets/loading.gif" gif:ImageBehavior.RepeatBehavior="Forever" Grid.Column="1" Margin="236,317,462,10" ></Image>
+                    <CheckBox Content="File?" HorizontalAlignment="Left" Margin="233.695,122.941,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.14,0.464" Click="CheckBox_Click" Grid.Column="1" FontFamily="Segoe UI Light" Foreground="White" Background="#FF818181"/>
+                    <Button Content="Browse" HorizontalAlignment="Left" Margin="212,214.04,0,0" VerticalAlignment="Top" Width="75" Height="23" Click="Button_Click" Grid.Column="1" Background="#FF606060" Foreground="White"/>
+                    <Button Content="Decrypt" HorizontalAlignment="Left" Margin="106,317,0,0" VerticalAlignment="Top" Width="101" Height="42" Click="Decrypt_Click" Grid.Column="1" FontFamily="Segoe UI Light" Background="#FF606060" Foreground="White" FontSize="18"/>
+                    <Label Content="Enter password:" HorizontalAlignment="Left" Margin="26,112,0,0" VerticalAlignment="Top" Width="122" Grid.ColumnSpan="2" FontFamily="Segoe UI Light" FontSize="15" Foreground="White"/>
+                    <PasswordBox HorizontalAlignment="Left" Margin="26,147,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Width="297" Height="23" Background="#FF424242" BorderBrush="#FF707070" x:Name="PwdTxtBox" Foreground="White" FontSize="12"/>
+                    <TextBox HorizontalAlignment="Left" Height="23" Margin="26,214,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="217" Grid.ColumnSpan="2" Background="#FF424242" BorderBrush="#FF707070" Foreground="White" x:Name="DecryptFileLocBox"/>
+                    <Label Content="Encrypted File Location:" HorizontalAlignment="Left" Margin="26,184,0,0" VerticalAlignment="Top" Width="183" Grid.ColumnSpan="2" FontFamily="Segoe UI Light" FontSize="15" Foreground="White"/>
+                    <Label Grid.Column="1" HorizontalAlignment="Left" Margin="118,284,0,0" VerticalAlignment="Top" Width="76" Foreground="White" x:Name="DecryptOutput"/>
+
                 </Grid>
             </TabItem>
         </TabControl>
+        <Button Content="History" Grid.Column="1" HorizontalAlignment="Left" Margin="38,10,0,0" VerticalAlignment="Top" Width="76" FontFamily="Segoe UI Light" Background="#FF606060" Foreground="White" Height="23">
+
+        </Button>
+
     </Grid>
 </Window>
