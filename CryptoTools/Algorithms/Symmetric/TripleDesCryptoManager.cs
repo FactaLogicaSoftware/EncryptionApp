@@ -41,9 +41,6 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 Mode = CipherMode.CBC,
                 Padding = PaddingMode.PKCS7
             };
-
-            // Default memory - TODO Calculate to higher numbers if possible
-            _memoryConst = 1024 * 1024 * 4;
         }
 
         /// <summary>
@@ -70,67 +67,6 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 Mode = CipherMode.CBC,
                 Padding = PaddingMode.PKCS7
             };
-        }
-
-        /// <summary>
-        /// Uses 4mb read/write values and an TripleDES algorithm of your choice
-        /// </summary>
-        /// <param name="tripleDes">The TripleDES algorithm to use</param>
-        public TripleDesCryptoManager(TripleDES tripleDes)
-        {
-            // Default memory - TODO Calculate to higher numbers if possible
-            _memoryConst = 1024 * 1024 * 4;
-
-            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
-            if (tripleDes is TripleDESCng || tripleDes is TripleDESCryptoServiceProvider)
-            {
-                IsFipsCompliant = true;
-            }
-            else
-            {
-                IsFipsCompliant = false;
-            }
-
-            // Assign the TripleDES object
-            // TODO verify integrity of argument
-            SymmetricAlgorithm = tripleDes;
-        }
-
-        /// <summary>
-        /// Uses custom read/write values and an TripleDES algorithm of your choice
-        /// </summary>
-        /// <param name="memoryConst">The number of bytes to read and write</param>
-        /// <param name="tripleDes">The TripleDES algorithm to use</param>
-        public TripleDesCryptoManager(int memoryConst, TripleDES tripleDes)
-        {
-            // Check if that much memory can be assigned
-            if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
-            {
-                throw new ArgumentException("Not enough memory to use that chunking size");
-            }
-
-            // Assign to class field
-            _memoryConst = memoryConst;
-
-            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
-            if (tripleDes is TripleDESCng || tripleDes is TripleDESCryptoServiceProvider)
-            {
-                IsFipsCompliant = true;
-            }
-            else
-            {
-                IsFipsCompliant = false;
-            }
-
-            // Assign the TripleDES object
-            // TODO verify integrity of argument
-            SymmetricAlgorithm = tripleDes;
-        }
-
-        ~TripleDesCryptoManager()
-        {
-            // All TripleDES classes implement IDispose so we must dispose of it
-            SymmetricAlgorithm.Dispose();
         }
 
         /// <summary>

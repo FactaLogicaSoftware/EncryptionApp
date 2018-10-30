@@ -62,78 +62,13 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             // Create the aes object
             // TODO Customized field values
-            SymmetricAlgorithm = new AesCng()
+            SymmetricAlgorithm = new AesCng
             {
                 BlockSize = 128,
                 KeySize = 256,
                 Mode = CipherMode.CBC,
                 Padding = PaddingMode.PKCS7
             };
-        }
-
-        /// <summary>
-        /// Uses 4mb read/write values and an AES algorithm of your choice
-        /// </summary>
-        /// <param name="aes">The AES algorithm to use</param>
-        public AesCryptoManager(Aes aes)
-        {
-            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
-            if (aes is AesCng || aes is AesCryptoServiceProvider)
-            {
-                IsFipsCompliant = true;
-            }
-            else
-            {
-                IsFipsCompliant = false;
-            }
-
-            Contract.EndContractBlock();
-
-            // Default memory - TODO Calculate to higher numbers if possible
-            _memoryConst = 1024 * 1024 * 4;
-
-            // Assign the aes object
-            // TODO verify integrity of argument
-            SymmetricAlgorithm = aes;
-        }
-
-        /// <summary>
-        /// Uses custom read/write values and an AES algorithm of your choice
-        /// </summary>
-        /// <param name="memoryConst">The number of bytes to read and write</param>
-        /// <param name="aes">The AES algorithm to use</param>
-        public AesCryptoManager(int memoryConst, Aes aes)
-        {
-            // Check if that much memory can be assigned
-            if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
-            {
-                throw new ArgumentException("Not enough memory to use that chunking size");
-            }
-
-            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
-            if (aes is AesCng || aes is AesCryptoServiceProvider)
-            {
-                IsFipsCompliant = true;
-            }
-            else
-            {
-                IsFipsCompliant = false;
-            }
-
-            Contract.EndContractBlock();
-
-            // Assign to class field
-            _memoryConst = memoryConst;
-
-            // Assign the aes object
-            // TODO verify integrity of argument
-            SymmetricAlgorithm = aes;
-        }
-
-        ~AesCryptoManager()
-        {
-            // All aes classes implement IDispose so we must dispose of it
-            SymmetricAlgorithm.Dispose();
         }
 
         /// <summary>

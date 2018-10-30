@@ -74,67 +74,6 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         }
 
         /// <summary>
-        /// Uses 4mb read/write values and an RC2 algorithm of your choice
-        /// </summary>
-        /// <param name="rc2">The RC2 algorithm to use</param>
-        public Rc2CryptoManager(RC2 rc2)
-        {
-            // Default memory - TODO Calculate to higher numbers if possible
-            _memoryConst = 1024 * 1024 * 4;
-
-            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
-            if (rc2 is RC2CryptoServiceProvider)
-            {
-                IsFipsCompliant = true;
-            }
-            else
-            {
-                IsFipsCompliant = false;
-            }
-
-            // Assign the RC2 object
-            // TODO verify integrity of argument
-            SymmetricAlgorithm = rc2;
-        }
-
-        /// <summary>
-        /// Uses custom read/write values and an RC2 algorithm of your choice
-        /// </summary>
-        /// <param name="memoryConst">The number of bytes to read and write</param>
-        /// <param name="rc2">The RC2 algorithm to use</param>
-        public Rc2CryptoManager(int memoryConst, RC2 rc2)
-        {
-            // Check if that much memory can be assigned
-            if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
-            {
-                throw new ArgumentException("Not enough memory to use that chunking size");
-            }
-
-            // Assign to class field
-            _memoryConst = memoryConst;
-
-            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
-            if (rc2 is RC2CryptoServiceProvider)
-            {
-                IsFipsCompliant = true;
-            }
-            else
-            {
-                IsFipsCompliant = false;
-            }
-
-            // Assign the RC2 object
-            // TODO verify integrity of argument
-            SymmetricAlgorithm = rc2;
-        }
-
-        ~Rc2CryptoManager()
-        {
-            // All RC2 classes implement IDispose so we must dispose of it
-            SymmetricAlgorithm.Dispose();
-        }
-
-        /// <summary>
         /// Generates a secure sequence of random numbers
         /// </summary>
         /// <param name="arrayToFill">The array to fill</param>

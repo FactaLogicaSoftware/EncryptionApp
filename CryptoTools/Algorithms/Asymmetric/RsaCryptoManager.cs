@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Security.Cryptography;
+using System.Diagnostics.CodeAnalysis;
 
-#pragma warning disable 0414, 2213
+#pragma warning disable 0414, CA2213
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Asymmetric
 {
@@ -41,8 +42,10 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Asymmetric
             throw new NotImplementedException();
         }
 
+        [SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = nameof(_algorithm), Justification = "Glitched - should not warn")]
         public void Dispose()
         {
+
             _algorithm?.Dispose();
         }
     }

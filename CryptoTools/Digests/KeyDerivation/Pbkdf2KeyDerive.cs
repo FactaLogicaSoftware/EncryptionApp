@@ -1,11 +1,10 @@
 ﻿using FactaLogicaSoftware.CryptoTools.Exceptions;
 using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Security.Cryptography;
 using System.Text;
-
-#pragma warning disable 2213
 
 namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {
@@ -116,6 +115,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             PerformanceValues = checked((int)performanceDerivative.TransformToRfc2898(milliseconds));
         }
 
+        [SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = nameof(_baseObject), Justification = "Glitched - should not warn")]
         public void Dispose()
         {
             _baseObject?.Dispose();

@@ -198,9 +198,9 @@ namespace Encryption_App {
         /// <summary>
         ///   Looks up a localized string similar to Post header time: {0}.
         /// </summary>
-        internal static string MainWindow_EncryptDataWithHeader_Post_header_time___0_ {
+        internal static string MainWindow_EncryptDataWithHeader_Post_header_time__ {
             get {
-                return ResourceManager.GetString("MainWindow_EncryptDataWithHeader_Post_header_time___0_", resourceCulture);
+                return ResourceManager.GetString("MainWindow_EncryptDataWithHeader_Post_header_time__", resourceCulture);
             }
         }
         
