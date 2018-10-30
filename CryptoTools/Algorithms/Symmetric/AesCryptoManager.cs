@@ -145,22 +145,11 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="iv">The initialization vector</param>
         public override void DecryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
         {
-            if (inputFile == null)
-            {
-                throw new ArgumentNullException(nameof(inputFile));
-            }
-            if (outputFile == null)
-            {
-                throw new ArgumentNullException(nameof(outputFile));
-            }
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-            if (iv == null)
-            {
-                throw new ArgumentNullException(nameof(inputFile));
-            }
+            if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
+            if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
+            if (key == null) throw new ArgumentNullException(nameof(key));
+            if (iv == null) throw new ArgumentNullException(nameof(iv));
+            
 
             if (!File.Exists(inputFile))
             {
@@ -191,6 +180,19 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <returns>The encrypted byte array</returns>
         public override byte[] EncryptBytes(byte[] data, byte[] key, byte[] iv)
         {
+            if (data == null) throw new ArgumentNullException(nameof(data));
+            if (key == null) throw new ArgumentNullException(nameof(key));
+            if (iv == null) throw new ArgumentNullException(nameof(iv));
+
+            if (iv.Length < SymmetricAlgorithm.BlockSize) throw new ArgumentException($"IV shorter than block size {SymmetricAlgorithm.BlockSize}");
+
+            if (key.Length != 128 / 8 && key.Length != 192 / 8 && key.Length != 256 / 8)
+            {
+                throw new InvalidKeyLengthException("Key is not a valid length (128/192/256)");
+            }
+
+            Contract.EndContractBlock();
+
             // AES values
             SymmetricAlgorithm.KeySize = key.Length * 8;
             SymmetricAlgorithm.Key = key;
@@ -218,12 +220,12 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <returns>The decrypted byte array</returns>
         public override byte[] DecryptBytes(byte[] data, byte[] key, byte[] iv)
         {
-            // AES values
-            SymmetricAlgorithm.KeySize = key.Length * 8;
-            SymmetricAlgorithm.Key = key;
-            SymmetricAlgorithm.IV = iv;
-            SymmetricAlgorithm.Mode = CipherMode.CBC;
-            SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
+                // AES values
+                SymmetricAlgorithm.KeySize = key.Length * 8;
+                SymmetricAlgorithm.Key = key;
+                SymmetricAlgorithm.IV = iv;
+                SymmetricAlgorithm.Mode = CipherMode.CBC;
+                SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
 
             // Put the ciphertext byte array into memory, and read it through the crypto stream to decrypt it
             var memStream = new MemoryStream(data);
