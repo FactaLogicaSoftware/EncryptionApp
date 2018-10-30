@@ -35,8 +35,6 @@ namespace Encryption_App.UI
         private int _encryptStringStepCount;
         private int _decryptStringStepCount;
 
-        bool _isWorking;
-
         /// <inheritdoc />
         /// <summary>
         /// Constructor for window. Don't mess with
@@ -60,10 +58,8 @@ namespace Encryption_App.UI
             DropDown.SelectedIndex = 0;
 
             // Hide loading GIFs
-            //EncryptLoadingGif.Visibility = Visibility.Hidden;
-            //  DecryptLoadingGif.Visibility = Visibility.Hidden;
-
-            _isWorking = false;
+            EncryptLoadingGif.Visibility = Visibility.Hidden;
+            DecryptLoadingGif.Visibility = Visibility.Hidden;
 
             // TODO fix bug here, doesn't work as expected
             _encryptStepStrings = new[]
@@ -161,7 +157,7 @@ namespace Encryption_App.UI
 
             if (result is true)
             {
-                FileTxtBox.Text = openFileDialog.FileName;
+                DecryptFileLocBox.Text = openFileDialog.FileName;
             }
             else if (result == null)
             {
@@ -182,7 +178,7 @@ namespace Encryption_App.UI
 
             if (result is true)
             {
-                DecryptFileLocBox.Text = openFileDialog.FileName;
+                FileTextBox.Text = openFileDialog.FileName;
             }
             else if (result is null)
             {
@@ -193,15 +189,7 @@ namespace Encryption_App.UI
         // TODO Make values dependent on settings
         private async void Encrypt_Click(object sender, RoutedEventArgs e)
         {
-            //EncryptLoadingGif.Visibility = Visibility.Visible;
-
-            if (_isWorking)
-            {
-                MessageBox.Show("Cannot decrypt while another process is occuring");
-                return;
-            }
-
-            _isWorking = true;
+            EncryptLoadingGif.Visibility = Visibility.Visible;
 
             // Create a random salt and iv
             var salt = new byte[16];
@@ -211,7 +199,7 @@ namespace Encryption_App.UI
             rng.GetBytes(iv);
 
             // Pre declaration of them for assigning during the secure string scope
-            string filePath = FileTxtBox.Text;
+            string filePath = FileTextBox.Text;
 
             if (!File.Exists(filePath))
             {
@@ -243,26 +231,14 @@ namespace Encryption_App.UI
             };
 
             // Run the encryption in a separate thread and return control to the UI thread
-            await Task.Run(() => EncryptDataWithHeader(data, InpTxtBox.SecurePassword, filePath));
+            await Task.Run(() => EncryptDataWithHeader(data, EncryptPasswordBox.SecurePassword, filePath));
 
-            _isWorking = false;
-
-            EncryptOutput.Content = "Finished";
-
-            //EncryptLoadingGif.Visibility = Visibility.Hidden;
+            EncryptLoadingGif.Visibility = Visibility.Hidden;
         }
 
         private async void Decrypt_Click(object sender, RoutedEventArgs e)
         {
-            if (_isWorking)
-            {
-                MessageBox.Show("Cannot decrypt while another process is occuring");
-                return;
-            }
-             
-            _isWorking = true;
-
-            //DecryptLoadingGif.Visibility = Visibility.Visible;
+            DecryptLoadingGif.Visibility = Visibility.Visible;
 
             // Create the object used to represent the header data
             var data = new AesCryptographicInfo();
@@ -274,13 +250,9 @@ namespace Encryption_App.UI
             await Task.Run(() => data = (AesCryptographicInfo)data.ReadHeaderFromFile(outFilePath));
 
             // Decrypt the data
-            await Task.Run(() => DecryptDataWithHeader(data, PwdTxtBox.SecurePassword, outFilePath));
+            await Task.Run(() => DecryptDataWithHeader(data, DecryptPasswordBox.SecurePassword, outFilePath));
 
-            DecryptOutput.Content = "Finished";
-
-            _isWorking = false;
-
-            //DecryptLoadingGif.Visibility = Visibility.Hidden;
+            DecryptLoadingGif.Visibility = Visibility.Hidden;
         }
 
         private void EncryptDataWithHeader(CryptographicInfo cryptographicInfo, SecureString password, string filePath)
@@ -302,10 +274,7 @@ namespace Encryption_App.UI
             {
                 if (password.Length == 0)
                 {
-                    Dispatcher.Invoke(() =>
-                    {
-                        EncryptOutput.Content = "You must enter a password";
-                    });
+                    EncryptOutput.Content = "You must enter a password";
                     return;
                 }
                 if (password.Length < 4)
@@ -356,7 +325,7 @@ namespace Encryption_App.UI
                                                               ?? coreAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm));
             }
 
-           var encryptor = (SymmetricCryptoManager)Activator.CreateInstance(Type.GetType(cryptographicInfo.CryptoManager)
+            var encryptor = (SymmetricCryptoManager)Activator.CreateInstance(Type.GetType(cryptographicInfo.CryptoManager)
                                                      ?? securityAsm.GetType(cryptographicInfo.CryptoManager)
                                                      ?? coreAsm.GetType(cryptographicInfo.CryptoManager));
 

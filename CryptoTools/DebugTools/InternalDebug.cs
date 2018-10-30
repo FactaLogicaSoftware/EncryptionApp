@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if DEBUG
+
+using System;
 using System.Globalization;
 using System.IO;
 
@@ -19,8 +21,9 @@ namespace FactaLogicaSoftware.CryptoTools.DebugTools
             {
                 File.Create(TempFilePath + "DiagnosticsAndDebug.data");
             }
-            
-            using (var fWriter = new StreamWriter(new FileStream(TempFilePath + "DiagnosticsAndDebug.data", FileMode.Append)))
+
+            var handleToWrite = new FileStream(TempFilePath + "DiagnosticsAndDebug.data", FileMode.Append);
+            using (var fWriter = new StreamWriter(handleToWrite))
             {
                 fWriter.WriteLine('\n' + DateTime.Now.ToString(CultureInfo.CurrentCulture));
                 foreach (string item in items)
@@ -31,3 +34,5 @@ namespace FactaLogicaSoftware.CryptoTools.DebugTools
         }
     }
 }
+
+#endif
