@@ -103,7 +103,6 @@
     <Compile Include="Information\AesCryptographicInfo.cs" />
     <Compile Include="Algorithms\Symmetric\AesCryptoManager.cs" />
     <Compile Include="Information\CryptographicInfo.cs" />
-    <Compile Include="Algorithms\CryptoManager.cs" />
     <Compile Include="Information\CryptoData.cs" />
     <Compile Include="Algorithms\Asymmetric\AsymmetricCryptoManager.cs" />
     <Compile Include="Information\ICryptoData.cs" />
@@ -121,7 +120,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Exceptions\WeakKeyException.cs" />
-    <Compile Include="Algorithms\WindowsDerivedCryptoManager.cs" />
+    <Compile Include="Algorithms\NativeKeyEncryptor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

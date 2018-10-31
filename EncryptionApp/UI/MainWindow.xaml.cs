@@ -25,7 +25,7 @@ namespace Encryption_App.UI
     {
         private const int DesiredKeyDerivationMilliseconds = 2000;
         private const int KeySize = 192;
-        internal string TempFilePath;
+        private string TempFilePath;
         private string _headerLessTempFile;
         private string _dataTempFile;
         private readonly List<string> _dropDownItems = new List<string> { "Choose Option...", "Encrypt a file", "Encrypt a file for sending to someone" };
@@ -34,6 +34,7 @@ namespace Encryption_App.UI
         private readonly string[] _decryptStepStrings;
         private int _encryptStringStepCount;
         private int _decryptStringStepCount;
+        private bool _isWorking;
 
         /// <inheritdoc />
         /// <summary>
@@ -56,6 +57,7 @@ namespace Encryption_App.UI
             // Initialize objects
             DropDown.ItemsSource = _dropDownItems;
             DropDown.SelectedIndex = 0;
+            _isWorking = false;
 
             // Hide loading GIFs
             EncryptLoadingGif.Visibility = Visibility.Hidden;
@@ -116,7 +118,7 @@ namespace Encryption_App.UI
                 EncryptOutput.Content = _encryptStepStrings[_encryptStringStepCount];
                 _encryptStringStepCount++;
 
-                if (_encryptStringStepCount == _encryptStepStrings.Length - 1)
+                if (_encryptStringStepCount == _encryptStepStrings.Length)
                 {
                     _encryptStringStepCount = 0;
                 }
@@ -131,7 +133,7 @@ namespace Encryption_App.UI
                 DecryptOutput.Content = _decryptStepStrings[_decryptStringStepCount];
                 _decryptStringStepCount++;
 
-                if (_decryptStringStepCount == _decryptStepStrings.Length - 1)
+                if (_decryptStringStepCount == _decryptStepStrings.Length)
                 {
                     _decryptStringStepCount = 0;
                 }
@@ -189,7 +191,14 @@ namespace Encryption_App.UI
         // TODO Make values dependent on settings
         private async void Encrypt_Click(object sender, RoutedEventArgs e)
         {
+            if (_isWorking)
+            {
+                MessageBox.Show("Cannot perform action - currently executing one");
+                return;
+            }
+
             EncryptLoadingGif.Visibility = Visibility.Visible;
+            _isWorking = true;
 
             // Create a random salt and iv
             var salt = new byte[16];
@@ -210,7 +219,7 @@ namespace Encryption_App.UI
             // Assign the values to the CryptographicInfo object
             var data = new AesCryptographicInfo
             {
-                CryptoManager = typeof(TripleDesCryptoManager).AssemblyQualifiedName,
+                CryptoManager = typeof(AesCryptoManager).AssemblyQualifiedName,
 
                 Hmac = null,
 
@@ -234,11 +243,19 @@ namespace Encryption_App.UI
             await Task.Run(() => EncryptDataWithHeader(data, EncryptPasswordBox.SecurePassword, filePath));
 
             EncryptLoadingGif.Visibility = Visibility.Hidden;
+            _isWorking = false;
         }
 
         private async void Decrypt_Click(object sender, RoutedEventArgs e)
         {
+            if (_isWorking)
+            {
+                MessageBox.Show("Cannot perform action - currently executing one");
+                return;
+            }
+
             DecryptLoadingGif.Visibility = Visibility.Visible;
+            _isWorking = true;
 
             // Create the object used to represent the header data
             var data = new AesCryptographicInfo();
@@ -247,12 +264,14 @@ namespace Encryption_App.UI
             string outFilePath = DecryptFileLocBox.Text;
 
             // Read the header
+            // ReSharper disable once ImplicitlyCapturedClosure
             await Task.Run(() => data = (AesCryptographicInfo)data.ReadHeaderFromFile(outFilePath));
 
             // Decrypt the data
             await Task.Run(() => DecryptDataWithHeader(data, DecryptPasswordBox.SecurePassword, outFilePath));
 
             DecryptLoadingGif.Visibility = Visibility.Hidden;
+            _isWorking = false;
         }
 
         private void EncryptDataWithHeader(CryptographicInfo cryptographicInfo, SecureString password, string filePath)
@@ -261,7 +280,7 @@ namespace Encryption_App.UI
             Stopwatch watch = Stopwatch.StartNew();
 #endif
             // Forward declaration of the device used to derive the key
-            KeyDerive keyDevice = null;
+            KeyDerive keyDevice;
 
             // Load the assemblies necessary for reflection
             Assembly securityAsm = Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Security.dll"));
@@ -277,11 +296,14 @@ namespace Encryption_App.UI
                     EncryptOutput.Content = "You must enter a password";
                     return;
                 }
-                if (password.Length < 4)
+#if TRACE
+                // TODO make disable-able
+                if (password.Length < 8)
                 {
                     EncryptOutput.Content = "Password to short";
                     return;
                 }
+#endif
 
                 // Turn the secure string into a string to pass it into keyDevice for the shortest interval possible
                 IntPtr valuePtr = IntPtr.Zero;
@@ -319,10 +341,9 @@ namespace Encryption_App.UI
             if (cryptographicInfo.Hmac != null)
             {
                 // Create the algorithm using reflection
-                hmacAlg = (HMAC)Activator.CreateInstance(Type.GetType(cryptographicInfo.Hmac.HashAlgorithm)
-                                                              ?? securityAsm.GetType(cryptographicInfo.Hmac
-                                                                  .HashAlgorithm)
-                                                              ?? coreAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm));
+                hmacAlg = (HMAC)Activator.CreateInstance(Type.GetType(cryptographicInfo.Hmac?.HashAlgorithm)
+                                                              ?? securityAsm.GetType(cryptographicInfo.Hmac?.HashAlgorithm)
+                                                              ?? coreAsm.GetType(cryptographicInfo.Hmac?.HashAlgorithm));
             }
 
             var encryptor = (SymmetricCryptoManager)Activator.CreateInstance(Type.GetType(cryptographicInfo.CryptoManager)
@@ -369,7 +390,7 @@ namespace Encryption_App.UI
             cryptographicInfo.WriteHeaderToFile(filePath);
 #if DEBUG
             // We have to use Dispatcher.Invoke as the current thread can't access these objects this.dispatcher.Invoke(() => { EncryptOutput.Content = "Transferring the data to the file"; });
-            Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Post_header_time___0_, watch.ElapsedMilliseconds);
+            Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Post_header_time__, watch.ElapsedMilliseconds);
 #endif
             FileStatics.AppendToFile(filePath, _dataTempFile);
 
@@ -407,6 +428,7 @@ namespace Encryption_App.UI
                 try
                 {
                     valuePtr = Marshal.SecureStringToGlobalAllocUnicode(password);
+
                     // Create an object array of parameters
                     var parameters = new object[] { Marshal.PtrToStringUni(valuePtr), cryptographicInfo.InstanceKeyCreator.salt, null };
 
@@ -414,7 +436,9 @@ namespace Encryption_App.UI
                                                                                        ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
                                                                                        ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm));
 
-                    tempTransformationDevice.TransformPerformance(performanceDerivative, 2000); // TODO put in crypto-info
+                    // TODO i forgot but something
+                    tempTransformationDevice.TransformPerformance(performanceDerivative, 2000);
+
                     parameters[2] = tempTransformationDevice.PerformanceValues;
                     keyDevice = (KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
                                                                     ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
@@ -438,10 +462,6 @@ namespace Encryption_App.UI
                                                               ?? securityAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm)
                                                               ?? coreAsm.GetType(cryptographicInfo.Hmac.HashAlgorithm));
             }
-
-#if DEBUG
-            Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Object_built_time__ + watch.ElapsedMilliseconds);
-#endif
 
             var decryptor = (SymmetricCryptoManager)Activator.CreateInstance(Type.GetType(cryptographicInfo.CryptoManager)
                                                                              ?? securityAsm.GetType(cryptographicInfo.CryptoManager)

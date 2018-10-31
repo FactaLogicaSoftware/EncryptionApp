@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace FactaLogicaSoftware.CryptoTools.Exceptions
 {
+    [Serializable]
     public class InvalidKeyLengthException : BadKeyException
     {
         /// <inheritdoc />

@@ -2,6 +2,7 @@
 
 namespace FactaLogicaSoftware.CryptoTools.Exceptions
 {
+    [Serializable]
     public class DataTooLargeException : InvalidCryptographicOperationException
     {
         /// <inheritdoc />

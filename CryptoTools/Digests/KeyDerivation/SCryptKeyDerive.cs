@@ -87,12 +87,9 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// <inheritdoc />
         /// <summary>
         /// </summary>
-        /// <param name="toFill"></param>
+        /// <param name="size"></param>
         public override byte[] GetBytes(int size)
         {
-#if DEBUG
-            Console.WriteLine(size);
-#endif
             // TODO manage checked overflows
             return Replicon.Cryptography.SCrypt.SCrypt.DeriveKey(Password, Salt, _tuneFlags.N, _tuneFlags.r, _tuneFlags.p, (uint)size + _read).Skip(checked((int)_read)).ToArray();
         }

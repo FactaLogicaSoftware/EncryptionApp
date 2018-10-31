@@ -41,9 +41,6 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 Mode = CipherMode.CBC,
                 Padding = PaddingMode.PKCS7
             };
-
-            // Default memory - TODO Calculate to higher numbers if possible
-            _memoryConst = 1024 * 1024 * 4;
         }
 
         /// <summary>
@@ -63,74 +60,13 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             // Base class value
             // TODO Customized field values
-            SymmetricAlgorithm = new TripleDESCng()
+            SymmetricAlgorithm = new TripleDESCng
             {
                 BlockSize = 64,
                 KeySize = 192,
                 Mode = CipherMode.CBC,
                 Padding = PaddingMode.PKCS7
             };
-        }
-
-        /// <summary>
-        /// Uses 4mb read/write values and an TripleDES algorithm of your choice
-        /// </summary>
-        /// <param name="tripleDes">The TripleDES algorithm to use</param>
-        public TripleDesCryptoManager(TripleDES tripleDes)
-        {
-            // Default memory - TODO Calculate to higher numbers if possible
-            _memoryConst = 1024 * 1024 * 4;
-
-            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
-            if (tripleDes is TripleDESCng || tripleDes is TripleDESCryptoServiceProvider)
-            {
-                IsFipsCompliant = true;
-            }
-            else
-            {
-                IsFipsCompliant = false;
-            }
-
-            // Assign the TripleDES object
-            // TODO verify integrity of argument
-            SymmetricAlgorithm = tripleDes;
-        }
-
-        /// <summary>
-        /// Uses custom read/write values and an TripleDES algorithm of your choice
-        /// </summary>
-        /// <param name="memoryConst">The number of bytes to read and write</param>
-        /// <param name="tripleDes">The TripleDES algorithm to use</param>
-        public TripleDesCryptoManager(int memoryConst, TripleDES tripleDes)
-        {
-            // Check if that much memory can be assigned
-            if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
-            {
-                throw new ArgumentException("Not enough memory to use that chunking size");
-            }
-
-            // Assign to class field
-            _memoryConst = memoryConst;
-
-            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
-            if (tripleDes is TripleDESCng || tripleDes is TripleDESCryptoServiceProvider)
-            {
-                IsFipsCompliant = true;
-            }
-            else
-            {
-                IsFipsCompliant = false;
-            }
-
-            // Assign the TripleDES object
-            // TODO verify integrity of argument
-            SymmetricAlgorithm = tripleDes;
-        }
-
-        ~TripleDesCryptoManager()
-        {
-            // All TripleDES classes implement IDispose so we must dispose of it
-            SymmetricAlgorithm.Dispose();
         }
 
         /// <summary>
@@ -188,7 +124,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             if (key.Length != 128 / 8 && key.Length != 192 / 8)
             {
-                throw new InvalidKeyLengthException("Key is not a valid length (128/192)");
+                throw new InvalidKeyLengthException("Key is not a valid length (192)");
             }
 
             Contract.EndContractBlock();
@@ -199,7 +135,10 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             Console.WriteLine("Maximum key size: " + sampleKeySize.MaxSize);
             Console.WriteLine("Key skip size: " + sampleKeySize.SkipSize);
             Console.WriteLine();
+#if NON_SECURE_DEBUG
+            
             Console.WriteLine("Key: " + Convert.ToBase64String(key));
+#endif
 #endif
 
             // Set actual IV and key
@@ -234,7 +173,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
             if (iv == null)
             {
-                throw new ArgumentNullException(nameof(inputFile));
+                throw new ArgumentNullException(nameof(iv));
             }
 
             if (!File.Exists(inputFile))
@@ -248,7 +187,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             if (key.Length != 192 / 8)
             {
-                throw new InvalidKeyLengthException("Key is not a valid length (128/192)");
+                throw new InvalidKeyLengthException("Key is not a valid length (192)");
             }
 
             Contract.EndContractBlock();

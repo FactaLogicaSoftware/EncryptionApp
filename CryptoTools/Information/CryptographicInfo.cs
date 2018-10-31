@@ -33,6 +33,9 @@ namespace FactaLogicaSoftware.CryptoTools.Information
         public EncryptionModeInfo EncryptionModeInfo;
         public KeyCreator InstanceKeyCreator;
 
+        // private types
+
+
         /// <summary>
         /// If overriden in a derived class, writes a header representation of the object to a file as JSON
         /// </summary>

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Security.Cryptography;
-
+using Microsoft.VisualBasic.Devices;
 #if DEBUG
 
 using FactaLogicaSoftware.CryptoTools.DebugTools;
@@ -28,6 +29,77 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// </summary>
         public bool IsFipsCompliant { get; private protected set; }
 
+        public SymmetricCryptoManager()
+        {
+            // Default memory - TODO Calculate to higher numbers if possible
+            _memoryConst = 1024 * 1024 * 4;
+        }
+
+        /// <summary>
+        /// Uses 4mb read/write values and an AES algorithm of your choice
+        /// </summary>
+        /// <param name="algorithm">The algorithm to use</param>
+        public SymmetricCryptoManager(SymmetricAlgorithm algorithm)
+        {
+            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
+            if (algorithm is AesCng || algorithm is AesCryptoServiceProvider || algorithm is TripleDESCng)
+            {
+                IsFipsCompliant = true;
+            }
+            else
+            {
+                IsFipsCompliant = false;
+            }
+
+            Contract.EndContractBlock();
+
+            // Default memory - TODO Calculate to higher numbers if possible
+            _memoryConst = 1024 * 1024 * 4;
+
+            // Assign the aes object
+            // TODO verify integrity of argument
+            SymmetricAlgorithm = algorithm;
+        }
+
+        /// <summary>
+        /// Uses custom read/write values and an AES algorithm of your choice
+        /// </summary>
+        /// <param name="memoryConst">The number of bytes to read and write</param>
+        /// <param name="algorithm">The algorithm to use</param>
+        public SymmetricCryptoManager(int memoryConst, SymmetricAlgorithm algorithm)
+        {
+            // Check if that much memory can be assigned
+            if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
+            {
+                throw new ArgumentException("Not enough memory to use that chunking size");
+            }
+
+            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
+            if (algorithm is AesCng || algorithm is AesCryptoServiceProvider || algorithm is TripleDESCng)
+            {
+                IsFipsCompliant = true;
+            }
+            else
+            {
+                IsFipsCompliant = false;
+            }
+
+            Contract.EndContractBlock();
+
+            // Assign to class field
+            _memoryConst = memoryConst;
+
+            // Assign the aes object
+            // TODO verify integrity of argument
+            SymmetricAlgorithm = algorithm;
+        }
+
+        ~SymmetricCryptoManager()
+        {
+            // All aes classes implement IDispose so we must dispose of it
+            SymmetricAlgorithm.Dispose();
+        }
+
         /// <summary>
         /// The transformation function used by all derived classes
         /// </summary>
@@ -46,7 +118,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                     throw new Exception("You don't have a high-res sysclock");
                 }
 
-                Console.WriteLine(_memoryConst);
+                Console.WriteLine("Amount read into memory: " + _memoryConst);
 
                 Stopwatch watch = Stopwatch.StartNew();
 
@@ -96,12 +168,11 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                         iterationMilliseconds = avgIterationMilliseconds;
                     string[] toWrite =
                     {
-                        $"Transformation type: " + transformer.GetType(),
+                        "Transformation type: " + transformer.GetType(),
                         "Time to transform (s):" + totalSeconds,
                         "Time to transform (ms):" + totalMilliseconds,
-                        "Average iteration length (s):" + perIterationSeconds.ToString("0." + new string('#', 339)),
-                        "Average iteration length (ms):" +
-                            iterationMilliseconds.ToString("0." + new string('#', 339)),
+                        "Average iteration length (s):" + perIterationSeconds.ToString("0.##########"),
+                        "Average iteration length (ms):" + iterationMilliseconds.ToString("0.##########"),
                         "Time of all iterations, combined (s):" + fullIterationTime / 1000,
                         "Time of all iterations, combined (ms):" + fullIterationTime,
                         "Iterations:" + iterations

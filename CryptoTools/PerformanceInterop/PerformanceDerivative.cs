@@ -68,8 +68,8 @@ namespace FactaLogicaSoftware.CryptoTools.PerformanceInterop
             PerformanceDerivativeValue = (ulong)b;
 
 #if DEBUG
-            Console.WriteLine("Initialization time: " + Convert.ToString(a));
-            Console.WriteLine("Derivation time: " + Convert.ToString(b));
+            Console.WriteLine("Initialization time for performance derivative: " + Convert.ToString(a));
+            Console.WriteLine("Derivation time for performance derivative: " + Convert.ToString(b));
 #endif
 
             return PerformanceDerivativeValue;
@@ -104,6 +104,13 @@ namespace FactaLogicaSoftware.CryptoTools.PerformanceInterop
 
 #warning "Parameter has no signficance at the moment"
 
+        /// <summary>
+        /// Transforms the current performance derivative value to
+        /// to a tuple (N, r, p) of argon2 tuning values
+        /// </summary>
+        /// <param name="milliseconds">The desired number of milliseconds</param>
+        /// <returns>The tuning parameters for argon to get the
+        /// desired time</returns>
         public (int N, int r, int p) TransformToArgon2Tuning(ulong milliseconds)
         {
             return (3, 1024 * 128, 1);

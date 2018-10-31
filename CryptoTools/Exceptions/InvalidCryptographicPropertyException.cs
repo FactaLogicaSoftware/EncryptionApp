@@ -3,6 +3,7 @@ using System.Runtime.Serialization;
 
 namespace FactaLogicaSoftware.CryptoTools.Exceptions
 {
+    [Serializable]
     public class InvalidCryptographicPropertyException : Exception
     {
         /// <inheritdoc />
