@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 
 namespace utils
 {
+    [Obsolete("Do not use")]
     public static class Utils
     {
 
@@ -23,20 +24,6 @@ namespace utils
             var elapsedMs = watch.ElapsedMilliseconds;
             Console.WriteLine(elapsedMs);
 
-        }
-
-        public static void WriteToDiagnosticsFile(params string[] items)
-        {
-
-            using (var fHandle = new FileStream(Path.GetTempPath() + @"EncryptionApp\" + "DiagnosticsAndDebug.data", FileMode.Append))
-            using (var fWriter = new StreamWriter(fHandle))
-            {
-                fWriter.WriteLine('\n' + DateTime.Now.ToString(CultureInfo.CurrentCulture));
-                foreach (string item in items)
-                {
-                    fWriter.WriteLine(item);
-                }
-            }
         }
     }
 }
