@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace FactaLogicaSoftware.CryptoTools.Information
@@ -83,8 +84,27 @@ namespace FactaLogicaSoftware.CryptoTools.Information
                 // Get the data between the indexes : that's why we added the length of StartChars earlier
                 string jsonString = header.Substring(start, end - start);
 
+                binReader.BaseStream.Seek(0, SeekOrigin.Begin);
+                byte[] byteOrderMark = binReader.ReadBytes(3);
+
+                byte byteOrderMarkLength = 0;
+
+                if (byteOrderMark.SequenceEqual(new byte[] { 0xEF, 0xBB, 0xBF }))
+                {
+#if DEBUG
+                    Console.WriteLine("File has UTF8 3-byte BOM");
+#endif
+                    byteOrderMarkLength = 3;
+                }
+                else
+                {
+#if DEBUG
+                    Console.WriteLine("File has no BOM");
+#endif
+                }
+
                 // Set the length of the header read
-                HeaderLength = StartChars.Length + jsonString.Length + EndChars.Length + 3; // 3 is length of BOM
+                HeaderLength = StartChars.Length + jsonString.Length + EndChars.Length + byteOrderMarkLength; // 3 is length of BOM
 
                 // Create the data deserialized to a cryptographic object
                 var data = JsonConvert.DeserializeObject<AesCryptographicInfo>(jsonString);
@@ -116,7 +136,10 @@ namespace FactaLogicaSoftware.CryptoTools.Information
         /// <returns>The cryptographic info object created from the data</returns>
         public override CryptographicInfo ReadHeader(string header)
         {
+            throw new NotImplementedException("Need to fix BOM");
+
             // Get the index of the start and end of the JSON object
+#pragma warning disable 162
             int start = header.IndexOf("BEGIN ENCRYPTION HEADER STRING", StringComparison.Ordinal) + /*IMPORTANT*/ StartChars.Length; // + StartChars.Length, IndexOf gets the first character of the string search, so adding the length pushes it to the end of that
             int end = header.IndexOf("END ENCRYPTION HEADER STRING", StringComparison.Ordinal);
 
@@ -141,6 +164,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information
 
             // Return the data object
             return data;
+#pragma warning restore 162
         }
     }
 }
