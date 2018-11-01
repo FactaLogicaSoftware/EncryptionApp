@@ -46,7 +46,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         {
             #region CONTRACT
 
-            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
+            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS compliant
             if (algorithm is AesCng || algorithm is AesCryptoServiceProvider || algorithm is TripleDESCng)
             {
                 IsFipsCompliant = true;
@@ -83,7 +83,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 throw new ArgumentException("Not enough memory to use that chunking size");
             }
 
-            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
+            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS compliant
             if (algorithm is AesCng || algorithm is AesCryptoServiceProvider || algorithm is TripleDESCng)
             {
                 IsFipsCompliant = true;
