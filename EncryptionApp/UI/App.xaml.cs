@@ -43,7 +43,7 @@ namespace Encryption_App.UI
         private void BuildFileSystem()
         {
             Directory.CreateDirectory(@"EncryptionApp\LocalFiles");
-            TempFilePath = @"EncryptionApp\LocalFiles";
+            TempFilePath = @"EncryptionApp\LocalFiles\";
             HeaderLessTempFile = TempFilePath + "headerLessConstructionFile.temp";
             DataTempFile = TempFilePath + "moveFile.temp";
         }

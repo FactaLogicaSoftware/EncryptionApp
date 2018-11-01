@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Security.Cryptography;
+using FactaLogicaSoftware.CryptoTools.Events;
 using Microsoft.VisualBasic.Devices;
 #if DEBUG
 
@@ -18,6 +19,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
     public abstract class SymmetricCryptoManager
     {
         private protected SymmetricAlgorithm SymmetricAlgorithm;
+
+        public event EventHandler<MemoryChunkValueChangedEventArgs> MemoryChunkValueChanged;
 
         // How many bytes read into memory per chunk - calculated by constructor
         protected int MemoryConst;
@@ -101,11 +104,17 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             // TODO verify integrity of argument
             SymmetricAlgorithm = algorithm;
         }
-
+        
         ~SymmetricCryptoManager()
         {
             // All aes classes implement IDispose so we must dispose of it
             SymmetricAlgorithm.Dispose();
+        }
+
+        protected void OnMemoryChunkValueChanged(MemoryChunkValueChangedEventArgs e)
+        {
+            EventHandler<MemoryChunkValueChangedEventArgs> handler = MemoryChunkValueChanged;
+            handler?.Invoke(this, e);
         }
 
         /// <summary>
@@ -132,7 +141,6 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 var fullIterationTime = 0.0D;
                 var avgIterationMilliseconds = 0D;
 #endif
-
                 // Creates the streams necessary for reading and writing data
                 FileStream outFileStream = File.Create(outputFile);
                 using (var cs = new CryptoStream(outFileStream, transformer, CryptoStreamMode.Write))
@@ -144,8 +152,19 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 #if DEBUG
                         double offset = watch.Elapsed.TotalMilliseconds;
 #endif
-                        // Read as many bytes as we allow into the array from the file
-                        byte[] data = inFile.ReadBytes(MemoryConst);
+                        byte[] data;
+
+                        try
+                        {
+                            // Read as many bytes as we allow into the array from the file
+                            data = inFile.ReadBytes(MemoryConst);
+                        }
+                        catch (OutOfMemoryException)
+                        {
+                            MemoryConst = MemoryConst / 2;
+                            OnMemoryChunkValueChanged(new MemoryChunkValueChangedEventArgs(MemoryConst, this));
+                            throw;
+                        }
 
                         // Write it through the cryptostream so it is transformed
                         cs.Write(data, 0, data.Length);

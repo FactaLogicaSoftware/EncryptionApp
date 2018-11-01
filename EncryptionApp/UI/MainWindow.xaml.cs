@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Xaml;
 
 #if VERBOSE
@@ -68,6 +69,8 @@ namespace Encryption_App.UI
             DropDown.SelectedIndex = 0;
             _isExecutingExclusiveProcess = false;
 
+            KeyDown += MainWindow_KeyDown;
+
             // Hide loading GIFs
             EncryptLoadingGif.Visibility = Visibility.Hidden;
             DecryptLoadingGif.Visibility = Visibility.Hidden;
@@ -98,6 +101,20 @@ namespace Encryption_App.UI
             };
 
 
+        }
+
+        private void MainWindow_KeyDown(object sender, KeyEventArgs e)
+        {
+            // ReSharper disable once SwitchStatementMissingSomeCases
+            switch (e.Key)
+            {
+                case Key.Enter when Keyboard.IsKeyDown(Key.LeftCtrl) && ((FrameworkElement)TabControl.SelectedItem).Name == "EncryptionTab":
+                    Encrypt_Click(sender, e);
+                    break;
+                case Key.Enter when Keyboard.IsKeyDown(Key.LeftCtrl) && ((FrameworkElement)TabControl.SelectedItem).Name == "DecryptionTab":
+                    Decrypt_Click(sender, e);
+                    break;
+            }
         }
 
         #endregion
@@ -172,11 +189,11 @@ namespace Encryption_App.UI
             if (result is true)
             {
                 // Cast the sender of the event to the expected type, then check if it is DecryptButton or EncryptButton
-                if (((FrameworkElement)e.Source).FindName("EncryptButton") != null)
+                if (((FrameworkElement)e.Source).Name == "EncryptFileBrowseButton")
                 {
                     EncryptFileTextBox.Text = openFileDialog.FileName;
                 }
-                if (((FrameworkElement)e.Source).FindName("DecryptButton") != null)
+                else if (((FrameworkElement)e.Source).Name == "DecryptFileBrowseButton")
                 {
                     DecryptFileTextBox.Text = openFileDialog.FileName;
                 }
@@ -220,7 +237,9 @@ namespace Encryption_App.UI
             // If the file doesn't exist, return and inform the user
             if (!File.Exists(filePath))
             {
-                EncryptOutput.Content = "File not valid";
+                MessageBox.Show("File not valid");
+                _isExecutingExclusiveProcess = false;
+                EncryptLoadingGif.Visibility = Visibility.Hidden;
                 return;
             }
 
@@ -268,7 +287,7 @@ namespace Encryption_App.UI
             }
 
             // Set the loading gif and set that we are running a process
-            EncryptLoadingGif.Visibility = Visibility.Visible;
+            DecryptLoadingGif.Visibility = Visibility.Visible;
             _isExecutingExclusiveProcess = true;
 
             // Create the object used to represent the header data
@@ -277,9 +296,28 @@ namespace Encryption_App.UI
             // Get the path from the box
             string outFilePath = DecryptFileTextBox.Text;
 
+            // If the file doesn't exist, return and inform the user
+            if (!File.Exists(outFilePath))
+            {
+                MessageBox.Show("File not valid");
+                _isExecutingExclusiveProcess = false;
+                DecryptLoadingGif.Visibility = Visibility.Hidden;
+                return;
+            }
+
             // Read the header
             // ReSharper disable once ImplicitlyCapturedClosure
-            await Task.Run(() => data = (AesCryptographicInfo)data.ReadHeaderFromFile(outFilePath));
+            try
+            {
+                await Task.Run(() => data = (AesCryptographicInfo) data.ReadHeaderFromFile(outFilePath));
+            }
+            catch (FileFormatException)
+            {
+                MessageBox.Show("File does not have a header - is either corrupted or not encrypted");
+                _isExecutingExclusiveProcess = false;
+                DecryptLoadingGif.Visibility = Visibility.Hidden;
+                return;
+            }
 
             // Decrypt the data
             await Task.Run(() => DecryptDataWithHeader(data, DecryptPasswordBox.SecurePassword, outFilePath));
