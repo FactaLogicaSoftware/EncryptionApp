@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Globalization;
+using System.IO;
 
 namespace Encryption_App
 {
@@ -7,6 +9,8 @@ namespace Encryption_App
     /// </summary>
     public static class FileStatics
     {
+        private const string TempFilePath = @"Log/";
+
         /// <summary>
         ///
         /// </summary>
@@ -81,6 +85,40 @@ namespace Encryption_App
                         int read = reader.Read(buff, 0, buff.Length);
                         writer.Write(buff, 0, read);
                         length -= read;
+                    }
+                }
+            }
+        }
+
+        internal static void WriteToLogFile(params object[] toWrite)
+        {
+            if (!Directory.Exists(TempFilePath))
+            {
+                Directory.CreateDirectory(TempFilePath);
+            }
+
+            if (!File.Exists(TempFilePath + "Log.txt"))
+            {
+                File.Create(TempFilePath + "Log.txt");
+            }
+
+            using (var fWriter = new StreamWriter(new FileStream(TempFilePath + "Log.txt", FileMode.Append)))
+            {
+                fWriter.WriteLine('\n' + DateTime.Now.ToString(CultureInfo.CurrentCulture));
+                foreach (object item in toWrite)
+                {
+                    switch (item)
+                    {
+                        case Exception _:
+                            fWriter.WriteLine("Exception" + (item as Exception)?.Message);
+                            fWriter.WriteLine("Inner Exception" + (item as Exception)?.InnerException?.Message);
+                            break;
+                        case string _:
+                            fWriter.WriteLine(item as string);
+                            break;
+                        default:
+                            fWriter.WriteLine(item.ToString());
+                            break;
                     }
                 }
             }

@@ -8,7 +8,7 @@ namespace FactaLogicaSoftware.CryptoTools.DebugTools
 {
     public static class InternalDebug
     {
-        public const string TempFilePath = @"CryptoTools\Debug";
+        private const string TempFilePath = @"CryptoTools\Debug";
 
         public static void WriteToDiagnosticsFile(params string[] items)
         {
@@ -22,8 +22,7 @@ namespace FactaLogicaSoftware.CryptoTools.DebugTools
                 File.Create(TempFilePath + "DiagnosticsAndDebug.data");
             }
 
-            var handleToWrite = new FileStream(TempFilePath + "DiagnosticsAndDebug.data", FileMode.Append);
-            using (var fWriter = new StreamWriter(handleToWrite))
+            using (var fWriter = new StreamWriter(new FileStream(TempFilePath + "DiagnosticsAndDebug.data", FileMode.Append)))
             {
                 fWriter.WriteLine('\n' + DateTime.Now.ToString(CultureInfo.CurrentCulture));
                 foreach (string item in items)

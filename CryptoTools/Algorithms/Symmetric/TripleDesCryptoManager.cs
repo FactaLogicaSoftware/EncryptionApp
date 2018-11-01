@@ -95,23 +95,10 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="iv">The initialization vector</param>
         public override void EncryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
         {
-            if (inputFile == null)
-            {
-                throw new ArgumentNullException(nameof(inputFile));
-            }
-            if (outputFile == null)
-            {
-                throw new ArgumentNullException(nameof(outputFile));
-            }
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            if (iv == null)
-            {
-                throw new ArgumentNullException(nameof(inputFile));
-            }
+            if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
+            if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
+            if (key == null) throw new ArgumentNullException(nameof(key));
+            if (iv == null) throw new ArgumentNullException(nameof(iv));
 
             if (!File.Exists(inputFile))
             {
@@ -159,22 +146,10 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="iv">The initialization vector</param>
         public override void DecryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
         {
-            if (inputFile == null)
-            {
-                throw new ArgumentNullException(nameof(inputFile));
-            }
-            if (outputFile == null)
-            {
-                throw new ArgumentNullException(nameof(outputFile));
-            }
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-            if (iv == null)
-            {
-                throw new ArgumentNullException(nameof(iv));
-            }
+            if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
+            if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
+            if (key == null) throw new ArgumentNullException(nameof(key));
+            if (iv == null) throw new ArgumentNullException(nameof(iv));
 
             if (!File.Exists(inputFile))
             {

@@ -115,10 +115,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 // Debug values
                 if (!Stopwatch.IsHighResolution)
                 {
-                    throw new Exception("You don't have a high-res sysclock");
+                    throw new Exception("You don't have a high-res sysclock. Disable debug mode to continue"); // TODO should change
                 }
-
-                Console.WriteLine("Amount read into memory: " + _memoryConst);
 
                 Stopwatch watch = Stopwatch.StartNew();
 
@@ -130,8 +128,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 // Creates the streams necessary for reading and writing data
                 FileStream outFileStream = File.Create(outputFile);
                 using (var cs = new CryptoStream(outFileStream, transformer, CryptoStreamMode.Write))
-                using (var inFile = new BinaryReader(File.OpenRead(inputFile)))
-                // BinaryReader is not a stream, but it's only argument is one
+                using (var inFile = new BinaryReader(File.OpenRead(inputFile))) // Build the binary reader off the file stream
                 {
                     // Continuously reads the stream until it hits an EndOfStream exception
                     while (true)

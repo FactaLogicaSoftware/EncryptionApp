@@ -11,8 +11,10 @@ namespace FactaLogicaSoftware.CryptoTools.Information
         // padding used to find start and end of header object - human readable
         private protected Encoding Encoding;
 
-        private protected string StartChars;
-        private protected string EndChars;
+        [JsonIgnore]
+        public string StartChars;
+        [JsonIgnore]
+        public string EndChars;
 
         [JsonIgnore]
         public long HeaderLength { get; private protected set; }

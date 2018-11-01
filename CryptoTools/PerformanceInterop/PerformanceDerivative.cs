@@ -67,11 +67,6 @@ namespace FactaLogicaSoftware.CryptoTools.PerformanceInterop
 
             PerformanceDerivativeValue = (ulong)b;
 
-#if DEBUG
-            Console.WriteLine("Initialization time for performance derivative: " + Convert.ToString(a));
-            Console.WriteLine("Derivation time for performance derivative: " + Convert.ToString(b));
-#endif
-
             return PerformanceDerivativeValue;
         }
 
