@@ -106,7 +106,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="inputFile"></param>
         /// <param name="outputFile"></param>
         /// <param name="transformer"></param>
-        protected void TransformFile(string inputFile, string outputFile, ICryptoTransform transformer)
+        protected sealed void TransformFile(string inputFile, string outputFile, ICryptoTransform transformer)
         {
             // Any cryptographic exception indicates the data is invalid or an incorrect password has been inputted
             try
