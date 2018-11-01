@@ -20,7 +20,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         private protected SymmetricAlgorithm SymmetricAlgorithm;
 
         // How many bytes read into memory per chunk - calculated by constructor
-        protected int _memoryConst;
+        protected int MemoryConst;
 
         public abstract int KeySize { get; set; }
 
@@ -32,7 +32,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         public SymmetricCryptoManager()
         {
             // Default memory - TODO Calculate to higher numbers if possible
-            _memoryConst = 1024 * 1024 * 4;
+            MemoryConst = 1024 * 1024 * 4;
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             #endregion
 
             // Default memory - TODO Calculate to higher numbers if possible
-            _memoryConst = 1024 * 1024 * 4;
+            MemoryConst = 1024 * 1024 * 4;
 
             // Assign the aes object
             // TODO verify integrity of argument
@@ -95,7 +95,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             #endregion
 
             // Assign to class field
-            _memoryConst = memoryConst;
+            MemoryConst = memoryConst;
 
             // Assign the aes object
             // TODO verify integrity of argument
@@ -145,13 +145,13 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                         double offset = watch.Elapsed.TotalMilliseconds;
 #endif
                         // Read as many bytes as we allow into the array from the file
-                        byte[] data = inFile.ReadBytes(_memoryConst);
+                        byte[] data = inFile.ReadBytes(MemoryConst);
 
                         // Write it through the cryptostream so it is transformed
                         cs.Write(data, 0, data.Length);
 
                         // Break if
-                        if (data.Length < _memoryConst)
+                        if (data.Length < MemoryConst)
                         {
                             break;
                         }
