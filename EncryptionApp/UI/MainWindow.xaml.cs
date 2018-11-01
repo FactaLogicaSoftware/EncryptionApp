@@ -60,7 +60,9 @@ namespace Encryption_App.UI
             catch (XamlParseException e)
             {
                 // If this happens, the XAML was invalid at runtime. We aren't
-                // trying to fix this, just write the inner exception
+                // trying to fix this, just write the exceptions to log
+                MessageBox.Show(
+                    "Fatal error: XamlParseException. Check log file for further details. Clean reinstall recommended");
                 FileStatics.WriteToLogFile(e);
                 throw;
             }
