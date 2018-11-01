@@ -56,7 +56,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
 
             // Assign to class field
-            _memoryConst = memoryConst;
+            MemoryConst = memoryConst;
 
             // Base class value
             // TODO Customized field values

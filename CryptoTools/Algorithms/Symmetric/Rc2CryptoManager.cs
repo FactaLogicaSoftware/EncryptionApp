@@ -44,7 +44,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             };
 
             // Default memory - TODO Calculate to higher numbers if possible
-            _memoryConst = 1024 * 1024 * 4;
+            MemoryConst = 1024 * 1024 * 4;
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
 
             // Assign to class field
-            _memoryConst = memoryConst;
+            MemoryConst = memoryConst;
 
             // Base class value
             // TODO Customized field values

@@ -39,7 +39,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             };
 
             // Default memory - TODO Calculate to higher numbers if possible
-            _memoryConst = 1024 * 1024 * 4;
+            MemoryConst = 1024 * 1024 * 4;
 
             // As the default aes transformation object is AesCng which is FIPS compliant
             IsFipsCompliant = true;
@@ -58,7 +58,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
 
             // Assign to class field
-            _memoryConst = memoryConst;
+            MemoryConst = memoryConst;
 
             // Create the aes object
             // TODO Customized field values
