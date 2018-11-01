@@ -6,7 +6,5 @@
 
 # File endings owner
 *.xaml @NightRaven3142
-*.xaml.cs @NightRaven3142 @nathanmc158 @johnkellyoxford
-*.md @NightRaven3142 @nathanmc158 @johnkellyoxford
 
 # You can also use email addresses if you prefer.

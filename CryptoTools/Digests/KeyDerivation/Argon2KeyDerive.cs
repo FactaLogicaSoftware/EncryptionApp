@@ -22,7 +22,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// <inheritdoc />
         /// <summary>
         /// </summary>
-        public override object PerformanceValues
+        public override dynamic PerformanceValues
         {
             get => _tuneFlags;
 

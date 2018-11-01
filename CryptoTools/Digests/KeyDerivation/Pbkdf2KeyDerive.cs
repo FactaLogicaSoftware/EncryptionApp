@@ -15,17 +15,11 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
     {
         private readonly Rfc2898DeriveBytes _baseObject;
 
-        private int _iterations;
-
         /// <inheritdoc />
         /// <summary>
         /// The performance values for this pbkdf2 function
         /// </summary>
-        public override object PerformanceValues
-        {
-            get => _iterations;
-            private protected set => _iterations = (int)value;
-        }
+        public override dynamic PerformanceValues { get; set; }
 
         /// <inheritdoc />
         /// <summary>
