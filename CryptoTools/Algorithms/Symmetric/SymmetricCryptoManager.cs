@@ -41,6 +41,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="algorithm">The algorithm to use</param>
         public SymmetricCryptoManager(SymmetricAlgorithm algorithm)
         {
+            #region CONTRACT
+
             // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
             if (algorithm is AesCng || algorithm is AesCryptoServiceProvider || algorithm is TripleDESCng)
             {
@@ -52,6 +54,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
 
             Contract.EndContractBlock();
+
+            #endregion
 
             // Default memory - TODO Calculate to higher numbers if possible
             _memoryConst = 1024 * 1024 * 4;
@@ -68,6 +72,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="algorithm">The algorithm to use</param>
         public SymmetricCryptoManager(int memoryConst, SymmetricAlgorithm algorithm)
         {
+            #region CONTRACT
+
             // Check if that much memory can be assigned
             if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
             {
@@ -85,6 +91,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
 
             Contract.EndContractBlock();
+
+            #endregion
 
             // Assign to class field
             _memoryConst = memoryConst;
@@ -106,7 +114,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="inputFile"></param>
         /// <param name="outputFile"></param>
         /// <param name="transformer"></param>
-        protected sealed void TransformFile(string inputFile, string outputFile, ICryptoTransform transformer)
+        protected void TransformFile(string inputFile, string outputFile, ICryptoTransform transformer)
         {
             // Any cryptographic exception indicates the data is invalid or an incorrect password has been inputted
             try

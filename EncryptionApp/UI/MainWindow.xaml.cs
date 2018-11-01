@@ -29,6 +29,8 @@ namespace Encryption_App.UI
     /// </summary>
     public sealed partial class MainWindow
     {
+        #region FIELDS
+
         private const int DesiredKeyDerivationMilliseconds = 2000;
         private const int KeySize = 192;
         private readonly List<string> _dropDownItems = new List<string> { "Choose Option...", "Encrypt a file", "Encrypt a file for sending to someone" };
@@ -38,6 +40,10 @@ namespace Encryption_App.UI
         private int _decryptStringStepCount;
         private bool _isExecutingExclusiveProcess;
         private readonly App _app;
+
+        #endregion
+
+        #region CONSTRUCTORS
 
         /// <inheritdoc />
         /// <summary>
@@ -94,6 +100,11 @@ namespace Encryption_App.UI
 
         }
 
+        #endregion
+        
+        #region EXTERNAL_DECLERATIONS
+
+
         /// <summary>
         /// A kernel32 function that destroys all values in a block of memory
         /// </summary>
@@ -102,6 +113,10 @@ namespace Encryption_App.UI
         /// <returns></returns>
         [DllImport("KERNEL32.DLL", EntryPoint = "RtlZeroMemory")]
         private static extern bool ZeroMemory(IntPtr destination, int length);
+
+        #endregion
+
+        #region METHODS
 
         // TODO buggy
         private void StepEncryptStrings()
@@ -279,6 +294,9 @@ namespace Encryption_App.UI
 #if VERBOSE
             Stopwatch watch = Stopwatch.StartNew();
 #endif
+
+            StepEncryptStrings();
+
             // Forward declaration of the device used to derive the key
             KeyDerive keyDevice;
 
@@ -316,14 +334,14 @@ namespace Encryption_App.UI
             {
                 if (password.Length == 0)
                 {
-                    EncryptOutput.Content = "You must enter a password";
+                    Dispatcher.Invoke(() => { EncryptOutput.Content = "You must enter a password"; });
                     return;
                 }
 #if TRACE
                 // TODO make disable-able in release mode
                 if (password.Length < 8)
                 {
-                    EncryptOutput.Content = "Password to short";
+                    Dispatcher.Invoke(() => { EncryptOutput.Content = "Password to short"; });
                     return;
                 }
 #endif
@@ -387,6 +405,9 @@ namespace Encryption_App.UI
 #if VERBOSE
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Pre_encryption_time__ + watch.ElapsedMilliseconds);
 #endif
+
+            StepEncryptStrings();
+
             // Encrypt the data to a temporary file
             encryptor.EncryptFileBytes(filePath, _app.DataTempFile, key, cryptographicInfo.EncryptionModeInfo.InitializationVector);
 
@@ -395,6 +416,8 @@ namespace Encryption_App.UI
 #endif
             if (cryptographicInfo.Hmac != null)
             {
+                StepEncryptStrings();
+
                 // Create the signature derived from the encrypted data and key
                 byte[] signature = MessageAuthenticator.CreateHmac(_app.DataTempFile, key, hmacAlg);
 
@@ -404,11 +427,15 @@ namespace Encryption_App.UI
             // Delete the key from memory for security
             ZeroMemory(keyHandle.AddrOfPinnedObject(), key.Length);
             keyHandle.Free();
-
-            StepEncryptStrings();
 #if VERBOSE
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Post_authenticate_time__ + watch.ElapsedMilliseconds);
 #endif
+            if (cryptographicInfo.Hmac == null)
+            {
+                StepEncryptStrings();
+            }
+            StepEncryptStrings();
+
             // Write the CryptographicInfo object to a file
             cryptographicInfo.WriteHeaderToFile(filePath);
 #if VERBOSE
@@ -421,7 +448,6 @@ namespace Encryption_App.UI
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_File_write_time__ + watch.ElapsedMilliseconds);
 #endif
             StepEncryptStrings();
-            GC.Collect();
         }
 
         private void DecryptDataWithHeader(CryptographicInfo cryptographicInfo, SecureString password, string filePath)
@@ -550,8 +576,9 @@ namespace Encryption_App.UI
                 // Delete the key from memory for security
                 ZeroMemory(gch.AddrOfPinnedObject(), key.Length);
                 gch.Free();
-                GC.Collect();
             }
         }
+
+        #endregion
     }
 }

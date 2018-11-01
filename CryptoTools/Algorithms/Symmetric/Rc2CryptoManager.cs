@@ -1,6 +1,7 @@
 ﻿using FactaLogicaSoftware.CryptoTools.Exceptions;
 using Microsoft.VisualBasic.Devices;
 using System;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -19,7 +20,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             {
                 if (value != 128 && value != 192)
                 {
-                    throw new ArgumentException("Key is not a valid length (128/192)");
+                    throw new ArgumentException("Key is not a valid length ");
                 }
 
                 SymmetricAlgorithm.KeySize = value;
@@ -99,6 +100,15 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="iv">The initialization vector</param>
         public override void EncryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
         {
+            #region CONTRACT
+
+            if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
+            if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
+            if (key == null) throw new ArgumentNullException(nameof(key));
+            if (iv == null) throw new ArgumentNullException(nameof(iv));
+
+            #endregion
+
             if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
             if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
             if (key == null) throw new ArgumentNullException(nameof(key));
@@ -111,7 +121,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             if (key.Length < 1 || key.Length > 128)
             {
-                throw new InvalidKeyLengthException("Key is not a valid length (1 - 128 bytes)");
+                throw new InvalidKeyLengthException("Key is not a valid length");
             }
 
             // Set actual IV and key
@@ -131,6 +141,15 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="iv">The initialization vector</param>
         public override void DecryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
         {
+            #region CONTRACT
+
+            if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
+            if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
+            if (key == null) throw new ArgumentNullException(nameof(key));
+            if (iv == null) throw new ArgumentNullException(nameof(iv));
+
+            #endregion
+
             if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
             if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
             if (key == null) throw new ArgumentNullException(nameof(key));
@@ -143,7 +162,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             if (key.Length < 1 || key.Length > 128)
             {
-                throw new InvalidKeyLengthException("Key is not a valid length (1 - 128 bytes)");
+                throw new InvalidKeyLengthException("Key is not a valid length");
             }
 
             // Set actual IV and key
@@ -163,6 +182,18 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <returns>The encrypted byte array</returns>
         public override byte[] EncryptBytes(byte[] data, byte[] key, byte[] iv)
         {
+            #region CONTRACT
+
+            if (data == null) throw new ArgumentNullException(nameof(data));
+            if (key == null) throw new ArgumentNullException(nameof(key));
+            if (iv == null) throw new ArgumentNullException(nameof(iv));
+            if (!SymmetricAlgorithm.ValidKeySize(key.Length * 8) && key.Length * 8 != 128) throw new InvalidKeyLengthException($"Invalid key length of {key.Length * 8}");
+            if (iv.Length != SymmetricAlgorithm.BlockSize / 8) throw new InvalidCryptographicPropertyException($"IV length (bits: {iv.Length * 8}) must be equal to block size length {SymmetricAlgorithm.BlockSize}");
+
+            Contract.EndContractBlock();
+
+            #endregion
+
             // RC2 values
             SymmetricAlgorithm.KeySize = key.Length * 8;
             SymmetricAlgorithm.Key = key;
@@ -190,16 +221,28 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <returns>The decrypted byte array</returns>
         public override byte[] DecryptBytes(byte[] data, byte[] key, byte[] iv)
         {
-            // RC2 values
+            #region CONTRACT
+
+            if (data == null) throw new ArgumentNullException(nameof(data));
+            if (key == null) throw new ArgumentNullException(nameof(key));
+            if (iv == null) throw new ArgumentNullException(nameof(iv));
+            if (!SymmetricAlgorithm.ValidKeySize(key.Length * 8) && key.Length * 8 != 128) throw new InvalidKeyLengthException($"Invalid key length of {key.Length * 8}");
+            if (iv.Length != SymmetricAlgorithm.BlockSize / 8) throw new InvalidCryptographicPropertyException($"IV length (bits: {iv.Length * 8}) must be equal to block size length {SymmetricAlgorithm.BlockSize}");
+
+            Contract.EndContractBlock();
+
+            #endregion
+
+            // AES values
             SymmetricAlgorithm.KeySize = key.Length * 8;
             SymmetricAlgorithm.Key = key;
             SymmetricAlgorithm.IV = iv;
             SymmetricAlgorithm.Mode = CipherMode.CBC;
             SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
 
-            // Put the ciphertext byte array into memory, and read it through the crypto stream to decrypt it
+            // Put the plaintext byte array into memory, and read it through the crypto stream to encrypt it
             var memStream = new MemoryStream(data);
-            var cryptoStream = new CryptoStream(memStream, SymmetricAlgorithm.CreateDecryptor(), CryptoStreamMode.Read);
+            var cryptoStream = new CryptoStream(memStream, SymmetricAlgorithm.CreateEncryptor(), CryptoStreamMode.Read);
             using (var binReader = new BinaryReader(cryptoStream))
             {
                 // TODO manage checked exception
