@@ -160,18 +160,16 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 #if DEBUG
                     // Finalize and write debug values
                     double totalMilliseconds = watch.Elapsed.TotalMilliseconds;
-                    double totalSeconds = totalMilliseconds / 1000;
-                    double perIterationSeconds = avgIterationMilliseconds / 1000,
-                        iterationMilliseconds = avgIterationMilliseconds;
+                    double iterationMilliseconds = avgIterationMilliseconds;
                     string[] toWrite =
                     {
                         "Transformation type: " + transformer.GetType(),
-                        "Time to transform (s):" + totalSeconds,
-                        "Time to transform (ms):" + totalMilliseconds,
-                        "Average iteration length (s):" + perIterationSeconds.ToString("0.##########"),
-                        "Average iteration length (ms):" + iterationMilliseconds.ToString("0.##########"),
-                        "Time of all iterations, combined (s):" + fullIterationTime / 1000,
-                        "Time of all iterations, combined (ms):" + fullIterationTime,
+                        "Time to transform (s): " + totalMilliseconds / 1000,
+                        "Time to transform (ms): " + totalMilliseconds,
+                        "Average iteration length (s): " + (iterationMilliseconds / 1000).ToString("0.##########"),
+                        "Average iteration length (ms): " + iterationMilliseconds.ToString("0.##########"),
+                        "Time of all iterations, combined (s): " + fullIterationTime / 1000,
+                        "Time of all iterations, combined (ms): " + fullIterationTime,
                         "Iterations:" + iterations
                     };
 
