@@ -97,7 +97,7 @@
                     <Image x:Name="EncryptLoadingGif" gif:ImageBehavior.AnimatedSource="/UI/Assets/loading.gif" gif:ImageBehavior.RepeatBehavior="Forever" Grid.Column="1" Margin="213,171,34,-126" ></Image>
                     <Label Content="File Location:" HorizontalAlignment="Left"  Margin="26,184,0,0" VerticalAlignment="Top" Width="162" Grid.ColumnSpan="2" FontSize="15" Foreground="White" FontFamily="Segoe UI Light"/>
                     <PasswordBox HorizontalAlignment="Left" FontSize="15" Foreground="White" Margin="26,147,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Width="297" Height="23" Background="#FF424242" BorderBrush="#FF707070" x:Name="EncryptPasswordBox"/>
-                    <Label x:Name="EncryptOutput" FontFamily="Segoe UI Light" Grid.Column="1" HorizontalAlignment="Left" Margin="50,262,0,0" VerticalAlignment="Top" Height="50" Width="101"/>
+                    <ProgressBar x:Name="EncryptProgressBar" Grid.Column="1" HorizontalAlignment="Left" Height="10" Margin="50,302,0,0" VerticalAlignment="Top" Width="100"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="DecryptionTab" Header="Decryption" Background="#FF606060" Foreground="White" FontFamily="Segoe UI Light" BorderBrush="#FF707070" FontSize="15">
@@ -113,11 +113,13 @@
                     <PasswordBox HorizontalAlignment="Left" Margin="26,147,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Width="297" Height="23" Background="#FF424242" BorderBrush="#FF707070" x:Name="DecryptPasswordBox" Foreground="White" FontSize="12"/>
                     <TextBox HorizontalAlignment="Left" Height="23" Margin="26,214,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="217" Grid.ColumnSpan="2" Background="#FF424242" BorderBrush="#FF707070" Foreground="White" x:Name="DecryptFileTextBox"/>
                     <Label Content="Encrypted File Location:" HorizontalAlignment="Left" Margin="26,184,0,0" VerticalAlignment="Top" Width="183" Grid.ColumnSpan="2" FontFamily="Segoe UI Light" FontSize="15" Foreground="White"/>
-                    <Label Grid.Column="1" HorizontalAlignment="Left" Margin="118,284,0,0" VerticalAlignment="Top" Width="76" Foreground="White" x:Name="DecryptOutput"/>
-                    <Image x:Name="DecryptLoadingGif" gif:ImageBehavior.AnimatedSource="/UI/Assets/loading.gif" gif:ImageBehavior.RepeatBehavior="Forever" Grid.Column="1" Margin="236,317,462,10" ></Image>
+                    <Image x:Name="DecryptLoadingGif" gif:ImageBehavior.AnimatedSource="/UI/Assets/loading.gif" gif:ImageBehavior.RepeatBehavior="Forever" Grid.Column="1" Margin="320,317,17,10" ></Image>
+                    <ProgressBar x:Name="DecryptProgressBar" Grid.Column="1" HorizontalAlignment="Left" Height="10" Margin="107,302,0,0" VerticalAlignment="Top" Width="100"/>
 
                 </Grid>
             </TabItem>
+            <ProgressBar Height="25" Width="186"/>
+            <ProgressBar Height="10" Width="100"/>
         </TabControl>
         <Button Content="History" Grid.Column="1" HorizontalAlignment="Left" Margin="38,10,-114,0" VerticalAlignment="Top" Width="76" FontFamily="Segoe UI Light" Background="#FF606060" Foreground="White" Height="23">
 

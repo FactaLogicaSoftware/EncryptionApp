@@ -11,7 +11,7 @@ namespace Encryption_App.UI
     /// </summary>
     public partial class App : Application
     {
-        internal string TempFilePath;
+        private string _tempFilePath;
         internal string HeaderLessTempFile;
         internal string DataTempFile;
         internal readonly PerformanceDerivative PerformanceDerivative;
@@ -43,9 +43,9 @@ namespace Encryption_App.UI
         private void BuildFileSystem()
         {
             Directory.CreateDirectory(@"EncryptionApp\LocalFiles");
-            TempFilePath = @"EncryptionApp\LocalFiles\";
-            HeaderLessTempFile = TempFilePath + "headerLessConstructionFile.temp";
-            DataTempFile = TempFilePath + "moveFile.temp";
+            _tempFilePath = @"EncryptionApp\LocalFiles\";
+            HeaderLessTempFile = _tempFilePath + "headerLessConstructionFile.temp";
+            DataTempFile = _tempFilePath + "moveFile.temp";
         }
     }
 }

@@ -7,7 +7,6 @@ using System.Security;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Xaml;
 
@@ -35,12 +34,10 @@ namespace Encryption_App.UI
         private const int DesiredKeyDerivationMilliseconds = 2000;
         private const int KeySize = 192;
         private readonly List<string> _dropDownItems = new List<string> { "Choose Option...", "Encrypt a file", "Encrypt a file for sending to someone" };
-        private readonly string[] _encryptStepStrings;
-        private readonly string[] _decryptStepStrings;
-        private int _encryptStringStepCount;
-        private int _decryptStringStepCount;
         private bool _isExecutingExclusiveProcess;
         private readonly App _app;
+        private readonly Progress<int> _encryptionProgress;
+        private readonly Progress<int> _decryptionProgress;
 
         #endregion
 
@@ -61,8 +58,7 @@ namespace Encryption_App.UI
             {
                 // If this happens, the XAML was invalid at runtime. We aren't
                 // trying to fix this, just write the exceptions to log
-                MessageBox.Show(
-                    "Fatal error: XamlParseException. Check log file for further details. Clean reinstall recommended");
+                MessageBox.Show("Fatal error: XamlParseException. Check log file for further details. Clean reinstall recommended");
                 FileStatics.WriteToLogFile(e);
                 throw;
             }
@@ -70,39 +66,30 @@ namespace Encryption_App.UI
             DropDown.ItemsSource = _dropDownItems;
             DropDown.SelectedIndex = 0;
             _isExecutingExclusiveProcess = false;
+            
+            _encryptionProgress = new Progress<int>();
+            _decryptionProgress = new Progress<int>();
 
+            // Subscribe to events
             KeyDown += MainWindow_KeyDown;
+            _encryptionProgress.ProgressChanged += MainWindow_EncryptionProgressChanged;
+            _decryptionProgress.ProgressChanged += MainWindow_DecryptionProgressChanged;
 
             // Hide loading GIFs
             EncryptLoadingGif.Visibility = Visibility.Hidden;
             DecryptLoadingGif.Visibility = Visibility.Hidden;
+        }
 
-            // TODO fix bug here, doesn't work as expected
-            _encryptStepStrings = new[]
-            {
-                "Beginning encryption...",
-                "Encrypting your data",
-                "Creating an HMAC",
-                "Writing the header to the file",
-                "Encrypted"
-            };
+        private void MainWindow_DecryptionProgressChanged(object sender, int e)
+        {
+            DecryptProgressBar.Value = e;
+        }
 
-            // TODO fix bug here, doesn't work as expected
-            _decryptStepStrings = new[]
-            {
-                "Loading assemblies...",
-                "Securely managing password",
-                "Building objects",
-                "HMAC object instantiated",
-                "Removing header...",
-                "Creating key and verifying HMAC",
-                "Verifying the integrity of your data",
-                "Decrypting your data",
-                "Copying file across",
-                "Decrypted"
-            };
+        #endregion
 
-
+        private void MainWindow_EncryptionProgressChanged(object sender, int e)
+        {
+            EncryptProgressBar.Value = e;
         }
 
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
@@ -119,8 +106,6 @@ namespace Encryption_App.UI
             }
         }
 
-        #endregion
-        
         #region EXTERNAL_DECLERATIONS
 
 
@@ -136,36 +121,6 @@ namespace Encryption_App.UI
         #endregion
 
         #region METHODS
-
-        // TODO buggy
-        private void StepEncryptStrings()
-        {
-            Dispatcher.Invoke(() =>
-            {
-                EncryptOutput.Content = _encryptStepStrings[_encryptStringStepCount];
-                _encryptStringStepCount++;
-
-                if (_encryptStringStepCount == _encryptStepStrings.Length)
-                {
-                    _encryptStringStepCount = 0;
-                }
-            });
-        }
-
-        // TODO buggy
-        private void StepDecryptStrings()
-        {
-            Dispatcher.Invoke(() =>
-            {
-                DecryptOutput.Content = _decryptStepStrings[_decryptStringStepCount];
-                _decryptStringStepCount++;
-
-                if (_decryptStringStepCount == _decryptStepStrings.Length)
-                {
-                    _decryptStringStepCount = 0;
-                }
-            });
-        }
 
         private void MenuItem_Click(RoutedEventArgs e)
         {
@@ -187,28 +142,23 @@ namespace Encryption_App.UI
             // Get the result of it
             bool? result = openFileDialog.ShowDialog();
 
-            // If it succeeded, use the result
-            if (result is true)
+            switch (result)
             {
+                // If it succeeded, use the result
                 // Cast the sender of the event to the expected type, then check if it is DecryptButton or EncryptButton
-                if (((FrameworkElement)e.Source).Name == "EncryptFileBrowseButton")
-                {
+                case true when ((FrameworkElement)e.Source).Name == "EncryptFileBrowseButton":
                     EncryptFileTextBox.Text = openFileDialog.FileName;
-                }
-                else if (((FrameworkElement)e.Source).Name == "DecryptFileBrowseButton")
-                {
+                    break;
+                case true when ((FrameworkElement)e.Source).Name == "DecryptFileBrowseButton":
                     DecryptFileTextBox.Text = openFileDialog.FileName;
-                }
-                // If they aren't found, someone we don't expect is calling
-                else
-                {
+                    break;
+                // If it fails, something's gone wrong. TODO catch
+                case true:
                     throw new XamlException("Invalid caller");
-                }
-            }
-            // If it fails, something's gone wrong. TODO catch
-            else if (result is null)
-            {
-                throw new ExternalException("Directory box failed to open");
+                case null:
+                    throw new ExternalException("Directory box failed to open");
+                default:
+                    break;
             }
         }
 
@@ -230,8 +180,23 @@ namespace Encryption_App.UI
             var salt = new byte[16];
             var iv = new byte[16];
             var rng = new RNGCryptoServiceProvider();
-            rng.GetBytes(salt);
-            rng.GetBytes(iv);
+            try
+            {
+                rng.GetBytes(iv);
+                rng.GetBytes(salt);
+            }
+            catch (CryptographicException exception)
+            {
+                FileStatics.WriteToLogFile(exception);
+                MessageBox.Show(
+                    "There was an error generating secure random numbers. Please try again - check log file for more details");
+            }
+            catch (ArgumentNullException exception)
+            {
+                FileStatics.WriteToLogFile(exception);
+                MessageBox.Show(
+                    "There was an error generating secure random numbers. Please try again - check log file for more details");
+            }
 
             // Pre declaration of them for assigning during the secure string scope
             string filePath = EncryptFileTextBox.Text;
@@ -271,8 +236,15 @@ namespace Encryption_App.UI
                 }
             };
 
-            // Run the encryption in a separate thread and return control to the UI thread
-            await Task.Run(() => EncryptDataWithHeader(data, EncryptPasswordBox.SecurePassword, filePath));
+            try
+            {
+                // Run the encryption in a separate thread and return control to the UI thread
+                await Task.Run(() => EncryptDataWithHeader(data, EncryptPasswordBox.SecurePassword, filePath));
+            }
+            catch (CryptographicException)
+            {
+
+            }
 
             // Set the loading gif and set that we are now not running a process
             EncryptLoadingGif.Visibility = Visibility.Hidden;
@@ -311,11 +283,12 @@ namespace Encryption_App.UI
             // ReSharper disable once ImplicitlyCapturedClosure
             try
             {
-                await Task.Run(() => data = (AesCryptographicInfo) data.ReadHeaderFromFile(outFilePath));
+                data = (AesCryptographicInfo)data.ReadHeaderFromFile(outFilePath);
             }
-            catch (FileFormatException)
+            catch (FileFormatException exception)
             {
-                MessageBox.Show("File does not have a header - is either corrupted or not encrypted");
+                FileStatics.WriteToLogFile(exception);
+                MessageBox.Show("File does not have a header - is either corrupted or not encrypted - check log file for details");
                 _isExecutingExclusiveProcess = false;
                 DecryptLoadingGif.Visibility = Visibility.Hidden;
                 return;
@@ -331,18 +304,65 @@ namespace Encryption_App.UI
 
         private void EncryptDataWithHeader(CryptographicInfo cryptographicInfo, SecureString password, string filePath)
         {
+            ((IProgress<int>)_encryptionProgress).Report(0);
+            password.MakeReadOnly();
 #if VERBOSE
             Stopwatch watch = Stopwatch.StartNew();
 #endif
 
-            StepEncryptStrings();
-
             // Forward declaration of the device used to derive the key
             KeyDerive keyDevice;
 
-            // Load the assemblies necessary for reflection
-            Assembly securityAsm = Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Security.dll"));
-            Assembly coreAsm = Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Core.dll"));
+            #region ASSEMBLIES
+
+            Assembly securityAsm;
+            Assembly coreAsm;
+
+            try
+            {
+                // Load the assemblies necessary for reflection
+                securityAsm =
+                    Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Security.dll"));
+                coreAsm =
+                    Assembly.LoadFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Core.dll"));
+            }
+            catch (ArgumentException e)
+            {
+                FileStatics.WriteToLogFile(e);
+                MessageBox.Show(
+                    $"Error loading assembly \"{e.ParamName}\" - please check log file for details and ensure your computer is updated");
+                ((IProgress<int>)_encryptionProgress).Report(0);
+                return;
+            }
+            catch (FileLoadException e)
+            {
+                FileStatics.WriteToLogFile(e);
+                MessageBox.Show(
+                    $"Error loading assemblies - assembly \"{e.FileName}\" could be found but not loaded");
+                ((IProgress<int>)_encryptionProgress).Report(0);
+                return;
+            }
+            catch (FileNotFoundException e)
+            {
+                FileStatics.WriteToLogFile(e);
+                MessageBox.Show(
+                    "Error loading assemblies - please check log file for details and ensure your computer is updated");
+                ((IProgress<int>)_encryptionProgress).Report(0);
+                return;
+            }
+            catch (BadImageFormatException e)
+            {
+                FileStatics.WriteToLogFile(e);
+                MessageBox.Show(
+                    $"Error loading assemblies - assembly \"{e.FileName}\" is corrupted");
+                ((IProgress<int>)_encryptionProgress).Report(0);
+                return;
+            }
+
+            #endregion
+
+
+            ((IProgress<int>)_encryptionProgress).Report(5);
 
             var performanceDerivative = new PerformanceDerivative(cryptographicInfo.InstanceKeyCreator.PerformanceDerivative);
 
@@ -351,9 +371,20 @@ namespace Encryption_App.UI
 
             using (var fReader = new StreamReader(filePath))
             {
-                fReader.ReadBlock(buff, 0, buff.Length);
+                try
+                {
+                    fReader.ReadBlock(buff, 0, buff.Length);
+                }
+                catch (IOException e)
+                {
+                    FileStatics.WriteToLogFile(e);
+                    MessageBox.Show("Unknown fatal IO exception occured - check log file for details");
+                }
+
                 checkString = new string(buff);
             }
+
+            ((IProgress<int>)_encryptionProgress).Report(25);
 
             if (checkString.IndexOf(cryptographicInfo.StartChars, StringComparison.Ordinal) != -1
                 &&
@@ -365,57 +396,82 @@ namespace Encryption_App.UI
 
                 if (result == MessageBoxResult.No)
                 {
+                    ((IProgress<int>)_encryptionProgress).Report(0);
                     return;
                 }
             }
 
             // Get the password
-            using (password)
+
+            if (password.Length == 0)
             {
-                if (password.Length == 0)
-                {
-                    Dispatcher.Invoke(() => { EncryptOutput.Content = "You must enter a password"; });
-                    return;
-                }
+                MessageBox.Show("You must enter a password");
+                ((IProgress<int>)_encryptionProgress).Report(0);
+                return;
+            }
 #if TRACE
                 // TODO make disable-able in release mode
                 if (password.Length < 8)
                 {
-                    Dispatcher.Invoke(() => { EncryptOutput.Content = "Password to short"; });
+                    MessageBox.Show("Password too short");
+                    (IProgress<int>)((IProgress<int>)_encryptionProgress).Report(0);
                     return;
                 }
 #endif
 
-                // Turn the secure string into a string to pass it into keyDevice for the shortest interval possible
-                IntPtr valuePtr = IntPtr.Zero;
-                try
-                {
-                    valuePtr = Marshal.SecureStringToGlobalAllocUnicode(password);
+            // Turn the secure string into a string to pass it into keyDevice for the shortest interval possible
+            IntPtr valuePtr = IntPtr.Zero;
+            try
+            {
+                valuePtr = Marshal.SecureStringToGlobalAllocUnicode(password);
 
-                    // Create an object array of parameters
-                    var parameters = new object[] { Marshal.PtrToStringUni(valuePtr), cryptographicInfo.InstanceKeyCreator.salt, null };
+                // Create an object array of parameters
+                var parameters = new object[]
+                    {Marshal.PtrToStringUni(valuePtr), cryptographicInfo.InstanceKeyCreator.salt, null};
 
-                    var tempTransformationDevice = (KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
-                                                                                       ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
-                                                                                       ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm));
+                var tempTransformationDevice = (KeyDerive)Activator.CreateInstance(
+                    Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
+                    ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
+                    ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm));
 
-                    tempTransformationDevice.TransformPerformance(performanceDerivative, 2000UL);
+                tempTransformationDevice.TransformPerformance(performanceDerivative, 2000UL);
 
 #if VERBOSE
-                    Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Iteration_value__ + tempTransformationDevice.PerformanceValues);
+                Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Iteration_value__ +
+                                  tempTransformationDevice.PerformanceValues);
 #endif
-                    parameters[2] = tempTransformationDevice.PerformanceValues;
+                parameters[2] = tempTransformationDevice.PerformanceValues;
 
-                    keyDevice = (KeyDerive)Activator.CreateInstance(Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
-                                                                    ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
-                                                                    ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm), parameters);
-                }
-                finally
-                {
-                    // Destroy the managed string
-                    Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
-                }
+                keyDevice = (KeyDerive)Activator.CreateInstance(
+                    Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
+                    ?? securityAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
+                    ?? coreAsm.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm), parameters);
+
+                password.Dispose();
             }
+            catch (NotSupportedException e)
+            {
+                password.Dispose();
+                FileStatics.WriteToLogFile(e);
+                MessageBox.Show("Fatal error while managing password. Check log file for details");
+                ((IProgress<int>)_encryptionProgress).Report(0);
+                return;
+            }
+            catch (OutOfMemoryException e)
+            {
+                password.Dispose();
+                FileStatics.WriteToLogFile(e);
+                MessageBox.Show("Fatal error while managing password. Check log file for details");
+                ((IProgress<int>)_encryptionProgress).Report(0);
+                return;
+            }
+            finally
+            {
+                // Destroy the managed string
+                Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
+            }
+
+            ((IProgress<int>)_encryptionProgress).Report(35);
 
             HMAC hmacAlg = null;
 
@@ -446,17 +502,15 @@ namespace Encryption_App.UI
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Pre_encryption_time__ + watch.ElapsedMilliseconds);
 #endif
 
-            StepEncryptStrings();
-
             // Encrypt the data to a temporary file
             encryptor.EncryptFileBytes(filePath, _app.DataTempFile, key, cryptographicInfo.EncryptionModeInfo.InitializationVector);
 
+            ((IProgress<int>)_encryptionProgress).Report(90);
 #if VERBOSE
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Post_encryption_time__ + watch.ElapsedMilliseconds);
 #endif
             if (cryptographicInfo.Hmac != null)
             {
-                StepEncryptStrings();
 
                 // Create the signature derived from the encrypted data and key
                 byte[] signature = MessageAuthenticator.CreateHmac(_app.DataTempFile, key, hmacAlg);
@@ -464,34 +518,36 @@ namespace Encryption_App.UI
                 // Set the signature correctly in the CryptographicInfo object
                 cryptographicInfo.Hmac.root_Hash = signature;
             }
+
+
+            ((IProgress<int>)_encryptionProgress).Report(50);
+
             // Delete the key from memory for security
             ZeroMemory(keyHandle.AddrOfPinnedObject(), key.Length);
             keyHandle.Free();
 #if VERBOSE
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Post_authenticate_time__ + watch.ElapsedMilliseconds);
 #endif
-            if (cryptographicInfo.Hmac == null)
-            {
-                StepEncryptStrings();
-            }
-            StepEncryptStrings();
-
             // Write the CryptographicInfo object to a file
             cryptographicInfo.WriteHeaderToFile(filePath);
+
+            ((IProgress<int>)_encryptionProgress).Report(98);
 #if VERBOSE
             // We have to use Dispatcher.Invoke as the current thread can't access these objects this.dispatcher.Invoke(() => { EncryptOutput.Content = "Transferring the data to the file"; });
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_Post_header_time__, watch.ElapsedMilliseconds);
 #endif
             FileStatics.AppendToFile(filePath, _app.DataTempFile);
 
+            ((IProgress<int>)_encryptionProgress).Report(100);
 #if VERBOSE
             Console.WriteLine(Encryption_App.Resources.MainWindow_EncryptDataWithHeader_File_write_time__ + watch.ElapsedMilliseconds);
 #endif
-            StepEncryptStrings();
         }
 
         private void DecryptDataWithHeader(CryptographicInfo cryptographicInfo, SecureString password, string filePath)
         {
+            ((IProgress<int>)_decryptionProgress).Report(0);
+            password.MakeReadOnly();
 #if VERBOSE
             Stopwatch watch = Stopwatch.StartNew();
 #endif
@@ -540,6 +596,8 @@ namespace Encryption_App.UI
                 }
             }
 
+            ((IProgress<int>)_decryptionProgress).Report(10);
+
 #if VERBOSE
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Password_managed_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -561,6 +619,8 @@ namespace Encryption_App.UI
 #endif
             FileStatics.RemovePrependData(filePath, _app.HeaderLessTempFile, cryptographicInfo.HeaderLength);
 
+            ((IProgress<int>)_decryptionProgress).Report(20);
+
 #if VERBOSE
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Header_removed_time__ + watch.ElapsedMilliseconds);
 #endif
@@ -576,6 +636,8 @@ namespace Encryption_App.UI
                 isVerified = MessageAuthenticator.VerifyHmac(_app.HeaderLessTempFile, key,
                     cryptographicInfo.Hmac.root_Hash, hmacAlg);
             }
+
+            ((IProgress<int>)_decryptionProgress).Report(35);
 
 #if VERBOSE
             Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_HMAC_verified_time__ + watch.ElapsedMilliseconds);
@@ -594,14 +656,13 @@ namespace Encryption_App.UI
                 Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Pre_decryption_time__ + watch.ElapsedMilliseconds);
 #endif
                 decryptor.DecryptFileBytes(_app.HeaderLessTempFile, _app.DataTempFile, key, cryptographicInfo.EncryptionModeInfo.InitializationVector);
-
-                StepDecryptStrings();
 #if VERBOSE
+                ((IProgress<int>)_decryptionProgress).Report(75);
                 Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_Post_decryption_time__ + watch.ElapsedMilliseconds);
 #endif
                 // Move the file to the original file location
                 File.Copy(_app.DataTempFile, filePath, true);
-
+                ((IProgress<int>)_decryptionProgress).Report(100);
 #if VERBOSE
                 Console.WriteLine(Encryption_App.Resources.MainWindow_DecryptDataWithHeader_File_copied_time__ + watch.ElapsedMilliseconds);
 #endif

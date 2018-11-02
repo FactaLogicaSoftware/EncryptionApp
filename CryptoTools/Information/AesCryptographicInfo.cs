@@ -24,7 +24,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information
         /// CryptographicInfo object
         /// </summary>
         /// <param name="info">The CryptographicInfo object to derive it from</param>
-        public AesCryptographicInfo(CryptographicInfo info) : base()
+        public AesCryptographicInfo(CryptographicInfo info)
         {
             // TODO
             throw new NotImplementedException();
@@ -69,7 +69,22 @@ namespace FactaLogicaSoftware.CryptoTools.Information
             {
                 // The header limit is 5KB, so read that and we know we have it all
                 // TODO define limit size more precisely
-                var header = new string(binReader.ReadChars(1024 * 3));
+                string header;
+
+                int toReadVal = 1024 * 3;
+
+                while (true)
+                {
+                    try
+                    {
+                        header = Encoding.UTF8.GetString(binReader.ReadBytes(toReadVal));
+                        break;
+                    }
+                    catch (ArgumentException)
+                    {
+                        toReadVal++;
+                    }
+                }
 
                 // Get the index of the start and end of the JSON object
                 int start = header.IndexOf("BEGIN ENCRYPTION HEADER STRING", StringComparison.Ordinal) + /*IMPORTANT*/ StartChars.Length; // + StartChars.Length, IndexOf gets the first character of the string search, so adding the length pushes it to the end of that

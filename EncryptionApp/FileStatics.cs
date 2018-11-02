@@ -9,7 +9,9 @@ namespace Encryption_App
     /// </summary>
     public static class FileStatics
     {
-        private const string TempFilePath = @"Log/";
+        private const string TempFilePath = @"EncryptionApp\LocalFiles\";
+
+        private static readonly object LockForFileExclusivity = new object();
 
         /// <summary>
         ///
@@ -19,35 +21,38 @@ namespace Encryption_App
         /// <param name="length">The length of prepended data to remove</param>
         public static void RemovePrependData(string filePath, string outFile, long length)
         {
-            // Create the streams used to write the data, minus the header, to a new file
-            using (var reader = new BinaryReader(File.OpenRead(filePath)))
-            using (var writer = new BinaryWriter(File.Create(outFile)))
+            lock (LockForFileExclusivity)
             {
-                // Seek to the end of the header. IMPORTANT Do not change to Position - Position has no value checking - Seek does
-                reader.BaseStream.Seek(length, SeekOrigin.Begin);
-                // TODO Manage IO exceptions
-
-                long readLength = reader.BaseStream.Length - reader.BaseStream.Position;
-
-                // Continuously reads the stream in 1 mb sections until there is none left
-                while (true)
+                // Create the streams used to write the data, minus the header, to a new file
+                using (var reader = new BinaryReader(File.OpenRead(filePath)))
+                using (var writer = new BinaryWriter(File.Create(outFile)))
                 {
-                    if (readLength < 1024 * 1024 * 4)
-                    {
-                        // Read all bytes into the array and write them
-                        var buff = new byte[readLength];
-                        int read = reader.Read(buff, 0, buff.Length);
-                        writer.Write(buff, 0, read);
+                    // Seek to the end of the header. IMPORTANT Do not change to Position - Position has no value checking - Seek does
+                    reader.BaseStream.Seek(length, SeekOrigin.Begin);
+                    // TODO Manage IO exceptions
 
-                        break;
-                    }
-                    else
+                    long readLength = reader.BaseStream.Length - reader.BaseStream.Position;
+
+                    // Continuously reads the stream in 1 mb sections until there is none left
+                    while (true)
                     {
-                        // Read as many bytes as we allow into the array from the file and write them
-                        var buff = new byte[1024 * 1024 * 4];
-                        int read = reader.Read(buff, 0, buff.Length);
-                        writer.Write(buff, 0, read);
-                        readLength -= read;
+                        if (readLength < 1024 * 1024 * 4)
+                        {
+                            // Read all bytes into the array and write them
+                            var buff = new byte[readLength];
+                            int read = reader.Read(buff, 0, buff.Length);
+                            writer.Write(buff, 0, read);
+
+                            break;
+                        }
+                        else
+                        {
+                            // Read as many bytes as we allow into the array from the file and write them
+                            var buff = new byte[1024 * 1024 * 4];
+                            int read = reader.Read(buff, 0, buff.Length);
+                            writer.Write(buff, 0, read);
+                            readLength -= read;
+                        }
                     }
                 }
             }
@@ -111,7 +116,7 @@ namespace Encryption_App
                     {
                         case Exception _:
                             fWriter.WriteLine("Exception" + (item as Exception)?.Message);
-                            fWriter.WriteLine("Inner Exception" + (item as Exception)?.InnerException?.Message);
+                            fWriter.WriteLine((!(item is Exception) ? "Inner Exception" : "") + (item as Exception)?.InnerException?.Message);
                             break;
                         case string _:
                             fWriter.WriteLine(item as string);
