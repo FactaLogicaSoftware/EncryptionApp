@@ -15,31 +15,10 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Asymmetric
         {
             // Default memory - TODO Calculate to higher numbers if possible
             _memoryConst = 1024 * 1024 * 4;
-
-            // As the default aes transformation object is AesCng which is FIPS compliant
-            IsFipsCompliant = true;
+            
+            IsNISTCompliant = true;
 
             _algorithm = new RSACng();
-        }
-
-        public override byte[] EncryptBytesWithPubKey(byte[] data, byte[] key)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override byte[] DecryptBytesWithPubKey(byte[] data, byte[] key)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override byte[] EncryptBytesWithPrivKey(byte[] data, byte[] key)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override byte[] DecryptBytesWithPrivKey(byte[] data, byte[] key)
-        {
-            throw new NotImplementedException();
         }
 
         [SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = nameof(_algorithm), Justification = "Glitched - should not warn")]
@@ -47,6 +26,16 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Asymmetric
         {
 
             _algorithm?.Dispose();
+        }
+
+        public override byte[] EncryptBytes(byte[] data, byte[] PublicKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override byte[] DecryptBytes(byte[] data, byte[] PrivateKey)
+        {
+            throw new NotImplementedException();
         }
     }
 }

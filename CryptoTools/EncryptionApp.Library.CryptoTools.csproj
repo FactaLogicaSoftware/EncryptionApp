@@ -95,6 +95,7 @@
     <Compile Include="Digests\KeyDerivation\Argon2KeyDerive.cs" />
     <Compile Include="Digests\KeyDerivation\BCryptKeyDerive.cs" />
     <Compile Include="Digests\KeyDerivation\Pbkdf2Advanced.cs" />
+    <Compile Include="Events\MemoryChunkChangedEventArgs.cs" />
     <Compile Include="Exceptions\DataTooLargeException.cs" />
     <Compile Include="Exceptions\InvalidCryptographicOperationException.cs" />
     <Compile Include="Exceptions\InvalidCryptographicPropertyException.cs" />

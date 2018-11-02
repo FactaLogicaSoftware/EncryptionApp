@@ -56,7 +56,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
 
             // Assign to class field
-            _memoryConst = memoryConst;
+            MemoryConst = memoryConst;
 
             // Base class value
             // TODO Customized field values
@@ -95,6 +95,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="iv">The initialization vector</param>
         public override void EncryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
         {
+            #region CONTRACT
+
             if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
             if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
             if (key == null) throw new ArgumentNullException(nameof(key));
@@ -116,17 +118,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             Contract.EndContractBlock();
 
-#if DEBUG
-            KeySizes sampleKeySize = SymmetricAlgorithm.LegalKeySizes[0];
-            Console.WriteLine("Minimum key size: " + sampleKeySize.MinSize);
-            Console.WriteLine("Maximum key size: " + sampleKeySize.MaxSize);
-            Console.WriteLine("Key skip size: " + sampleKeySize.SkipSize);
-            Console.WriteLine();
-#if NON_SECURE_DEBUG
-            
-            Console.WriteLine("Key: " + Convert.ToBase64String(key));
-#endif
-#endif
+            #endregion
 
             // Set actual IV and key
             SymmetricAlgorithm.KeySize = key.Length * 8;
@@ -146,6 +138,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="iv">The initialization vector</param>
         public override void DecryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
         {
+            #region CONTRACT
+
             if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
             if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
             if (key == null) throw new ArgumentNullException(nameof(key));
@@ -166,6 +160,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
 
             Contract.EndContractBlock();
+
+            #endregion
 
             // Set actual IV and key
             SymmetricAlgorithm.Key = key;

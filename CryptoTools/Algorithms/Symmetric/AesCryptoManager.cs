@@ -39,7 +39,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             };
 
             // Default memory - TODO Calculate to higher numbers if possible
-            _memoryConst = 1024 * 1024 * 4;
+            MemoryConst = 1024 * 1024 * 4;
 
             // As the default aes transformation object is AesCng which is FIPS compliant
             IsFipsCompliant = true;
@@ -58,7 +58,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
 
             // Assign to class field
-            _memoryConst = memoryConst;
+            MemoryConst = memoryConst;
 
             // Create the aes object
             // TODO Customized field values
@@ -98,6 +98,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <exception cref="ArgumentNullException"></exception>
         public override void EncryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
         {
+            #region CONTRACT
+
             if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
             if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
             if (key == null) throw new ArgumentNullException(nameof(key));
@@ -114,6 +116,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
 
             Contract.EndContractBlock();
+
+            #endregion
 
             // Set actual IV and key
             SymmetricAlgorithm.Key = key;
@@ -132,11 +136,12 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="iv">The initialization vector</param>
         public override void DecryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
         {
+            #region CONTRACT
+
             if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
             if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
             if (key == null) throw new ArgumentNullException(nameof(key));
             if (iv == null) throw new ArgumentNullException(nameof(iv));
-            
 
             if (!File.Exists(inputFile))
             {
@@ -149,6 +154,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
 
             Contract.EndContractBlock();
+
+            #endregion
 
             // Set actual IV and key
             SymmetricAlgorithm.Key = key;
@@ -167,18 +174,17 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <returns>The encrypted byte array</returns>
         public override byte[] EncryptBytes(byte[] data, byte[] key, byte[] iv)
         {
+            #region CONTRACT
+
             if (data == null) throw new ArgumentNullException(nameof(data));
             if (key == null) throw new ArgumentNullException(nameof(key));
             if (iv == null) throw new ArgumentNullException(nameof(iv));
-
-            if (iv.Length < SymmetricAlgorithm.BlockSize) throw new ArgumentException($"IV shorter than block size {SymmetricAlgorithm.BlockSize}");
-
-            if (key.Length != 128 / 8 && key.Length != 192 / 8 && key.Length != 256 / 8)
-            {
-                throw new InvalidKeyLengthException("Key is not a valid length (128/192/256)");
-            }
+            if (!SymmetricAlgorithm.ValidKeySize(key.Length * 8)) throw new InvalidKeyLengthException($"Invalid key length of {key.Length * 8}");
+            if (iv.Length != SymmetricAlgorithm.BlockSize / 8) throw new InvalidCryptographicPropertyException($"IV length (bits: {iv.Length * 8}) must be equal to block size length {SymmetricAlgorithm.BlockSize}");
 
             Contract.EndContractBlock();
+
+            #endregion
 
             // AES values
             SymmetricAlgorithm.KeySize = key.Length * 8;
@@ -207,12 +213,23 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <returns>The decrypted byte array</returns>
         public override byte[] DecryptBytes(byte[] data, byte[] key, byte[] iv)
         {
-                // AES values
-                SymmetricAlgorithm.KeySize = key.Length * 8;
-                SymmetricAlgorithm.Key = key;
-                SymmetricAlgorithm.IV = iv;
-                SymmetricAlgorithm.Mode = CipherMode.CBC;
-                SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
+            #region CONTRACT
+
+            if (data == null) throw new ArgumentNullException(nameof(data));
+            if (key == null) throw new ArgumentNullException(nameof(key));
+            if (iv == null) throw new ArgumentNullException(nameof(iv));
+            if (!SymmetricAlgorithm.ValidKeySize(key.Length * 8)) throw new InvalidKeyLengthException($"Invalid key length of {key.Length * 8}");
+            if (iv.Length != SymmetricAlgorithm.BlockSize / 8) throw new InvalidCryptographicPropertyException($"IV length (bits: {iv.Length * 8}) must be equal to block size length {SymmetricAlgorithm.BlockSize}");
+
+
+            #endregion
+
+            // AES values
+            SymmetricAlgorithm.KeySize = key.Length * 8;
+            SymmetricAlgorithm.Key = key;
+            SymmetricAlgorithm.IV = iv;
+            SymmetricAlgorithm.Mode = CipherMode.CBC;
+            SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
 
             // Put the ciphertext byte array into memory, and read it through the crypto stream to decrypt it
             var memStream = new MemoryStream(data);

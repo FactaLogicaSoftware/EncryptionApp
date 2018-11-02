@@ -19,7 +19,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// <summary>
         /// The performance values for this pbkdf2 function
         /// </summary>
-        public override dynamic PerformanceValues { get; set; }
+        public override dynamic PerformanceValues { get; private protected set; }
 
         /// <inheritdoc />
         /// <summary>
@@ -81,12 +81,16 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// </summary>
         public override byte[] GetBytes(int size)
         {
+            #region CONTRACT
+
             if (!Usable)
             {
                 throw new InvalidCryptographicOperationException("Password not set");
             }
 
             Contract.EndContractBlock();
+
+            #endregion
 
             return _baseObject.GetBytes(size);
         }

@@ -1,0 +1,79 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/HotspotsPrecomputing/VirtualFunctionsList/=Encryption_005FApp_002EUI_002EApp_002EMain/@EntryIndexedValue">&lt;data&gt;&lt;Implementations&gt;&lt;Implementation FuId="0x0010001F" OwnTime="0" SysTime="225414487973" TotalTime="226083175736" /&gt;&lt;/Implementations&gt;&lt;/data&gt;</s:String>
+	<s:String x:Key="/Default/HotspotsPrecomputing/VirtualFunctionsList/=Encryption_005FApp_002EUI_002EMainWindow_002EDecryptDataWithHeader/@EntryIndexedValue">&lt;data&gt;&lt;Implementations&gt;&lt;Implementation FuId="0x0010002A" OwnTime="0" SysTime="45289817758" TotalTime="102370405515" /&gt;&lt;/Implementations&gt;&lt;/data&gt;</s:String>
+	<s:String x:Key="/Default/HotspotsPrecomputing/VirtualFunctionsList/=FactaLogicaSoftware_002ECryptoTools_002EAlgorithms_002ESymmetric_002ESymmetricCryptoManager_002ETransformFile/@EntryIndexedValue">&lt;data&gt;&lt;Implementations&gt;&lt;Implementation FuId="0x00B000A1" OwnTime="0" SysTime="34772509105" TotalTime="35012813819" /&gt;&lt;/Implementations&gt;&lt;/data&gt;</s:String>
+	<s:String x:Key="/Default/HotspotsPrecomputing/VirtualFunctionsList/=FactaLogicaSoftware_002ECryptoTools_002EHMAC_002EMessageAuthenticator_002EVerifyHmac/@EntryIndexedValue">&lt;data&gt;&lt;Implementations&gt;&lt;Implementation FuId="0x00B00016" OwnTime="0" SysTime="24433420349" TotalTime="24433420349" /&gt;&lt;/Implementations&gt;&lt;/data&gt;</s:String>
+	<s:String x:Key="/Default/HotspotsPrecomputing/VirtualFunctionsList/=Encryption_005FApp_002EFileStatics_002EAppendToFile/@EntryIndexedValue">&lt;data&gt;&lt;Implementations&gt;&lt;Implementation FuId="0x80000000" OwnTime="0" SysTime="22614511380" TotalTime="22614511380" /&gt;&lt;/Implementations&gt;&lt;/data&gt;</s:String>
+	<s:String x:Key="/Default/HotspotsPrecomputing/VirtualFunctionsList/=FactaLogicaSoftware_002ECryptoTools_002EHMAC_002EMessageAuthenticator_002ECreateHmac/@EntryIndexedValue">&lt;data&gt;&lt;Implementations&gt;&lt;Implementation FuId="0x00B00012" OwnTime="0" SysTime="21527023591" TotalTime="21527023591" /&gt;&lt;/Implementations&gt;&lt;/data&gt;</s:String>
+	<s:String x:Key="/Default/HotspotsPrecomputing/VirtualFunctionsList/=Encryption_005FApp_002EFileStatics_002ERemovePrependData/@EntryIndexedValue">&lt;data&gt;&lt;Implementations&gt;&lt;Implementation FuId="0x80000001" OwnTime="22982735" SysTime="13501127380" TotalTime="13524110115" /&gt;&lt;/Implementations&gt;&lt;/data&gt;</s:String>
+	<s:String x:Key="/Default/HotspotsPrecomputing/VirtualFunctionsList/=Replicon_002ECryptography_002ESCrypt_002EIKeyDerivationFunction_002EDeriveKey/@EntryIndexedValue">&lt;data&gt;&lt;Implementations&gt;&lt;Implementation FuId="0x01A0004B" OwnTime="9223215015" SysTime="0" TotalTime="9223215015" /&gt;&lt;/Implementations&gt;&lt;/data&gt;</s:String>
+	<s:String x:Key="/Default/HotspotsPrecomputing/VirtualFunctionsList/=WpfAnimatedGif_002EImageBehavior_002EMakeFrame/@EntryIndexedValue">&lt;data&gt;&lt;Implementations&gt;&lt;Implementation FuId="0x0110003D" OwnTime="0" SysTime="637091688" TotalTime="637091688" /&gt;&lt;/Implementations&gt;&lt;/data&gt;</s:String>
+	<s:String x:Key="/Default/HotspotsPrecomputing/VirtualFunctionsList/=FactaLogicaSoftware_002ECryptoTools_002EDebugTools_002EInternalDebug_002EWriteToDiagnosticsFile/@EntryIndexedValue">&lt;data&gt;&lt;Implementations&gt;&lt;Implementation FuId="0x00B0000E" OwnTime="0" SysTime="240304714" TotalTime="240304714" /&gt;&lt;/Implementations&gt;&lt;/data&gt;</s:String>
+	<s:String x:Key="/Default/HotspotsPrecomputing/VirtualFunctionsList/=FactaLogicaSoftware_002ECryptoTools_002EInformation_002ECryptographicInfo_002EReadHeaderFromFile/@EntryIndexedValue">&lt;data&gt;&lt;Implementations&gt;&lt;Implementation FuId="0x00B0001A" OwnTime="0" SysTime="227831931" TotalTime="227831931" /&gt;&lt;/Implementations&gt;&lt;/data&gt;</s:String>
+	<s:String x:Key="/Default/HotspotsPrecomputing/VirtualFunctionsList/=FactaLogicaSoftware_002ECryptoTools_002EInformation_002ECryptographicInfo_002EWriteHeaderToFile/@EntryIndexedValue">&lt;data&gt;&lt;Implementations&gt;&lt;Implementation FuId="0x00B00019" OwnTime="0" SysTime="171877048" TotalTime="171877048" /&gt;&lt;/Implementations&gt;&lt;/data&gt;</s:String>
+	<s:String x:Key="/Default/HotspotsPrecomputing/VirtualFunctionsList/=Encryption_005FApp_002EUI_002EMainWindow_002EEncryptDataWithHeader/@EntryIndexedValue">&lt;data&gt;&lt;Implementations&gt;&lt;Implementation FuId="0x00100029" OwnTime="0" SysTime="51997729" TotalTime="69506605111" /&gt;&lt;/Implementations&gt;&lt;/data&gt;</s:String>
+	<s:String x:Key="/Default/HotspotsPrecomputing/VirtualFunctionsList/=WpfAnimatedGif_002EImageAnimationController_002E_002Ector/@EntryIndexedValue">&lt;data&gt;&lt;Implementations&gt;&lt;Implementation FuId="0x0110000E" OwnTime="0" SysTime="31596075" TotalTime="31596075" /&gt;&lt;/Implementations&gt;&lt;/data&gt;</s:String>
+	<s:String x:Key="/Default/HotspotsPrecomputing/VirtualFunctionsList/=FactaLogicaSoftware_002ECryptoTools_002EDigests_002EKeyDerivation_002EKeyDerive_002Eset_005FPassword/@EntryIndexedValue">&lt;data&gt;&lt;Implementations&gt;&lt;Implementation FuId="0x00B0006F" OwnTime="0" SysTime="28223822" TotalTime="28223822" /&gt;&lt;/Implementations&gt;&lt;/data&gt;</s:String>
+	<s:String x:Key="/Default/PerformanceTabManager/Identity/@EntryValue">94b04939-b2d8-454b-93bc-d8d59463476e</s:String>
+	<s:String x:Key="/Default/PerformanceTabManager/XmlContent/@EntryValue">&lt;TabManagerStates&gt;&lt;z:anyType xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns:d1p1="http://schemas.datacontract.org/2004/07/JetBrains.dotTrace.SnapShotViews.Performance.PerformanceTab" i:type="d1p1:PerformanceTabSerializer.State" xmlns:z="http://schemas.microsoft.com/2003/10/Serialization/"&gt;&#xD;
+  &lt;d1p1:ActiveIndex&gt;0&lt;/d1p1:ActiveIndex&gt;&#xD;
+  &lt;d1p1:TabStates&gt;&#xD;
+    &lt;d1p1:PerformanceTabSerializer.State.TabState&gt;&#xD;
+      &lt;d1p1:OpenedView&gt;0&lt;/d1p1:OpenedView&gt;&#xD;
+      &lt;d1p1:TabRootState xmlns:d4p1="http://schemas.datacontract.org/2004/07/JetBrains.dotTrace.SnapShotViews.Performance.TabRoots" i:type="d4p1:SnapshotTabRoot.State"&gt;&#xD;
+        &lt;d4p1:ViewsFactoryState xmlns:d5p1="http://schemas.datacontract.org/2004/07/JetBrains.dotTrace.SnapShotViews.Performance.Views" i:type="d5p1:ViewsFactoryBase.State"&gt;&#xD;
+          &lt;d5p1:States&gt;&#xD;
+            &lt;d5p1:ViewsFactoryBase.State.ViewKeyAndState&gt;&#xD;
+              &lt;d5p1:ViewKey&gt;CallTreePerThread&lt;/d5p1:ViewKey&gt;&#xD;
+              &lt;d5p1:ViewState xmlns:d8p1="http://schemas.datacontract.org/2004/07/JetBrains.dotTrace.SnapShotViews.Performance.TreeViews" i:type="d8p1:SnapshotViewBase.State"&gt;&#xD;
+                &lt;d8p1:HorizontalScroll&gt;0&lt;/d8p1:HorizontalScroll&gt;&#xD;
+                &lt;d8p1:RootNodeData xmlns:d9p1="http://schemas.datacontract.org/2004/07/JetBrains.dotTrace.SnapShotViews.Performance.Persistence"&gt;&#xD;
+                  &lt;d9p1:Children&gt;&#xD;
+                    &lt;d9p1:AbstractTreeNodeState&gt;&#xD;
+                      &lt;d9p1:Children /&gt;&#xD;
+                      &lt;d9p1:Focused&gt;true&lt;/d9p1:Focused&gt;&#xD;
+                      &lt;d9p1:State xmlns:d12p1="http://schemas.datacontract.org/2004/07/JetBrains.dotTrace.SnapShotApi.Nodes" i:type="d12p1:ThreadStartNode.State"&gt;&#xD;
+                        &lt;d12p1:mySectionNodesState&gt;&#xD;
+                          &lt;d12p1:myData&gt;27CF/2&lt;/d12p1:myData&gt;&#xD;
+                        &lt;/d12p1:mySectionNodesState&gt;&#xD;
+                        &lt;d12p1:Name&gt;Thread #1&lt;/d12p1:Name&gt;&#xD;
+                        &lt;d12p1:ThreadType&gt;HasMessageQueue&lt;/d12p1:ThreadType&gt;&#xD;
+                      &lt;/d9p1:State&gt;&#xD;
+                    &lt;/d9p1:AbstractTreeNodeState&gt;&#xD;
+                    &lt;d9p1:AbstractTreeNodeState&gt;&#xD;
+                      &lt;d9p1:Children /&gt;&#xD;
+                      &lt;d9p1:State xmlns:d12p1="http://schemas.datacontract.org/2004/07/JetBrains.dotTrace.SnapShotApi.Nodes" i:type="d12p1:ThreadStartNode.State"&gt;&#xD;
+                        &lt;d12p1:mySectionNodesState&gt;&#xD;
+                          &lt;d12p1:myData&gt;AB5/1&lt;/d12p1:myData&gt;&#xD;
+                        &lt;/d12p1:mySectionNodesState&gt;&#xD;
+                        &lt;d12p1:Name&gt;Thread #3&lt;/d12p1:Name&gt;&#xD;
+                        &lt;d12p1:ThreadType&gt;HasMessageQueue&lt;/d12p1:ThreadType&gt;&#xD;
+                      &lt;/d9p1:State&gt;&#xD;
+                    &lt;/d9p1:AbstractTreeNodeState&gt;&#xD;
+                    &lt;d9p1:AbstractTreeNodeState&gt;&#xD;
+                      &lt;d9p1:Children /&gt;&#xD;
+                      &lt;d9p1:State xmlns:d12p1="http://schemas.datacontract.org/2004/07/JetBrains.dotTrace.SnapShotApi.Nodes" i:type="d12p1:ThreadStartNode.State"&gt;&#xD;
+                        &lt;d12p1:mySectionNodesState&gt;&#xD;
+                          &lt;d12p1:myData&gt;7C7/8&lt;/d12p1:myData&gt;&#xD;
+                        &lt;/d12p1:mySectionNodesState&gt;&#xD;
+                        &lt;d12p1:Name&gt;Thread #8&lt;/d12p1:Name&gt;&#xD;
+                        &lt;d12p1:ThreadType&gt;HasMessageQueue&lt;/d12p1:ThreadType&gt;&#xD;
+                      &lt;/d9p1:State&gt;&#xD;
+                    &lt;/d9p1:AbstractTreeNodeState&gt;&#xD;
+                  &lt;/d9p1:Children&gt;&#xD;
+                  &lt;d9p1:State xmlns:d10p1="http://schemas.datacontract.org/2004/07/JetBrains.dotTrace.SnapShotApi.Nodes" i:type="d10p1:RootNode.StateOfThreadStartNodeBTfqEAW4"&gt;&#xD;
+                    &lt;d10p1:mySectionNodesState&gt;&#xD;
+                      &lt;d10p1:myData&gt;25/0;AB5/1;27CF/2;BF/3;A6/4;123/5;3B/6;25/7;7C7/8;25/9&lt;/d10p1:myData&gt;&#xD;
+                    &lt;/d10p1:mySectionNodesState&gt;&#xD;
+                    &lt;d10p1:IsFiltered&gt;true&lt;/d10p1:IsFiltered&gt;&#xD;
+                  &lt;/d9p1:State&gt;&#xD;
+                &lt;/d8p1:RootNodeData&gt;&#xD;
+                &lt;d8p1:VerticalScroll&gt;0&lt;/d8p1:VerticalScroll&gt;&#xD;
+              &lt;/d5p1:ViewState&gt;&#xD;
+            &lt;/d5p1:ViewsFactoryBase.State.ViewKeyAndState&gt;&#xD;
+          &lt;/d5p1:States&gt;&#xD;
+        &lt;/d4p1:ViewsFactoryState&gt;&#xD;
+      &lt;/d1p1:TabRootState&gt;&#xD;
+    &lt;/d1p1:PerformanceTabSerializer.State.TabState&gt;&#xD;
+  &lt;/d1p1:TabStates&gt;&#xD;
+&lt;/z:anyType&gt;&lt;/TabManagerStates&gt;</s:String></wpf:ResourceDictionary>

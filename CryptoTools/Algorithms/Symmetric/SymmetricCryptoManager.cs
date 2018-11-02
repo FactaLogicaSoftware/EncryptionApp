@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Security.Cryptography;
+using FactaLogicaSoftware.CryptoTools.Events;
 using Microsoft.VisualBasic.Devices;
 #if DEBUG
 
@@ -19,8 +20,10 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
     {
         private protected SymmetricAlgorithm SymmetricAlgorithm;
 
+        public event EventHandler<MemoryChunkValueChangedEventArgs> MemoryChunkValueChanged;
+
         // How many bytes read into memory per chunk - calculated by constructor
-        protected int _memoryConst;
+        protected int MemoryConst;
 
         public abstract int KeySize { get; set; }
 
@@ -32,7 +35,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         public SymmetricCryptoManager()
         {
             // Default memory - TODO Calculate to higher numbers if possible
-            _memoryConst = 1024 * 1024 * 4;
+            MemoryConst = 1024 * 1024 * 4;
         }
 
         /// <summary>
@@ -41,7 +44,9 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="algorithm">The algorithm to use</param>
         public SymmetricCryptoManager(SymmetricAlgorithm algorithm)
         {
-            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
+            #region CONTRACT
+
+            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS compliant
             if (algorithm is AesCng || algorithm is AesCryptoServiceProvider || algorithm is TripleDESCng)
             {
                 IsFipsCompliant = true;
@@ -53,8 +58,10 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             Contract.EndContractBlock();
 
+            #endregion
+
             // Default memory - TODO Calculate to higher numbers if possible
-            _memoryConst = 1024 * 1024 * 4;
+            MemoryConst = 1024 * 1024 * 4;
 
             // Assign the aes object
             // TODO verify integrity of argument
@@ -68,13 +75,15 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="algorithm">The algorithm to use</param>
         public SymmetricCryptoManager(int memoryConst, SymmetricAlgorithm algorithm)
         {
+            #region CONTRACT
+
             // Check if that much memory can be assigned
             if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
             {
                 throw new ArgumentException("Not enough memory to use that chunking size");
             }
 
-            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS complaint
+            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS compliant
             if (algorithm is AesCng || algorithm is AesCryptoServiceProvider || algorithm is TripleDESCng)
             {
                 IsFipsCompliant = true;
@@ -86,18 +95,26 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             Contract.EndContractBlock();
 
+            #endregion
+
             // Assign to class field
-            _memoryConst = memoryConst;
+            MemoryConst = memoryConst;
 
             // Assign the aes object
             // TODO verify integrity of argument
             SymmetricAlgorithm = algorithm;
         }
-
+        
         ~SymmetricCryptoManager()
         {
             // All aes classes implement IDispose so we must dispose of it
             SymmetricAlgorithm.Dispose();
+        }
+
+        protected void OnMemoryChunkValueChanged(MemoryChunkValueChangedEventArgs e)
+        {
+            EventHandler<MemoryChunkValueChangedEventArgs> handler = MemoryChunkValueChanged;
+            handler?.Invoke(this, e);
         }
 
         /// <summary>
@@ -106,7 +123,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="inputFile"></param>
         /// <param name="outputFile"></param>
         /// <param name="transformer"></param>
-        protected sealed void TransformFile(string inputFile, string outputFile, ICryptoTransform transformer)
+        protected void TransformFile(string inputFile, string outputFile, ICryptoTransform transformer)
         {
             // Any cryptographic exception indicates the data is invalid or an incorrect password has been inputted
             try
@@ -124,7 +141,6 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 var fullIterationTime = 0.0D;
                 var avgIterationMilliseconds = 0D;
 #endif
-
                 // Creates the streams necessary for reading and writing data
                 FileStream outFileStream = File.Create(outputFile);
                 using (var cs = new CryptoStream(outFileStream, transformer, CryptoStreamMode.Write))
@@ -136,14 +152,25 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 #if DEBUG
                         double offset = watch.Elapsed.TotalMilliseconds;
 #endif
-                        // Read as many bytes as we allow into the array from the file
-                        byte[] data = inFile.ReadBytes(_memoryConst);
+                        byte[] data;
+
+                        try
+                        {
+                            // Read as many bytes as we allow into the array from the file
+                            data = inFile.ReadBytes(MemoryConst);
+                        }
+                        catch (OutOfMemoryException)
+                        {
+                            MemoryConst = MemoryConst / 2;
+                            OnMemoryChunkValueChanged(new MemoryChunkValueChangedEventArgs(MemoryConst, this));
+                            throw;
+                        }
 
                         // Write it through the cryptostream so it is transformed
                         cs.Write(data, 0, data.Length);
 
                         // Break if
-                        if (data.Length < _memoryConst)
+                        if (data.Length < MemoryConst)
                         {
                             break;
                         }
