@@ -414,7 +414,7 @@ namespace Encryption_App.UI
                 if (password.Length < 8)
                 {
                     MessageBox.Show("Password too short");
-                    (IProgress<int>)((IProgress<int>)_encryptionProgress).Report(0);
+                    ((IProgress<int>)_encryptionProgress).Report(0);
                     return;
                 }
 #endif
