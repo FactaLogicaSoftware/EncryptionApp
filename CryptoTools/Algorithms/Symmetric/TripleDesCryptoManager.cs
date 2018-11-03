@@ -192,8 +192,14 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             var cryptoStream = new CryptoStream(memStream, SymmetricAlgorithm.CreateEncryptor(), CryptoStreamMode.Read);
             using (var binReader = new BinaryReader(cryptoStream))
             {
-                // TODO manage checked exception
-                return binReader.ReadBytes(checked((int)memStream.Length));
+                try
+                {
+                    return binReader.ReadBytes((int)memStream.Length);
+                }
+                catch (OverflowException e)
+                {
+                    throw new OverflowException("Byte array to large to encrypt", e);
+                }
             }
         }
 
@@ -219,8 +225,14 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             var cryptoStream = new CryptoStream(memStream, SymmetricAlgorithm.CreateDecryptor(), CryptoStreamMode.Read);
             using (var binReader = new BinaryReader(cryptoStream))
             {
-                // TODO manage checked exception
-                return binReader.ReadBytes(checked((int)memStream.Length));
+                try
+                {
+                    return binReader.ReadBytes((int)memStream.Length);
+                }
+                catch (OverflowException e)
+                {
+                    throw new OverflowException("Byte array to large to encrypt", e);
+                }
             }
         }
     }

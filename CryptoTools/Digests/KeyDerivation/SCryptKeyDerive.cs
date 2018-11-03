@@ -100,7 +100,7 @@
                 this._tuneFlags.N,
                 this._tuneFlags.r,
                 this._tuneFlags.p,
-                (uint)size + this._read).Skip(checked((int)this._read)).ToArray();
+                (uint)size + this._read).Skip((int)this._read).ToArray();
         }
 
         /// <inheritdoc />

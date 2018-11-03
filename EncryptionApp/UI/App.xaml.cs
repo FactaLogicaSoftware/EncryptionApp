@@ -11,6 +11,15 @@
     /// </summary>
     public partial class App : Application
     {
+        internal static readonly App This;
+
+        static App()
+        {
+            This = (App)Current;
+        }
+
+        internal AppSettings CurrentSettings;
+
         internal readonly PerformanceDerivative PerformanceDerivative;
 
         internal string DataTempFile;
@@ -43,6 +52,8 @@
                     "Startup exception occured during creation/validation of the file system - Check log file");
                 throw;
             }
+
+            this.CurrentSettings = new AppSettings();
         }
 
         private void BuildFileSystem()

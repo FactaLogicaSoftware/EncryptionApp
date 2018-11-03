@@ -9,14 +9,12 @@ using System.Windows;
 using System.Windows.Input;
 using System.Xaml;
 using Encryption_App.ManagedSlaves;
-#if VERBOSE
-using System.Diagnostics;
-#endif
-
 using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
 using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
 using FactaLogicaSoftware.CryptoTools.Events;
 using FactaLogicaSoftware.CryptoTools.Information;
+#if VERBOSE
+#endif
 
 namespace Encryption_App.UI
 {
@@ -33,12 +31,11 @@ namespace Encryption_App.UI
         private const int DesiredKeyDerivationMilliseconds = 2000;
         private const int KeySize = 128;
         private readonly List<string> _dropDownItems = new List<string> { "Choose Option...", "Encrypt a file", "Encrypt a file for sending to someone" };
-        private bool _isExecutingExclusiveProcess;
-        private readonly App _app;
         private readonly Progress<int> _encryptionProgress;
         private readonly Progress<int> _decryptionProgress;
         private readonly TransformationPropertiesManager _transformer;
         private readonly ResourceManager _manager;
+        private bool _isExecutingExclusiveProcess;
 
         #endregion
 
@@ -53,7 +50,6 @@ namespace Encryption_App.UI
             try
             {
                 InitializeComponent();
-                this._app = (App)Application.Current;
             }
             catch (XamlParseException e)
             {
@@ -77,7 +73,7 @@ namespace Encryption_App.UI
             this._encryptionProgress = new Progress<int>();
             this._decryptionProgress = new Progress<int>();
             this._transformer = new TransformationPropertiesManager();
-            var tempDictionary = new Dictionary<object, Progress<int>> {{this.EncryptProgressBar, this._encryptionProgress}, {this.DecryptProgressBar, this._decryptionProgress}};
+            var tempDictionary = new Dictionary<object, Progress<int>> { { this.EncryptProgressBar, this._encryptionProgress }, { this.DecryptProgressBar, this._decryptionProgress } };
             this._manager = new ResourceManager(this, tempDictionary);
 
             // Subscribe to events
@@ -125,8 +121,7 @@ namespace Encryption_App.UI
         private void CheckBox_Click(object sender, RoutedEventArgs e)
         {
         }
-
-        // TODO make event
+        
         private void FilePath_Click(object sender, RoutedEventArgs e)
         {
             // Create a file dialog
@@ -156,13 +151,13 @@ namespace Encryption_App.UI
             }
         }
 
-        // TODO Make values dependent on settings
+        // TODO Make values dependent on settings @NightRaven3142
         private async void Encrypt_Click(object sender, RoutedEventArgs e)
         {
             await EncryptDataAsync();
         }
 
-        
+
 
         private async void Decrypt_Click(object sender, RoutedEventArgs e)
         {
@@ -286,12 +281,33 @@ namespace Encryption_App.UI
             }
 
             // Assign the values to the CryptographicInfo object
-            var data = new AesCryptographicInfo { CryptoManager = typeof(AesCryptoManager).AssemblyQualifiedName, Hmac = new HmacInfo { HashAlgorithm = typeof(HMACSHA384).AssemblyQualifiedName }, InstanceKeyCreator = new KeyCreator { root_HashAlgorithm = typeof(Pbkdf2KeyDerive).AssemblyQualifiedName, PerformanceDerivative = this._app.PerformanceDerivative.PerformanceDerivativeValue, salt = salt }, EncryptionModeInfo = new EncryptionModeInfo { InitializationVector = iv, KeySize = KeySize, BlockSize = 128, Mode = CipherMode.CBC } };
+            var data = new AesCryptographicInfo
+            {
+                CryptoManager = typeof(AesCryptoManager).AssemblyQualifiedName,
+                Hmac = new HmacInfo
+                {
+                    HashAlgorithm = typeof(HMACSHA384).AssemblyQualifiedName
+
+                },
+                InstanceKeyCreator = new KeyCreator
+                {
+                    root_HashAlgorithm = typeof(Pbkdf2KeyDerive).AssemblyQualifiedName,
+                    PerformanceDerivative = App.This.PerformanceDerivative.PerformanceDerivativeValue,
+                    salt = salt
+                },
+                EncryptionModeInfo = new EncryptionModeInfo
+                {
+                    InitializationVector = iv,
+                    KeySize = KeySize,
+                    BlockSize = 128,
+                    Mode = CipherMode.CBC
+                }
+            };
 
             try
             {
                 // Run the encryption in a separate thread and return control to the UI thread
-                await Task.Run(() =>  manager.EncryptDataWithHeader(data, this.EncryptPasswordBox.SecurePassword, filePath, DesiredKeyDerivationMilliseconds));
+                await Task.Run(() => manager.EncryptDataWithHeader(data, this.EncryptPasswordBox.SecurePassword, filePath, DesiredKeyDerivationMilliseconds));
 
             }
             catch (CryptographicException e)

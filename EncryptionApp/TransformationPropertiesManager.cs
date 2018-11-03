@@ -24,8 +24,7 @@ namespace Encryption_App
 
                 // Parameters for static function call
                 var parametersForStatic = new object[] { performanceDerivative, 2000UL };
-
-                // TODO i forgot but something
+                
                 object val = keyDeriveAlgorithm.GetMethod("TransformPerformance")?.Invoke(null, parametersForStatic);
 
                 parametersForInstance[2] = val;
