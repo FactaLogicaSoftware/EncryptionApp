@@ -116,22 +116,22 @@
     </Page>
     <Compile Include="FileHandle.cs" />
     <Compile Include="FileStatics.cs" />
-    <Compile Include="InvalidCallerException.cs" />
-    <Compile Include="ManagedSlave.cs" />
+    <Compile Include="Exceptions\InvalidCallerException.cs" />
+    <Compile Include="ManagedSlaves\ManagedSlave.cs" />
     <Compile Include="NativeFileProtector.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="ResourceManager.cs" />
+    <Compile Include="ManagedSlaves\ResourceManager.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="TransformationPropertiesManager.cs" />
-    <Compile Include="TransformingFileManager.cs" />
+    <Compile Include="ManagedSlaves\TransformingFileManager.cs" />
     <Compile Include="UI\App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>

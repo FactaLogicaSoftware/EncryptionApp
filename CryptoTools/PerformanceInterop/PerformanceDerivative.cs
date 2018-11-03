@@ -10,7 +10,7 @@
     /// </summary>
     public sealed class PerformanceDerivative
     {
-        private const ulong Pbkdf2Iterations = 1000;
+        private const int Pbkdf2Iterations = 1000;
 
         /// <summary>
         /// The default constructor, uses 1000 desired milliseconds
@@ -55,9 +55,8 @@
             var salt = new byte[256 / 8];
             var buff = new byte[256 / 8];
             rand.NextBytes(salt);
-
-            // TODO manage overflow
-            var test = new Pbkdf2KeyDerive("Hello World", salt, checked((int)Pbkdf2Iterations));
+            
+            var test = new Pbkdf2KeyDerive("Hello World", salt, Pbkdf2Iterations);
 
             long a = watch.ElapsedMilliseconds;
 
@@ -103,7 +102,6 @@
         /// desired time</returns>
         public (ulong N, uint r, uint p) TransformToScryptTuning(ulong milliseconds)
         {
-            // TODO manage overflow
             return (checked((ulong)Math.Pow(2, 19)), 8U, 1U);
         }
     }

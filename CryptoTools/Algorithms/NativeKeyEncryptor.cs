@@ -2,7 +2,9 @@
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms
 {
-    // TODO XML docs (triple /)
+    /// <summary>
+    /// A class used for encrypting data for a user without a password
+    /// </summary>
     public static class NativeKeyEncryptor
     {
         // Just some random data, make non 
@@ -18,14 +20,23 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms
             0xf6, 0x6c, 0x02, 0xc7, 0x8a, 0x5e, 0x4d, 0x81
         };
 
+        /// <summary>
+        /// Generate a secure 64 byte random byte array
+        /// </summary>
+        /// <returns>A 64 byte array of cryptographically secure values</returns>
         public static byte[] GenerateEntropy()
         {
-            var entropy = new byte[16];
+            var entropy = new byte[64];
             new RNGCryptoServiceProvider().GetBytes(entropy);
 
             return entropy;
         }
 
+        /// <summary>
+        /// Generate a secure random byte array
+        /// </summary>
+        /// <param name="length">Number of bytes to generate</param>
+        /// <returns>A byte array of cryptographically secure values</returns>
         public static byte[] GenerateEntropy(int length)
         {
             var entropy = new byte[length];
@@ -35,11 +46,21 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms
             return entropy;
         }
 
+        /// <summary>
+        /// Encrypt a key for storage by a user
+        /// </summary>
+        /// <param name="key">The plaintext bytes</param>
+        /// <returns>The encrypted data</returns>
         public static byte[] EncryptKey(byte[] key)
         {
             return ProtectedData.Protect(key, Entropy, DataProtectionScope.CurrentUser);
         }
 
+        /// <summary>
+        /// Decrypt a key encrypted for storage by a user
+        /// </summary>
+        /// <param name="encryptedKey">The encrypted bytes</param>
+        /// <returns>The plaintext bytes</returns>
         public static byte[] DecryptKey(byte[] encryptedKey)
         {
             return ProtectedData.Unprotect(encryptedKey, Entropy, DataProtectionScope.CurrentUser);

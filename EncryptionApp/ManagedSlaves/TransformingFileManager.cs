@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
 using System.Windows;
 using Encryption_App.UI;
 using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
@@ -15,7 +14,7 @@ using FactaLogicaSoftware.CryptoTools.HMAC;
 using FactaLogicaSoftware.CryptoTools.Information;
 using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
 
-namespace Encryption_App
+namespace Encryption_App.ManagedSlaves
 {
     internal class TransformingFileManager : ManagedSlave
     {
@@ -46,7 +45,7 @@ namespace Encryption_App
 
             try
             {
-                using (var fReader = new StreamReader(_filePath))
+                using (var fReader = new StreamReader(this._filePath))
                 {
                     try
                     {
@@ -112,14 +111,12 @@ namespace Encryption_App
                 return;
             }
 #if TRACE
-                // TODO make disable-able in release mode
-                if (password.Length < 8)
-                {
-                    MessageBox.Show("Password too short");
-                    if (_reportProgress)
-	((IProgress<int>)_encryptionProgress).Report(0);
-                    return;
-                }
+            if (password.Length < App.This.CurrentSettings.MinPasswordLength)
+            {
+                MessageBox.Show("Password too short");
+                ((IProgress<int>)_encryptionProgress)?.Report(0);
+                return;
+            }
 #endif
 
             Type typeOfKeyDerive = Type.GetType(cryptographicInfo.InstanceKeyCreator.root_HashAlgorithm)
@@ -161,9 +158,8 @@ namespace Encryption_App
 #if VERBOSE
             Console.WriteLine(Resources.MainWindow_EncryptDataWithHeader_Pre_encryption_time__ + watch.ElapsedMilliseconds);
 #endif
-
             // Encrypt the data to a temporary file
-            encryptor.EncryptFileBytes(filePath, this.Owner._app.DataTempFile, key, cryptographicInfo.EncryptionModeInfo.InitializationVector);
+            encryptor.EncryptFileBytes(filePath, App.This.DataTempFile, key, cryptographicInfo.EncryptionModeInfo.InitializationVector);
 
             ((IProgress<int>)this._encryptionProgress)?.Report(90);
 #if VERBOSE
@@ -173,7 +169,7 @@ namespace Encryption_App
             {
 
                 // Create the signature derived from the encrypted data and key
-                byte[] signature = MessageAuthenticator.CreateHmac(this.Owner._app.DataTempFile, key, hmacAlg);
+                byte[] signature = MessageAuthenticator.CreateHmac(App.This.DataTempFile, key, hmacAlg);
 
                 // Set the signature correctly in the CryptographicInfo object
                 cryptographicInfo.Hmac.root_Hash = signature;
@@ -193,7 +189,7 @@ namespace Encryption_App
             // We have to use Dispatcher.Invoke as the current thread can't access these objects this.dispatcher.Invoke(() => { EncryptOutput.Content = "Transferring the data to the file"; });
             Console.WriteLine(Resources.MainWindow_EncryptDataWithHeader_Post_header_time__, watch.ElapsedMilliseconds);
 #endif
-            FileStatics.AppendToFile(filePath, this.Owner._app.DataTempFile);
+            FileStatics.AppendToFile(filePath, App.This.DataTempFile);
 
             ((IProgress<int>)this._encryptionProgress)?.Report(100);
 #if VERBOSE 
@@ -254,7 +250,7 @@ namespace Encryption_App
 #if VERBOSE
             Console.WriteLine(Resources.MainWindow_DecryptDataWithHeader_Object_built_time__ + watch.ElapsedMilliseconds);
 #endif
-            FileStatics.RemovePrependData(filePath, this.Owner._app.HeaderLessTempFile, cryptographicInfo.HeaderLength);
+            FileStatics.RemovePrependData(filePath, App.This.HeaderLessTempFile, cryptographicInfo.HeaderLength);
 
             ((IProgress<int>)this._decryptionProgress).Report(20);
 
@@ -270,7 +266,7 @@ namespace Encryption_App
             if (cryptographicInfo.Hmac != null)
             {
                 // Check if the file and key make the same HMAC
-                isVerified = MessageAuthenticator.VerifyHmac(this.Owner._app.HeaderLessTempFile, key,
+                isVerified = MessageAuthenticator.VerifyHmac(App.This.HeaderLessTempFile, key,
                     cryptographicInfo.Hmac.root_Hash, hmacAlg);
             }
 
@@ -292,13 +288,13 @@ namespace Encryption_App
 #if VERBOSE
                 Console.WriteLine(Resources.MainWindow_DecryptDataWithHeader_Pre_decryption_time__ + watch.ElapsedMilliseconds);
 #endif
-                decryptor.DecryptFileBytes(this.Owner._app.HeaderLessTempFile, this.Owner._app.DataTempFile, key, cryptographicInfo.EncryptionModeInfo.InitializationVector);
+                decryptor.DecryptFileBytes(App.This.HeaderLessTempFile, App.This.DataTempFile, key, cryptographicInfo.EncryptionModeInfo.InitializationVector);
 #if VERBOSE
                 ((IProgress<int>)this._decryptionProgress).Report(75);
                 Console.WriteLine(Resources.MainWindow_DecryptDataWithHeader_Post_decryption_time__ + watch.ElapsedMilliseconds);
 #endif
                 // Move the file to the original file location
-                File.Copy(this.Owner._app.DataTempFile, filePath, true);
+                File.Copy(App.This.DataTempFile, filePath, true);
                 ((IProgress<int>)this._decryptionProgress).Report(100);
 #if VERBOSE
                 Console.WriteLine(Resources.MainWindow_DecryptDataWithHeader_File_copied_time__ + watch.ElapsedMilliseconds);

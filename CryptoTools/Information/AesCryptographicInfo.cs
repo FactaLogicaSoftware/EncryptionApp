@@ -1,4 +1,6 @@
-﻿namespace FactaLogicaSoftware.CryptoTools.Information
+﻿using FactaLogicaSoftware.CryptoTools.DebugTools;
+
+namespace FactaLogicaSoftware.CryptoTools.Information
 {
     using Newtonsoft.Json;
     using System;
@@ -25,8 +27,13 @@
         /// <param name="info">The CryptographicInfo object to derive it from</param>
         public AesCryptographicInfo(CryptographicInfo info)
         {
-            // TODO
-            throw new NotImplementedException();
+            this.CryptoManager = info.CryptoManager;
+            this.EncryptionModeInfo = info.EncryptionModeInfo;
+            this.Hmac = info.Hmac;
+            this.HeaderLength = info.HeaderLength;
+            this.InstanceKeyCreator = info.InstanceKeyCreator;
+            this.Type = info.Type;
+            this.Encoding = Encoding.UTF8;
         }
 
         /// <inheritdoc />
@@ -47,8 +54,6 @@
         /// <returns>The cryptographic info object created from the data</returns>
         public override CryptographicInfo ReadHeader(string header)
         {
-            throw new NotImplementedException("Need to fix BOM");
-
             // Get the index of the start and end of the JSON object
 #pragma warning disable 162
             int start = header.IndexOf("BEGIN ENCRYPTION HEADER STRING", StringComparison.Ordinal) + /*IMPORTANT*/
@@ -67,10 +72,19 @@
 
             // Set the length of the header read
             this.HeaderLength =
-                StartChars.Length + jsonString.Length + EndChars.Length + 3; // 3 is length of BOM
+                StartChars.Length + jsonString.Length + EndChars.Length;
 
-            // Create the data deserialized to a cryptographic object
-            var data = JsonConvert.DeserializeObject<AesCryptographicInfo>(jsonString);
+            AesCryptographicInfo data;
+
+            try
+            {
+                // Create the data deserialized to a cryptographic object
+                data = JsonConvert.DeserializeObject<AesCryptographicInfo>(jsonString);
+            }
+            catch (JsonException e)
+            {
+                throw new ArgumentException("String should not contain BOM");
+            }
 
             // Set the type and length
             data.Type = InfoType.Write;
@@ -94,7 +108,6 @@
             using (var binReader = new BinaryReader(fileStream, this.Encoding))
             {
                 // The header limit is 5KB, so read that and we know we have it all
-                // TODO define limit size more precisely
                 string header;
 
                 int toReadVal = 1024 * 3;
