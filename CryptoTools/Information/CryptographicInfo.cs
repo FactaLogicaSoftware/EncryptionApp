@@ -12,9 +12,15 @@ namespace FactaLogicaSoftware.CryptoTools.Information
         private protected Encoding Encoding;
 
         [JsonIgnore]
-        public string StartChars;
+        public static readonly string StartChars;
         [JsonIgnore]
-        public string EndChars;
+        public static readonly string EndChars;
+
+        static CryptographicInfo()
+        {
+            StartChars = "BEGIN ENCRYPTION HEADER STRING";
+            EndChars = "END ENCRYPTION HEADER STRING";
+        }
 
         [JsonIgnore]
         public long HeaderLength { get; private protected set; }

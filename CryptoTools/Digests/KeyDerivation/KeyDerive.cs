@@ -37,12 +37,5 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// If overriden in a derived class, resets the base object
         /// </summary>
         public abstract void Reset();
-
-        /// <summary>
-        /// If overriden in a derived class, transforms the performance derivative
-        /// to tuning values for that class
-        /// </summary>
-        /// <param name="performanceDerivative"></param>
-        public abstract void TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds);
     }
 }

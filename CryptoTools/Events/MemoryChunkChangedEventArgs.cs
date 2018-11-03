@@ -1,22 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
-
-namespace FactaLogicaSoftware.CryptoTools.Events
+﻿namespace FactaLogicaSoftware.CryptoTools.Events
 {
+    using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
+    using System;
+
     public class MemoryChunkValueChangedEventArgs : EventArgs
     {
+        public int NewValue;
+
+        public SymmetricCryptoManager Sender;
+
         /// <inheritdoc />
         public MemoryChunkValueChangedEventArgs(int newValue, SymmetricCryptoManager sender)
         {
-            NewValue = newValue;
-            Sender = sender;
+            this.NewValue = newValue;
+            this.Sender = sender;
         }
-
-        public int NewValue;
-        public SymmetricCryptoManager Sender;
     }
 }

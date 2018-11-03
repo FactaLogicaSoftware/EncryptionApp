@@ -11,7 +11,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information
     /// </summary>
     public class HmacInfo : ICryptoData
     {
-        // The byte[] of the actual hash
+        // The byte array of the actual hash
         public byte[] root_Hash;
 
         // The string that is the typeof() or GetType() of the object
@@ -24,7 +24,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information
     /// </summary>
     public struct EncryptionModeInfo : ICryptoData
     {
-        //
+        // The byte array used as an initialization vector
         public byte[] InitializationVector;
 
         // The CipherMode used
@@ -49,7 +49,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information
         // The number of iterations
         public ulong PerformanceDerivative;
 
-        // The byte[] of the salt used
+        // The byte array of the salt used
         public byte[] salt;
     }
 }

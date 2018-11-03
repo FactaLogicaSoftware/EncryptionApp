@@ -1,9 +1,9 @@
-﻿using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
-using System;
-using System.Diagnostics;
-
-namespace FactaLogicaSoftware.CryptoTools.PerformanceInterop
+﻿namespace FactaLogicaSoftware.CryptoTools.PerformanceInterop
 {
+    using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
+    using System;
+    using System.Diagnostics;
+
     /// <summary>
     /// The class used to create and transform performance values to
     /// KDF tuning parameters
@@ -13,22 +13,12 @@ namespace FactaLogicaSoftware.CryptoTools.PerformanceInterop
         private const ulong Pbkdf2Iterations = 1000;
 
         /// <summary>
-        /// The base performance derivative value
-        /// </summary>
-        public ulong PerformanceDerivativeValue { get; private set; }
-
-        /// <summary>
-        /// The desired number of milliseconds
-        /// </summary>
-        public ulong Milliseconds { get; set; }
-
-        /// <summary>
         /// The default constructor, uses 1000 desired milliseconds
         /// </summary>
         public PerformanceDerivative()
         {
-            GeneratePerformanceDerivative();
-            Milliseconds = 1000;
+            this.GeneratePerformanceDerivative();
+            this.Milliseconds = 2000;
         }
 
         /// <summary>
@@ -38,9 +28,19 @@ namespace FactaLogicaSoftware.CryptoTools.PerformanceInterop
         /// <param name="performanceDerivative"></param>
         public PerformanceDerivative(ulong performanceDerivative)
         {
-            PerformanceDerivativeValue = performanceDerivative;
-            Milliseconds = 1000;
+            this.PerformanceDerivativeValue = performanceDerivative;
+            this.Milliseconds = 2000;
         }
+
+        /// <summary>
+        /// The desired number of milliseconds
+        /// </summary>
+        public ulong Milliseconds { get; set; }
+
+        /// <summary>
+        /// The base performance derivative value
+        /// </summary>
+        public ulong PerformanceDerivativeValue { get; private set; }
 
         /// <summary>
         /// Generates a new performance derivative value based off this PC's
@@ -65,9 +65,21 @@ namespace FactaLogicaSoftware.CryptoTools.PerformanceInterop
 
             long b = watch.ElapsedMilliseconds - a;
 
-            PerformanceDerivativeValue = (ulong)b;
+            this.PerformanceDerivativeValue = (ulong)b;
 
-            return PerformanceDerivativeValue;
+            return this.PerformanceDerivativeValue;
+        }
+
+        /// <summary>
+        /// Transforms the current performance derivative value to
+        /// to a tuple (N, r, p) of argon2 tuning values
+        /// </summary>
+        /// <param name="milliseconds">The desired number of milliseconds</param>
+        /// <returns>The tuning parameters for argon to get the
+        /// desired time</returns>
+        public (ulong N, uint r, uint p) TransformToArgon2Tuning(ulong milliseconds)
+        {
+            return (3, 1024 * 128, 1);
         }
 
         /// <summary>
@@ -79,10 +91,8 @@ namespace FactaLogicaSoftware.CryptoTools.PerformanceInterop
         /// desired time</returns>
         public ulong TransformToRfc2898(ulong milliseconds)
         {
-            return milliseconds / PerformanceDerivativeValue * 1250;
+            return milliseconds / this.PerformanceDerivativeValue * 1250;
         }
-
-#warning "Parameter has no signficance at the moment"
 
         /// <summary>
         /// Transforms the current performance derivative value to
@@ -91,24 +101,10 @@ namespace FactaLogicaSoftware.CryptoTools.PerformanceInterop
         /// <param name="milliseconds">The desired number of milliseconds</param>
         /// <returns>The tuning parameters for SCrypt to get the
         /// desired time</returns>
-        public (int N, int r, int p) TransformToScryptTuning(ulong milliseconds)
+        public (ulong N, uint r, uint p) TransformToScryptTuning(ulong milliseconds)
         {
             // TODO manage overflow
-            return (checked((int)Math.Pow(2, 19)), 8, 1);
-        }
-
-#warning "Parameter has no signficance at the moment"
-
-        /// <summary>
-        /// Transforms the current performance derivative value to
-        /// to a tuple (N, r, p) of argon2 tuning values
-        /// </summary>
-        /// <param name="milliseconds">The desired number of milliseconds</param>
-        /// <returns>The tuning parameters for argon to get the
-        /// desired time</returns>
-        public (int N, int r, int p) TransformToArgon2Tuning(ulong milliseconds)
-        {
-            return (3, 1024 * 128, 1);
+            return (checked((ulong)Math.Pow(2, 19)), 8U, 1U);
         }
     }
 }

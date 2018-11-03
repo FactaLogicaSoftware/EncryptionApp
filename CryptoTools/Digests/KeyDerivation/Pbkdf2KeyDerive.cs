@@ -1,13 +1,13 @@
-﻿using FactaLogicaSoftware.CryptoTools.Exceptions;
-using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
-using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
-using System.Security.Cryptography;
-using System.Text;
-
-namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
+﻿namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {
+    using FactaLogicaSoftware.CryptoTools.Exceptions;
+    using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
+    using System;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Diagnostics.Contracts;
+    using System.Security.Cryptography;
+    using System.Text;
+
     /// <inheritdoc cref="KeyDerive" />
     /// <summary>
     /// </summary>
@@ -15,32 +15,12 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
     {
         private readonly Rfc2898DeriveBytes _baseObject;
 
-        /// <inheritdoc />
-        /// <summary>
-        /// The performance values for this pbkdf2 function
-        /// </summary>
-        public override dynamic PerformanceValues { get; private protected set; }
-
-        /// <inheritdoc />
-        /// <summary>
-        /// The password, stored encrypted
-        /// </summary>
-        public override byte[] Password
-        {
-            get => ProtectedData.Unprotect(BackEncryptedArray, null, DataProtectionScope.CurrentUser);
-            private protected set
-            {
-                BackEncryptedArray = ProtectedData.Protect(value, null, DataProtectionScope.CurrentUser);
-                Usable = PerformanceValues != null;
-            }
-        }
-
         /// <summary>
         /// Default constructor that isn't valid for derivation
         /// </summary>
         public Pbkdf2KeyDerive()
         {
-            Usable = false;
+            this.Usable = false;
         }
 
         /// <summary>
@@ -52,11 +32,11 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// underlying Rfc2898DeriveBytes objects</param>
         public Pbkdf2KeyDerive(byte[] password, byte[] salt, int iterations)
         {
-            PerformanceValues = iterations;
-            Salt = salt;
-            Password = password;
-            _baseObject = new Rfc2898DeriveBytes(Password, Salt, (int)PerformanceValues);
-            Usable = true;
+            this.PerformanceValues = iterations;
+            this.Salt = salt;
+            this.Password = password;
+            this._baseObject = new Rfc2898DeriveBytes(this.Password, this.Salt, (int)this.PerformanceValues);
+            this.Usable = true;
         }
 
         /// <summary>
@@ -68,11 +48,37 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// underlying Rfc2898DeriveBytes objects</param>
         public Pbkdf2KeyDerive(string password, byte[] salt, int iterations)
         {
-            PerformanceValues = iterations;
-            Salt = salt;
-            Password = Encoding.UTF8.GetBytes(password);
-            _baseObject = new Rfc2898DeriveBytes(Password, Salt, (int)PerformanceValues);
-            Usable = true;
+            this.PerformanceValues = iterations;
+            this.Salt = salt;
+            this.Password = Encoding.UTF8.GetBytes(password);
+            this._baseObject = new Rfc2898DeriveBytes(this.Password, this.Salt, (int)this.PerformanceValues);
+            this.Usable = true;
+        }
+
+        /// <inheritdoc />
+        /// <summary>
+        /// The password, stored encrypted
+        /// </summary>
+        public override byte[] Password
+        {
+            get => ProtectedData.Unprotect(this.BackEncryptedArray, null, DataProtectionScope.CurrentUser);
+            private protected set
+            {
+                this.BackEncryptedArray = ProtectedData.Protect(value, null, DataProtectionScope.CurrentUser);
+                this.Usable = this.PerformanceValues != null;
+            }
+        }
+
+        /// <inheritdoc />
+        /// <summary>
+        /// The performance values for this pbkdf2 function
+        /// </summary>
+        public override dynamic PerformanceValues { get; private protected set; }
+
+        [SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = nameof(_baseObject), Justification = "Glitched - should not warn")]
+        public void Dispose()
+        {
+            this._baseObject?.Dispose();
         }
 
         /// <inheritdoc />
@@ -81,18 +87,14 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// </summary>
         public override byte[] GetBytes(int size)
         {
-            #region CONTRACT
-
-            if (!Usable)
+            if (!this.Usable)
             {
                 throw new InvalidCryptographicOperationException("Password not set");
             }
 
             Contract.EndContractBlock();
 
-            #endregion
-
-            return _baseObject.GetBytes(size);
+            return this._baseObject.GetBytes(size);
         }
 
         /// <inheritdoc />
@@ -100,23 +102,16 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// </summary>
         public override void Reset()
         {
-            _baseObject.Reset();
+            this._baseObject.Reset();
         }
 
-        /// <inheritdoc />
         /// <summary>
         /// </summary>
         /// <param name="performanceDerivative"></param>
         /// <param name="milliseconds">The desired number of milliseconds</param>
-        public override void TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
+        public static int TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
         {
-            PerformanceValues = checked((int)performanceDerivative.TransformToRfc2898(milliseconds));
-        }
-
-        [SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = nameof(_baseObject), Justification = "Glitched - should not warn")]
-        public void Dispose()
-        {
-            _baseObject?.Dispose();
+            return checked((int)performanceDerivative.TransformToRfc2898(milliseconds));
         }
     }
 }

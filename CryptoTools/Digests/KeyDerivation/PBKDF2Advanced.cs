@@ -1,26 +1,36 @@
-using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
-using System;
-using System.Collections;
-using System.Security.Cryptography;
-using System.Text;
-
 namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {
+    using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
+    using System;
+    using System.Collections;
+    using System.Security.Cryptography;
+    using System.Text;
+
     public sealed class Pbkdf2Advanced : KeyDerive
     {
-        private byte[] _buffer;
-        private readonly byte[] _salt;
-        private readonly System.Security.Cryptography.HMAC _hmac;
-
-        private uint _iterations;
-        private uint _blockCount;
-        private int _begin, _end;
-
-        //needs to be fixed
+        // needs to be fixed
         private const int BlockSize = 20;
 
-        //something about mode needing to be const or default
-        public Pbkdf2Advanced(string password, int saltSize, uint iterations/*1000*/, Type mode/* = typeof(HMACSHA256)*/)
+        private readonly HMAC _hmac;
+
+        private readonly byte[] _salt;
+
+        private int _begin;
+
+        private int _end;
+
+        private uint _blockCount;
+
+        private byte[] _buffer;
+
+        private uint _iterations;
+
+        // something about mode needing to be const or default
+        public Pbkdf2Advanced(
+            string password,
+            int saltSize,
+            uint iterations /*1000*/,
+            Type mode /* = typeof(HMACSHA256)*/)
         {
             if (saltSize < 0)
                 throw new ArgumentOutOfRangeException(nameof(saltSize));
@@ -29,38 +39,69 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             using (var rng = new RNGCryptoServiceProvider())
                 rng.GetBytes(salt);
 
-            _salt = salt;
-            _iterations = iterations;
+            this._salt = salt;
+            this._iterations = iterations;
             if (mode.IsSubclassOf(typeof(System.Security.Cryptography.HMAC)))
             {
-                _hmac = (System.Security.Cryptography.HMAC)Activator.CreateInstance(mode, new UTF8Encoding(false).GetBytes(password));
+                this._hmac = (System.Security.Cryptography.HMAC)Activator.CreateInstance(
+                    mode,
+                    new UTF8Encoding(false).GetBytes(password));
             }
             else
             {
                 throw new ArgumentException("You did not supply a valid Hashing algorithm");
             }
 
-            Reset();
+            this.Reset();
         }
 
-        public Pbkdf2Advanced(string password, byte[] salt, uint iterations/*=1000*/, Type mode/* = typeof(HMACSHA256)*/) : this(new UTF8Encoding(false).GetBytes(password), salt, iterations, mode)
+        public Pbkdf2Advanced(
+            string password,
+            byte[] salt,
+            uint iterations /*=1000*/,
+            Type mode /* = typeof(HMACSHA256)*/)
+            : this(new UTF8Encoding(false).GetBytes(password), salt, iterations, mode)
         {
         }
 
-        public Pbkdf2Advanced(IEnumerable password, byte[] salt, uint iterations/*=1000*/, Type mode/* = typeof(HMACSHA256)*/)
+        public Pbkdf2Advanced(
+            IEnumerable password,
+            byte[] salt,
+            uint iterations /*=1000*/,
+            Type mode /* = typeof(HMACSHA256)*/)
         {
-            _salt = salt;
-            _iterations = iterations;
+            this._salt = salt;
+            this._iterations = iterations;
             if (mode.IsSubclassOf(typeof(System.Security.Cryptography.HMAC)))
             {
-                _hmac = (System.Security.Cryptography.HMAC)Activator.CreateInstance(mode, password);
+                this._hmac = (System.Security.Cryptography.HMAC)Activator.CreateInstance(mode, password);
             }
             else
             {
                 throw new ArgumentException("You did not supply a valid Hashing algorithm");
             }
 
-            Reset();
+            this.Reset();
+        }
+
+        /// <inheritdoc />
+        /// <summary>
+        /// The password, stored encrypted
+        /// </summary>
+        public override byte[] Password
+        {
+            get => ProtectedData.Unprotect(this.BackEncryptedArray, null, DataProtectionScope.CurrentUser);
+            private protected set
+            {
+                this.BackEncryptedArray = ProtectedData.Protect(value, null, DataProtectionScope.CurrentUser);
+                this.Usable = this.PerformanceValues != null;
+            }
+        }
+
+        public override object PerformanceValues
+        {
+            get => this._iterations;
+            private protected set => this._iterations = (uint)value;
         }
 
         public override byte[] GetBytes(int length)
@@ -70,29 +111,31 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             var password = new byte[length];
 
             var offset = 0;
-            int size = _end - _begin;
+            int size = this._end - this._begin;
 
             if (size > 0)
             {
                 if (length >= size)
                 {
-                    Buffer.BlockCopy(_buffer, _begin, password, 0, size);
-                    _begin = _end = 0;
+                    Buffer.BlockCopy(this._buffer, this._begin, password, 0, size);
+                    this._begin = this._end = 0;
                     offset += size;
                 }
                 else
                 {
-                    Buffer.BlockCopy(_buffer, _begin, password, 0, length);
-                    _begin += length;
+                    Buffer.BlockCopy(this._buffer, this._begin, password, 0, length);
+                    this._begin += length;
                     return password;
                 }
             }
 
-            System.Diagnostics.Debug.Assert(_begin == 0 && _end == 0, "Invalid start or end indexes in the buffer!");
+            System.Diagnostics.Debug.Assert(
+                this._begin == 0 && this._end == 0,
+                "Invalid start or end indexes in the buffer!");
 
             while (offset < length)
             {
-                byte[] block = Transform();
+                byte[] block = this.Transform();
                 int remainder = length - offset;
 
                 if (remainder > BlockSize)
@@ -103,66 +146,47 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
                 else
                 {
                     Buffer.BlockCopy(block, 0, password, offset, remainder);
-                    Buffer.BlockCopy(block, remainder, _buffer, _begin, BlockSize - remainder);
-                    _end += (BlockSize - remainder);
+                    Buffer.BlockCopy(block, remainder, this._buffer, this._begin, BlockSize - remainder);
+                    this._end += (BlockSize - remainder);
                     return password;
                 }
             }
+
             return password;
-        }
-
-        public override object PerformanceValues
-        {
-            get => _iterations;
-            private protected set => _iterations = (uint)value;
-        }
-
-        /// <inheritdoc />
-        /// <summary>
-        /// The password, stored encrypted
-        /// </summary>
-        public override byte[] Password
-        {
-            get => ProtectedData.Unprotect(BackEncryptedArray, null, DataProtectionScope.CurrentUser);
-            private protected set
-            {
-                BackEncryptedArray = ProtectedData.Protect(value, null, DataProtectionScope.CurrentUser);
-                Usable = PerformanceValues != null;
-            }
         }
 
         public override void Reset()
         {
-            if (_buffer != null)
+            if (this._buffer != null)
             {
-                Array.Clear(_buffer, 0, _buffer.Length);
+                Array.Clear(this._buffer, 0, this._buffer.Length);
             }
 
-            _buffer = new byte[BlockSize];
-            _blockCount = 1;
-            _begin = _end = 0;
+            this._buffer = new byte[BlockSize];
+            this._blockCount = 1;
+            this._begin = this._end = 0;
         }
 
-        public override void TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
+        public static ulong TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
         {
-            PerformanceValues = performanceDerivative.TransformToRfc2898(milliseconds);
+            return performanceDerivative.TransformToRfc2898(milliseconds);
         }
 
         private byte[] Transform()
         {
-            byte[] b = BitConverter.GetBytes(_blockCount);
+            byte[] b = BitConverter.GetBytes(this._blockCount);
             byte[] littleEndianBytes = { b[3], b[2], b[1], b[0] };
             byte[] intBlock = BitConverter.IsLittleEndian ? littleEndianBytes : b;
 
-            _hmac.TransformBlock(_salt, 0, _salt.Length, _salt, 0);
-            _hmac.TransformFinalBlock(intBlock, 0, intBlock.Length);
-            byte[] temporaryHash = _hmac.Hash;
-            _hmac.Initialize();
+            this._hmac.TransformBlock(this._salt, 0, this._salt.Length, this._salt, 0);
+            this._hmac.TransformFinalBlock(intBlock, 0, intBlock.Length);
+            byte[] temporaryHash = this._hmac.Hash;
+            this._hmac.Initialize();
 
             byte[] ret = temporaryHash;
-            for (var i = 2; i <= _iterations; i++)
+            for (var i = 2; i <= this._iterations; i++)
             {
-                temporaryHash = _hmac.ComputeHash(temporaryHash);
+                temporaryHash = this._hmac.ComputeHash(temporaryHash);
                 for (var j = 0; j < BlockSize; j++)
                 {
                     ret[j] ^= temporaryHash[j];
@@ -170,7 +194,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             }
 
             // increment the blockCount count.
-            _blockCount++;
+            this._blockCount++;
             return ret;
         }
     }

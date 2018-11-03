@@ -96,7 +96,6 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// <inheritdoc />
         /// <summary>
         /// </summary>
-        /// <param name="toFill"></param>
         public override byte[] GetBytes(int size)
         {
             if (!Usable)
@@ -112,9 +111,9 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             _read = 0;
         }
 
-        public override void TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
+        public static (ulong N, uint r, uint p) TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
         {
-            PerformanceValues = performanceDerivative.TransformToArgon2Tuning(milliseconds);
+            return performanceDerivative.TransformToArgon2Tuning(milliseconds);
         }
     }
 }

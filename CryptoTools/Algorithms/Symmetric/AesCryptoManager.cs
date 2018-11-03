@@ -3,6 +3,7 @@ using Microsoft.VisualBasic.Devices;
 using System;
 using System.Diagnostics.Contracts;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
@@ -11,7 +12,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
     {
         public override int KeySize
         {
-            get => SymmetricAlgorithm.KeySize;
+            get => this.SymmetricAlgorithm.KeySize;
             set
             {
                 if (value != 128 && value != 192 && value != 256)
@@ -19,7 +20,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                     throw new ArgumentException("Key is not a valid length (128/192/256)");
                 }
 
-                SymmetricAlgorithm.KeySize = value;
+                this.SymmetricAlgorithm.KeySize = value;
             }
         }
 
@@ -30,7 +31,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         {
             // Base class value
             // TODO Customized field values
-            SymmetricAlgorithm = new AesCng
+            this.SymmetricAlgorithm = new AesCng
             {
                 BlockSize = 128,
                 KeySize = 256,
@@ -39,10 +40,10 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             };
 
             // Default memory - TODO Calculate to higher numbers if possible
-            MemoryConst = 1024 * 1024 * 4;
+            this.MemoryConst = 1024 * 1024 * 4;
 
             // As the default aes transformation object is AesCng which is FIPS compliant
-            IsFipsCompliant = true;
+            this.IsFipsCompliant = true;
         }
 
         /// <summary>
@@ -58,11 +59,11 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
 
             // Assign to class field
-            MemoryConst = memoryConst;
+            this.MemoryConst = memoryConst;
 
             // Create the aes object
             // TODO Customized field values
-            SymmetricAlgorithm = new AesCng
+            this.SymmetricAlgorithm = new AesCng
             {
                 BlockSize = 128,
                 KeySize = 256,
@@ -120,10 +121,10 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             #endregion
 
             // Set actual IV and key
-            SymmetricAlgorithm.Key = key;
-            SymmetricAlgorithm.IV = iv;
+            this.SymmetricAlgorithm.Key = key;
+            this.SymmetricAlgorithm.IV = iv.Take(this.SymmetricAlgorithm.BlockSize / 8).ToArray();
 
-            TransformFile(inputFile, outputFile, SymmetricAlgorithm.CreateEncryptor());
+            InternalTransformFile(inputFile, outputFile, this.SymmetricAlgorithm.CreateEncryptor());
         }
 
         /// <inheritdoc />
@@ -158,10 +159,10 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             #endregion
 
             // Set actual IV and key
-            SymmetricAlgorithm.Key = key;
-            SymmetricAlgorithm.IV = iv;
+            this.SymmetricAlgorithm.Key = key;
+            this.SymmetricAlgorithm.IV = iv;
 
-            TransformFile(inputFile, outputFile, SymmetricAlgorithm.CreateDecryptor());
+            InternalTransformFile(inputFile, outputFile, this.SymmetricAlgorithm.CreateDecryptor());
         }
 
         /// <inheritdoc />
@@ -179,23 +180,23 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             if (data == null) throw new ArgumentNullException(nameof(data));
             if (key == null) throw new ArgumentNullException(nameof(key));
             if (iv == null) throw new ArgumentNullException(nameof(iv));
-            if (!SymmetricAlgorithm.ValidKeySize(key.Length * 8)) throw new InvalidKeyLengthException($"Invalid key length of {key.Length * 8}");
-            if (iv.Length != SymmetricAlgorithm.BlockSize / 8) throw new InvalidCryptographicPropertyException($"IV length (bits: {iv.Length * 8}) must be equal to block size length {SymmetricAlgorithm.BlockSize}");
+            if (!this.SymmetricAlgorithm.ValidKeySize(key.Length * 8)) throw new InvalidKeyLengthException($"Invalid key length of {key.Length * 8}");
+            if (iv.Length != this.SymmetricAlgorithm.BlockSize / 8) throw new InvalidCryptographicPropertyException($"IV length (bits: {iv.Length * 8}) must be equal to block size length {this.SymmetricAlgorithm.BlockSize}");
 
             Contract.EndContractBlock();
 
             #endregion
 
             // AES values
-            SymmetricAlgorithm.KeySize = key.Length * 8;
-            SymmetricAlgorithm.Key = key;
-            SymmetricAlgorithm.IV = iv;
-            SymmetricAlgorithm.Mode = CipherMode.CBC;
-            SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
+            this.SymmetricAlgorithm.KeySize = key.Length * 8;
+            this.SymmetricAlgorithm.Key = key;
+            this.SymmetricAlgorithm.IV = iv;
+            this.SymmetricAlgorithm.Mode = CipherMode.CBC;
+            this.SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
 
             // Put the plaintext byte array into memory, and read it through the crypto stream to encrypt it
             var memStream = new MemoryStream(data);
-            var cryptoStream = new CryptoStream(memStream, SymmetricAlgorithm.CreateEncryptor(), CryptoStreamMode.Read);
+            var cryptoStream = new CryptoStream(memStream, this.SymmetricAlgorithm.CreateEncryptor(), CryptoStreamMode.Read);
             using (var binReader = new BinaryReader(cryptoStream))
             {
                 // TODO manage checked exception
@@ -218,22 +219,22 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             if (data == null) throw new ArgumentNullException(nameof(data));
             if (key == null) throw new ArgumentNullException(nameof(key));
             if (iv == null) throw new ArgumentNullException(nameof(iv));
-            if (!SymmetricAlgorithm.ValidKeySize(key.Length * 8)) throw new InvalidKeyLengthException($"Invalid key length of {key.Length * 8}");
-            if (iv.Length != SymmetricAlgorithm.BlockSize / 8) throw new InvalidCryptographicPropertyException($"IV length (bits: {iv.Length * 8}) must be equal to block size length {SymmetricAlgorithm.BlockSize}");
+            if (!this.SymmetricAlgorithm.ValidKeySize(key.Length * 8)) throw new InvalidKeyLengthException($"Invalid key length of {key.Length * 8}");
+            if (iv.Length != this.SymmetricAlgorithm.BlockSize / 8) throw new InvalidCryptographicPropertyException($"IV length (bits: {iv.Length * 8}) must be equal to block size length {this.SymmetricAlgorithm.BlockSize}");
 
 
             #endregion
 
             // AES values
-            SymmetricAlgorithm.KeySize = key.Length * 8;
-            SymmetricAlgorithm.Key = key;
-            SymmetricAlgorithm.IV = iv;
-            SymmetricAlgorithm.Mode = CipherMode.CBC;
-            SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
+            this.SymmetricAlgorithm.KeySize = key.Length * 8;
+            this.SymmetricAlgorithm.Key = key;
+            this.SymmetricAlgorithm.IV = iv;
+            this.SymmetricAlgorithm.Mode = CipherMode.CBC;
+            this.SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
 
-            // Put the ciphertext byte array into memory, and read it through the crypto stream to decrypt it
+            // Put the cipher text byte array into memory, and read it through the crypto stream to decrypt it
             var memStream = new MemoryStream(data);
-            var cryptoStream = new CryptoStream(memStream, SymmetricAlgorithm.CreateDecryptor(), CryptoStreamMode.Read);
+            var cryptoStream = new CryptoStream(memStream, this.SymmetricAlgorithm.CreateDecryptor(), CryptoStreamMode.Read);
             using (var binReader = new BinaryReader(cryptoStream))
             {
                 // TODO manage checked exception
