@@ -26,6 +26,7 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
+    <CodeAnalysisRuleSet>EncryptionApp.Library.CryptoTools.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -34,6 +35,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>EncryptionApp.Library.CryptoTools.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -42,7 +44,7 @@
     <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>EncryptionApp.Library.CryptoTools.ruleset</CodeAnalysisRuleSet>
     <LangVersion>latest</LangVersion>
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
@@ -59,7 +61,7 @@
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>EncryptionApp.Library.CryptoTools.ruleset</CodeAnalysisRuleSet>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
@@ -95,6 +97,7 @@
     <Compile Include="Digests\KeyDerivation\Argon2KeyDerive.cs" />
     <Compile Include="Digests\KeyDerivation\BCryptKeyDerive.cs" />
     <Compile Include="Digests\KeyDerivation\Pbkdf2Advanced.cs" />
+    <Compile Include="Events\DebugValuesFinalisedEventArgs.cs" />
     <Compile Include="Events\MemoryChunkChangedEventArgs.cs" />
     <Compile Include="Exceptions\DataTooLargeException.cs" />
     <Compile Include="Exceptions\InvalidCryptographicOperationException.cs" />
@@ -124,6 +127,7 @@
     <Compile Include="Algorithms\NativeKeyEncryptor.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="EncryptionApp.Library.CryptoTools.ruleset" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

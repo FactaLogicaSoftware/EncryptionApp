@@ -1,9 +1,9 @@
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
-
 namespace FactaLogicaSoftware.CryptoTools.HMAC
 {
+    using System.IO;
+    using System.Linq;
+    using System.Security.Cryptography;
+
     /// <summary>
     /// Used for signing and verifying HMACs
     /// </summary>
@@ -34,7 +34,7 @@ namespace FactaLogicaSoftware.CryptoTools.HMAC
         /// <param name="key">A byte[] of the key</param>
         /// <param name="hmac">The HMAC algorithm to use</param>
         /// <returns>A byte[] hash that is the file and key hashed</returns>
-        public static byte[] CreateHmac(byte[] data, byte[] key, System.Security.Cryptography.HMAC hmac)
+        public static byte[] CreateHmac(byte[] data, byte[] key, HMAC hmac)
         {
             byte[] hashKey;
             hmac.Key = key;
@@ -73,7 +73,7 @@ namespace FactaLogicaSoftware.CryptoTools.HMAC
         /// <param name="key">A byte[] of the key</param>
         /// <param name="hmac">The HMAC algorithm to use</param>
         /// <returns>A byte[] hash that is the file and key hashed</returns>
-        public static byte[] CreateHmac(string path, byte[] key, System.Security.Cryptography.HMAC hmac)
+        public static byte[] CreateHmac(string path, byte[] key, HMAC hmac)
         {
             byte[] hashKey;
             hmac.Key = key;
@@ -114,7 +114,7 @@ namespace FactaLogicaSoftware.CryptoTools.HMAC
         /// <param name="hash">The hash in the header file/the hash provided, that's been hashed with typeOfHash</param>
         /// <param name="hmac">The HMAC algorithm to use</param>
         /// <returns>True if they match, otherwise false</returns>
-        public static bool VerifyHmac(byte[] data, byte[] key, byte[] hash, System.Security.Cryptography.HMAC hmac)
+        public static bool VerifyHmac(byte[] data, byte[] key, byte[] hash, HMAC hmac)
         {
             byte[] hashKey;
             hmac.Key = key;
@@ -155,7 +155,7 @@ namespace FactaLogicaSoftware.CryptoTools.HMAC
         /// <param name="hash">The hash in the header file/the hash provided, that's been hashed with typeOfHash</param>
         /// <param name="hmac">The HMAC algorithm to use</param>
         /// <returns>True if they match, otherwise false</returns>
-        public static bool VerifyHmac(string path, byte[] key, byte[] hash, System.Security.Cryptography.HMAC hmac)
+        public static bool VerifyHmac(string path, byte[] key, byte[] hash, HMAC hmac)
         {
             byte[] hashKey;
             hmac.Key = key;

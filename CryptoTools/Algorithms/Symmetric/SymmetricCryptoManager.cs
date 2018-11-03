@@ -21,6 +21,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         private protected SymmetricAlgorithm SymmetricAlgorithm;
 
         public event EventHandler<MemoryChunkValueChangedEventArgs> MemoryChunkValueChanged;
+        public event EventHandler<DebugValuesFinalisedEventArgs> DebugValuesFinalised;
 
         // How many bytes read into memory per chunk - calculated by constructor
         protected int MemoryConst;
@@ -32,17 +33,17 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// </summary>
         public bool IsFipsCompliant { get; private protected set; }
 
-        public SymmetricCryptoManager()
+        protected SymmetricCryptoManager()
         {
             // Default memory - TODO Calculate to higher numbers if possible
-            MemoryConst = 1024 * 1024 * 4;
+            this.MemoryConst = 1024 * 1024 * 4;
         }
 
         /// <summary>
         /// Uses 4mb read/write values and an AES algorithm of your choice
         /// </summary>
         /// <param name="algorithm">The algorithm to use</param>
-        public SymmetricCryptoManager(SymmetricAlgorithm algorithm)
+        protected SymmetricCryptoManager(SymmetricAlgorithm algorithm)
         {
             #region CONTRACT
 
@@ -61,11 +62,11 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             #endregion
 
             // Default memory - TODO Calculate to higher numbers if possible
-            MemoryConst = 1024 * 1024 * 4;
+            this.MemoryConst = 1024 * 1024 * 4;
 
             // Assign the aes object
             // TODO verify integrity of argument
-            SymmetricAlgorithm = algorithm;
+            this.SymmetricAlgorithm = algorithm;
         }
 
         /// <summary>
@@ -73,7 +74,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// </summary>
         /// <param name="memoryConst">The number of bytes to read and write</param>
         /// <param name="algorithm">The algorithm to use</param>
-        public SymmetricCryptoManager(int memoryConst, SymmetricAlgorithm algorithm)
+        protected SymmetricCryptoManager(int memoryConst, SymmetricAlgorithm algorithm)
         {
             #region CONTRACT
 
@@ -86,11 +87,11 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             // Check if the algorithm is part of the 2 .NET algorithms currently FIPS compliant
             if (algorithm is AesCng || algorithm is AesCryptoServiceProvider || algorithm is TripleDESCng)
             {
-                IsFipsCompliant = true;
+                this.IsFipsCompliant = true;
             }
             else
             {
-                IsFipsCompliant = false;
+                this.IsFipsCompliant = false;
             }
 
             Contract.EndContractBlock();
@@ -98,22 +99,28 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             #endregion
 
             // Assign to class field
-            MemoryConst = memoryConst;
+            this.MemoryConst = memoryConst;
 
             // Assign the aes object
             // TODO verify integrity of argument
-            SymmetricAlgorithm = algorithm;
+            this.SymmetricAlgorithm = algorithm;
         }
         
         ~SymmetricCryptoManager()
         {
             // All aes classes implement IDispose so we must dispose of it
-            SymmetricAlgorithm.Dispose();
+            this.SymmetricAlgorithm.Dispose();
         }
 
         protected void OnMemoryChunkValueChanged(MemoryChunkValueChangedEventArgs e)
         {
-            EventHandler<MemoryChunkValueChangedEventArgs> handler = MemoryChunkValueChanged;
+            EventHandler<MemoryChunkValueChangedEventArgs> handler = this.MemoryChunkValueChanged;
+            handler?.Invoke(this, e);
+        }
+
+        protected void OnDebugValuesFinalised(DebugValuesFinalisedEventArgs e)
+        {
+            EventHandler<DebugValuesFinalisedEventArgs> handler = this.DebugValuesFinalised;
             handler?.Invoke(this, e);
         }
 
@@ -123,7 +130,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="inputFile"></param>
         /// <param name="outputFile"></param>
         /// <param name="transformer"></param>
-        protected void TransformFile(string inputFile, string outputFile, ICryptoTransform transformer)
+        protected void InternalTransformFile(string inputFile, string outputFile, ICryptoTransform transformer)
         {
             // Any cryptographic exception indicates the data is invalid or an incorrect password has been inputted
             try
@@ -132,14 +139,17 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 // Debug values
                 if (!Stopwatch.IsHighResolution)
                 {
-                    throw new Exception("You don't have a high-res sysclock. Disable debug mode to continue"); // TODO should change
+                    throw new Exception("You don't have a high-res system clock. Disable debug mode to continue"); // TODO should change
                 }
 
                 Stopwatch watch = Stopwatch.StartNew();
 
+                var fileSizeBytes = 0L;
                 var iterations = 0L;
                 var fullIterationTime = 0.0D;
                 var avgIterationMilliseconds = 0D;
+                var readTime = 0D;
+                var writeTime = 0D;
 #endif
                 // Creates the streams necessary for reading and writing data
                 FileStream outFileStream = File.Create(outputFile);
@@ -156,24 +166,31 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
                         try
                         {
+#if DEBUG
+                            double readOffset = watch.Elapsed.TotalMilliseconds;
+#endif
                             // Read as many bytes as we allow into the array from the file
-                            data = inFile.ReadBytes(MemoryConst);
+                            data = inFile.ReadBytes(this.MemoryConst);
+#if DEBUG
+                            readTime += watch.Elapsed.TotalMilliseconds - readOffset;
+#endif
                         }
                         catch (OutOfMemoryException)
                         {
-                            MemoryConst = MemoryConst / 2;
-                            OnMemoryChunkValueChanged(new MemoryChunkValueChangedEventArgs(MemoryConst, this));
+                            this.MemoryConst = this.MemoryConst / 2;
+                            OnMemoryChunkValueChanged(new MemoryChunkValueChangedEventArgs(this.MemoryConst, this));
                             throw;
                         }
 
-                        // Write it through the cryptostream so it is transformed
+#if DEBUG
+                        double writeOffset = watch.Elapsed.TotalMilliseconds;
+#endif
+                        // Write it through the crypto stream so it is transformed
                         cs.Write(data, 0, data.Length);
+#if DEBUG
+                        writeTime += watch.Elapsed.TotalMilliseconds - writeOffset;
+#endif
 
-                        // Break if
-                        if (data.Length < MemoryConst)
-                        {
-                            break;
-                        }
 #if DEBUG
                         // Debug values
                         double perIterationMilliseconds = watch.Elapsed.TotalMilliseconds - offset;
@@ -182,7 +199,14 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                             (iterations + 1);
                         fullIterationTime += perIterationMilliseconds;
                         iterations++;
+                        fileSizeBytes += data.Length;
 #endif
+
+                        // Break if
+                        if (data.Length < this.MemoryConst)
+                        {
+                            break;
+                        }
                     }
 #if DEBUG
                     // Finalize and write debug values
@@ -197,8 +221,15 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                         "Average iteration length (ms): " + iterationMilliseconds.ToString("0.##########"),
                         "Time of all iterations, combined (s): " + fullIterationTime / 1000,
                         "Time of all iterations, combined (ms): " + fullIterationTime,
-                        "Iterations:" + iterations
+                        "Iterations:" + iterations,
+                        "File size: " + fileSizeBytes,
+                        "Average IO speed (Read + Write): " + fileSizeBytes / (1024 * 1024D) / totalMilliseconds + "mb/s",
+                        "Average IO read speed: " + fileSizeBytes / 1024 * 1024 / readTime + "mb/s",
+                        "Average IO write speed: " + fileSizeBytes / 1024 * 1024 / writeTime + "mb/s"
+                        // TODO more advanced IO stats
                     };
+
+                    OnDebugValuesFinalised(new DebugValuesFinalisedEventArgs(toWrite));
 
                     InternalDebug.WriteToDiagnosticsFile(toWrite);
 #endif
@@ -206,7 +237,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
             catch (CryptographicException) // If something went wrong, we get it here
             {
-                SymmetricAlgorithm.Dispose();
+                this.SymmetricAlgorithm.Dispose();
                 throw;
             }
         }

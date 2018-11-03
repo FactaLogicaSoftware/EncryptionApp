@@ -1,8 +1,8 @@
-﻿using System;
-using System.Security.Cryptography;
-
-namespace FactaLogicaSoftware.CryptoTools.Exceptions
+﻿namespace FactaLogicaSoftware.CryptoTools.Exceptions
 {
+    using System;
+    using System.Security.Cryptography;
+
     /// <inheritdoc />
     /// <summary>
     /// An exception which represents an invalid call or operation on
@@ -25,7 +25,8 @@ namespace FactaLogicaSoftware.CryptoTools.Exceptions
         /// exception
         /// </summary>
         /// <param name="message">The string to be the message</param>
-        public InvalidCryptographicOperationException(string message) : base(message)
+        public InvalidCryptographicOperationException(string message)
+            : base(message)
         {
         }
 
@@ -36,7 +37,8 @@ namespace FactaLogicaSoftware.CryptoTools.Exceptions
         /// </summary>
         /// <param name="message">The string to be the message</param>
         /// <param name="inner">The inner exception</param>
-        public InvalidCryptographicOperationException(string message, Exception inner) : base(message, inner)
+        public InvalidCryptographicOperationException(string message, Exception inner)
+            : base(message, inner)
         {
         }
     }

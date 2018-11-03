@@ -33,7 +33,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             throw new NotImplementedException();
         }
 
-        public override void TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
+        public static dynamic TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
         {
             throw new NotImplementedException();
         }

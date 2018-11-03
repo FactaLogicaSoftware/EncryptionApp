@@ -128,7 +128,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             SymmetricAlgorithm.Key = key;
             SymmetricAlgorithm.IV = iv.Take(8).ToArray();
 
-            TransformFile(inputFile, outputFile, SymmetricAlgorithm.CreateEncryptor());
+            InternalTransformFile(inputFile, outputFile, SymmetricAlgorithm.CreateEncryptor());
         }
 
         /// <inheritdoc />
@@ -169,7 +169,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             SymmetricAlgorithm.Key = key;
             SymmetricAlgorithm.IV = iv.Take(8).ToArray();
 
-            TransformFile(inputFile, outputFile, SymmetricAlgorithm.CreateDecryptor());
+            InternalTransformFile(inputFile, outputFile, SymmetricAlgorithm.CreateDecryptor());
         }
 
         /// <inheritdoc />

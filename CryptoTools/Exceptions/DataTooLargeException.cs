@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace FactaLogicaSoftware.CryptoTools.Exceptions
+﻿namespace FactaLogicaSoftware.CryptoTools.Exceptions
 {
+    using System;
+
     [Serializable]
     public class DataTooLargeException : InvalidCryptographicOperationException
     {
@@ -9,7 +9,8 @@ namespace FactaLogicaSoftware.CryptoTools.Exceptions
         /// <summary>
         /// The default constructor
         /// </summary>
-        public DataTooLargeException() : base("Key is not valid")
+        public DataTooLargeException()
+            : base("Key is not valid")
         {
         }
 
@@ -19,7 +20,8 @@ namespace FactaLogicaSoftware.CryptoTools.Exceptions
         /// exception
         /// </summary>
         /// <param name="message">The string to be the message</param>
-        public DataTooLargeException(string message) : base(message)
+        public DataTooLargeException(string message)
+            : base(message)
         {
         }
 
@@ -30,7 +32,8 @@ namespace FactaLogicaSoftware.CryptoTools.Exceptions
         /// </summary>
         /// <param name="message">The string to be the message</param>
         /// <param name="inner">The inner exception</param>
-        public DataTooLargeException(string message, Exception inner) : base(message, inner)
+        public DataTooLargeException(string message, Exception inner)
+            : base(message, inner)
         {
         }
     }

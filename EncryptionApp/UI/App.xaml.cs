@@ -1,41 +1,46 @@
-﻿using System.IO;
-using System.Security.Cryptography;
-using System.Windows;
-using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
-
-namespace Encryption_App.UI
+﻿namespace Encryption_App.UI
 {
+    using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
+    using System.IO;
+    using System.Security.Cryptography;
+    using System.Windows;
+
     /// <inheritdoc />
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
     public partial class App : Application
     {
-        internal string TempFilePath;
-        internal string HeaderLessTempFile;
-        internal string DataTempFile;
         internal readonly PerformanceDerivative PerformanceDerivative;
+
+        internal string DataTempFile;
+
+        internal string HeaderLessTempFile;
+
+        private string _tempFilePath;
 
         private App()
         {
             // Run startup
             try
             {
-                PerformanceDerivative = new PerformanceDerivative();
-                BuildFileSystem();
+                this.PerformanceDerivative = new PerformanceDerivative();
+                this.BuildFileSystem();
             }
             catch (CryptographicException e)
             {
                 FileStatics.WriteToLogFile(e);
 
-                MessageBox.Show("Startup exception occured during creation of the performance derivative - Check log file");
+                MessageBox.Show(
+                    "Startup exception occured during creation of the performance derivative - Check log file");
                 throw;
             }
             catch (IOException e)
             {
                 FileStatics.WriteToLogFile(e);
 
-                MessageBox.Show("Startup exception occured during creation/validation of the file system - Check log file");
+                MessageBox.Show(
+                    "Startup exception occured during creation/validation of the file system - Check log file");
                 throw;
             }
         }
@@ -43,9 +48,9 @@ namespace Encryption_App.UI
         private void BuildFileSystem()
         {
             Directory.CreateDirectory(@"EncryptionApp\LocalFiles");
-            TempFilePath = @"EncryptionApp\LocalFiles\";
-            HeaderLessTempFile = TempFilePath + "headerLessConstructionFile.temp";
-            DataTempFile = TempFilePath + "moveFile.temp";
+            this._tempFilePath = @"EncryptionApp\LocalFiles\";
+            this.HeaderLessTempFile = this._tempFilePath + "headerLessConstructionFile.temp";
+            this.DataTempFile = this._tempFilePath + "moveFile.temp";
         }
     }
 }

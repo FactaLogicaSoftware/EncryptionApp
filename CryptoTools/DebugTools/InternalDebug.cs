@@ -1,33 +1,39 @@
 ﻿#if DEBUG
 
-using System;
-using System.Globalization;
-using System.IO;
-
 namespace FactaLogicaSoftware.CryptoTools.DebugTools
 {
+    using System;
+    using System.Globalization;
+    using System.IO;
+
     public static class InternalDebug
     {
-        private const string TempFilePath = @"CryptoTools\Debug";
+        private const string TempFilePath = @"CryptoTools\Debug\";
+
+        private static readonly object LockForFileExclusivity = new object();
 
         public static void WriteToDiagnosticsFile(params string[] items)
         {
-            if (!Directory.Exists(TempFilePath))
+            lock (LockForFileExclusivity)
             {
-                Directory.CreateDirectory(TempFilePath);
-            }
-
-            if (!File.Exists(TempFilePath + "DiagnosticsAndDebug.data"))
-            {
-                File.Create(TempFilePath + "DiagnosticsAndDebug.data");
-            }
-
-            using (var fWriter = new StreamWriter(new FileStream(TempFilePath + "DiagnosticsAndDebug.data", FileMode.Append)))
-            {
-                fWriter.WriteLine('\n' + DateTime.Now.ToString(CultureInfo.CurrentCulture));
-                foreach (string item in items)
+                if (!Directory.Exists(TempFilePath))
                 {
-                    fWriter.WriteLine(item);
+                    Directory.CreateDirectory(TempFilePath);
+                }
+
+                if (!File.Exists(TempFilePath + "DiagnosticsAndDebug.data"))
+                {
+                    File.Create(TempFilePath + "DiagnosticsAndDebug.data");
+                }
+
+                using (var fWriter = new StreamWriter(
+                    new FileStream(TempFilePath + "DiagnosticsAndDebug.data", FileMode.Append)))
+                {
+                    fWriter.WriteLine('\n' + DateTime.Now.ToString(CultureInfo.CurrentCulture));
+                    foreach (string item in items)
+                    {
+                        fWriter.WriteLine(item);
+                    }
                 }
             }
         }
