@@ -18,20 +18,16 @@ namespace PBKDF2Hasher
         public static int GetIterations()
         {
             Console.WriteLine("Please enter a number of iterations. If no input is given the program will default to 1 million: ");
-
+            
             int iterations;
-
+            
             string input = Console.ReadLine();
             if (input == "")
             {
                 Console.WriteLine("Using default iterations");
                 return 1000000;
             }
-            try
-            {
-                iterations = Int32.Parse(input);
-            }
-            catch (FormatException)
+            if (!Int32.TryParse(input, out iterations))
             {
                 Console.WriteLine("Please enter a valid number");
                 return GetIterations();
@@ -49,7 +45,7 @@ namespace PBKDF2Hasher
 
             Byte[] salt;
             int iterations;
-
+            
             if (args.Length > 1)
             {
                 salt = Convert.FromBase64String(args[1]);
