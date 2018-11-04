@@ -16,14 +16,6 @@
         private readonly Rfc2898DeriveBytes _baseObject;
 
         /// <summary>
-        /// Default constructor that isn't valid for derivation
-        /// </summary>
-        public Pbkdf2KeyDerive()
-        {
-            this.Usable = false;
-        }
-
-        /// <summary>
         /// Creates an instance of an object used to hash
         /// </summary>
         /// <param name="password">The bytes of the password to hash</param>
@@ -36,7 +28,6 @@
             this.Salt = salt;
             this.Password = password;
             this._baseObject = new Rfc2898DeriveBytes(this.Password, this.Salt, (int)this.PerformanceValues);
-            this.Usable = true;
         }
 
         /// <summary>
@@ -52,7 +43,6 @@
             this.Salt = salt;
             this.Password = Encoding.UTF8.GetBytes(password);
             this._baseObject = new Rfc2898DeriveBytes(this.Password, this.Salt, (int)this.PerformanceValues);
-            this.Usable = true;
         }
 
         /// <inheritdoc />
@@ -65,7 +55,6 @@
             private protected set
             {
                 this.BackEncryptedArray = ProtectedData.Protect(value, null, DataProtectionScope.CurrentUser);
-                this.Usable = this.PerformanceValues != null;
             }
         }
 
@@ -87,13 +76,8 @@
         /// </summary>
         public override byte[] GetBytes(int size)
         {
-            if (!this.Usable)
-            {
-                throw new InvalidCryptographicOperationException("Password not set");
-            }
-
-            Contract.EndContractBlock();
-
+            if (size <= 0)
+                throw new ArgumentOutOfRangeException(nameof(size));
             return this._baseObject.GetBytes(size);
         }
 

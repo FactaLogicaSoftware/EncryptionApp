@@ -1,40 +1,26 @@
-﻿using FactaLogicaSoftware.CryptoTools.DebugTools;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Text;
+using Newtonsoft.Json;
 
-namespace FactaLogicaSoftware.CryptoTools.Information
+namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
 {
-    using Newtonsoft.Json;
-    using System;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-
-    public class AesCryptographicInfo : CryptographicInfo
+    public class SymmetricCryptographicRepresentative : CryptographicRepresentative
     {
         /// <summary>
         /// The default constructor
         /// </summary>
-        public AesCryptographicInfo()
+        public SymmetricCryptographicRepresentative()
             : base()
         {
             // Define the encoding used and the strings used to represent the start and end of the header object
             this.Encoding = Encoding.UTF8;
         }
 
-        /// <summary>
-        /// The constructor that creates the object from another
-        /// CryptographicInfo object
-        /// </summary>
-        /// <param name="info">The CryptographicInfo object to derive it from</param>
-        public AesCryptographicInfo(CryptographicInfo info)
-        {
-            this.CryptoManager = info.CryptoManager;
-            this.EncryptionModeInfo = info.EncryptionModeInfo;
-            this.Hmac = info.Hmac;
-            this.HeaderLength = info.HeaderLength;
-            this.InstanceKeyCreator = info.InstanceKeyCreator;
-            this.Type = info.Type;
-            this.Encoding = Encoding.UTF8;
-        }
+        public HmacRepresentative Hmac;
+        public TransformationRepresentative TransformationModeInfo;
+        public KeyRepresentative InstanceKeyCreator;
 
         /// <inheritdoc />
         /// <summary>
@@ -52,7 +38,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information
         /// </summary>
         /// <param name="header">The string of header DATA</param>
         /// <returns>The cryptographic info object created from the data</returns>
-        public override CryptographicInfo ReadHeader(string header)
+        public override CryptographicRepresentative ReadHeader(string header)
         {
             // Get the index of the start and end of the JSON object
 #pragma warning disable 162
@@ -74,12 +60,12 @@ namespace FactaLogicaSoftware.CryptoTools.Information
             this.HeaderLength =
                 StartChars.Length + jsonString.Length + EndChars.Length;
 
-            AesCryptographicInfo data;
+            SymmetricCryptographicRepresentative data;
 
             try
             {
                 // Create the data deserialized to a cryptographic object
-                data = JsonConvert.DeserializeObject<AesCryptographicInfo>(jsonString);
+                data = JsonConvert.DeserializeObject<SymmetricCryptographicRepresentative>(jsonString);
             }
             catch (JsonException e)
             {
@@ -101,7 +87,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information
         /// </summary>
         /// <param name="path">The file path to read rom</param>
         /// <returns>The cryptographic info object created from the file data</returns>
-        public override CryptographicInfo ReadHeaderFromFile(string path)
+        public override CryptographicRepresentative ReadHeaderFromFile(string path)
         {
             // Create the streams needed to read from the file
             var fileStream = new FileStream(path, FileMode.Open);
@@ -164,7 +150,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information
                                     + byteOrderMarkLength; // 3 is length of BOM
 
                 // Create the data deserialized to a cryptographic object
-                var data = JsonConvert.DeserializeObject<AesCryptographicInfo>(jsonString);
+                var data = JsonConvert.DeserializeObject<SymmetricCryptographicRepresentative>(jsonString);
 
                 // Set the type and length
                 data.Type = InfoType.Read;

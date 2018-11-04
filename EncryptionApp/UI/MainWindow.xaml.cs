@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -13,6 +14,10 @@ using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
 using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
 using FactaLogicaSoftware.CryptoTools.Events;
 using FactaLogicaSoftware.CryptoTools.Information;
+using FactaLogicaSoftware.CryptoTools.Information.Contracts;
+using FactaLogicaSoftware.CryptoTools.Information.Representatives;
+using Newtonsoft.Json;
+
 #if VERBOSE
 #endif
 
@@ -26,6 +31,7 @@ namespace Encryption_App.UI
     {
         #region FIELDS
 
+        // No they can't - dynamic keyword messes up ReSharper and Intellisense
         // ReSharper disable twice PrivateFieldCanBeConvertedToLocalVariable
         // ReSharper disable twice NotAccessedField.Local
         private const int DesiredKeyDerivationMilliseconds = 2000;
@@ -36,6 +42,7 @@ namespace Encryption_App.UI
         private readonly TransformationPropertiesManager _transformer;
         private readonly ResourceManager _manager;
         private bool _isExecutingExclusiveProcess;
+        private Queue<(object sender, RoutedEventArgs e, RequestStateRecord record)> cache;
 
         #endregion
 
@@ -70,6 +77,8 @@ namespace Encryption_App.UI
             this.DropDown.SelectedIndex = 0;
             this._isExecutingExclusiveProcess = false;
 
+            this.EncryptButton.Click += Encrypt_Click;
+            this.DecryptButton.Click += Decrypt_Click;
             this._encryptionProgress = new Progress<int>();
             this._decryptionProgress = new Progress<int>();
             this._transformer = new TransformationPropertiesManager();
@@ -114,10 +123,6 @@ namespace Encryption_App.UI
             }
         }
 
-        private void MenuItem_Click(RoutedEventArgs e)
-        {
-        }
-
         private void CheckBox_Click(object sender, RoutedEventArgs e)
         {
         }
@@ -154,26 +159,12 @@ namespace Encryption_App.UI
         // TODO Make values dependent on settings @NightRaven3142
         private async void Encrypt_Click(object sender, RoutedEventArgs e)
         {
-            await EncryptDataAsync();
+            await EncryptDataAsync(sender, e);
         }
-
-
 
         private async void Decrypt_Click(object sender, RoutedEventArgs e)
         {
             await DecryptDataAsync();
-        }
-
-        private static void Encryptor_OnDebugValuesFinalised(object sender, DebugValuesFinalisedEventArgs e)
-        {
-            try
-            {
-                FileStatics.WriteToLogFile(e.FinalisedStrings.ToArray<object>()); // little bit of a hack, prevents covariant conversion warning, which is managed in the function
-            }
-            catch (IOException exception)
-            {
-                MessageBox.Show($"Unable to log values - IO exception occured with message: {exception.Message}");
-            }
         }
 
         #endregion
@@ -189,15 +180,25 @@ namespace Encryption_App.UI
         /// <returns></returns>
         [DllImport("KERNEL32.DLL", EntryPoint = "RtlZeroMemory")]
         // ReSharper disable once UnusedMember.Local
-        private static extern bool ZeroMemory(IntPtr destination, int length); // Function is called at runtime through a dynamic type; ignore warning
+        public static extern bool ZeroMemory(IntPtr destination, int length); // Function is called at runtime through a dynamic type; ignore warning
 
         #endregion
 
         #region METHODS
 
-        private enum ProcessType
+        /// <summary>
+        /// Defines whether a transformation
+        /// process is encryption or decryption
+        /// </summary>
+        public enum ProcessType
         {
+            /// <summary>
+            /// The process type is encryption
+            /// </summary>
             Encryption,
+            /// <summary>
+            /// The process type is decryption
+            /// </summary>
             Decryption
         }
 
@@ -229,39 +230,46 @@ namespace Encryption_App.UI
             }
         }
 
-        private async Task EncryptDataAsync()
+        private async Task EncryptDataAsync(object sender, RoutedEventArgs e)
         {
+            var contract = new SymmetricCryptographicContract
+            (
+                new TransformationContract
+                {
+                    BlockSize = 128,
+                    CryptoManager = typeof(AesCryptoManager),
+                    InitializationVectorSizeBytes = 16,
+                    KeySize = 128,
+                    Mode = CipherMode.CBC
+                },
+                new KeyContract
+                {
+                    KeyAlgorithm = typeof(Pbkdf2KeyDerive),
+                    PerformanceDerivative = App.This.PerformanceDerivative.PerformanceDerivativeValue,
+                    SaltLengthBytes = 16
+                },
+                new HmacContract
+                {
+                    HashAlgorithm = typeof(HMACSHA384)
+                }
+            );
+
+            var record = new RequestStateRecord(ProcessType.Encryption, this.EncryptFileTextBox.Text, contract);
+
             // If the program is currently executing something, just return and inform the user
             if (this._isExecutingExclusiveProcess)
             {
+                // TODO run cached processes
+                this.cache.Enqueue((sender, e, record));
                 MessageBox.Show("Cannot perform action - currently executing one");
                 return;
             }
 
             // Set the loading gif and set that we are running a process
             StartProcess(ProcessType.Encryption);
+            var manager = new TransformingFileManager(this, record.FilePath);
 
-            // Create a random salt and iv
-            var salt = new byte[16];
-            var iv = new byte[16];
-            var rng = new RNGCryptoServiceProvider();
-            try
-            {
-                rng.GetBytes(iv);
-                rng.GetBytes(salt);
-            }
-            catch (CryptographicException exception)
-            {
-                FileStatics.WriteToLogFile(exception);
-                MessageBox.Show("There was an error generating secure random numbers. Please try again - check log file for more details");
-            }
-
-            // Pre declaration of them for assigning during the secure string scope
-            string filePath = this.EncryptFileTextBox.Text;
-
-            var manager = new TransformingFileManager(this, filePath);
-
-            if (!manager.FileContainsHeader())
+            if (manager.FileContainsHeader())
             {
                 MessageBoxResult result = MessageBox.Show("It appears the data you are trying to encrypt is already encrypted. Do you wish to continue?", "Encryption confirmation", MessageBoxButton.YesNo);
 
@@ -273,46 +281,22 @@ namespace Encryption_App.UI
             }
 
             // If the file doesn't exist, return and inform the user
-            if (!File.Exists(filePath))
+            if (!File.Exists(record.FilePath))
             {
                 MessageBox.Show("File not valid");
                 EndProcess(ProcessType.Encryption);
                 return;
             }
 
-            // Assign the values to the CryptographicInfo object
-            var data = new AesCryptographicInfo
-            {
-                CryptoManager = typeof(AesCryptoManager).AssemblyQualifiedName,
-                Hmac = new HmacInfo
-                {
-                    HashAlgorithm = typeof(HMACSHA384).AssemblyQualifiedName
-
-                },
-                InstanceKeyCreator = new KeyCreator
-                {
-                    root_HashAlgorithm = typeof(Pbkdf2KeyDerive).AssemblyQualifiedName,
-                    PerformanceDerivative = App.This.PerformanceDerivative.PerformanceDerivativeValue,
-                    salt = salt
-                },
-                EncryptionModeInfo = new EncryptionModeInfo
-                {
-                    InitializationVector = iv,
-                    KeySize = KeySize,
-                    BlockSize = 128,
-                    Mode = CipherMode.CBC
-                }
-            };
-
             try
             {
                 // Run the encryption in a separate thread and return control to the UI thread
-                await Task.Run(() => manager.EncryptDataWithHeader(data, this.EncryptPasswordBox.SecurePassword, filePath, DesiredKeyDerivationMilliseconds));
+                await Task.Run(() => manager.EncryptDataWithHeader(record, this.EncryptPasswordBox.SecurePassword, record.FilePath, DesiredKeyDerivationMilliseconds));
 
             }
-            catch (CryptographicException e)
+            catch (CryptographicException exception)
             {
-                FileStatics.WriteToLogFile(e);
+                FileStatics.WriteToLogFile(exception);
                 MessageBox.Show("Error occured during encryption. Please check log file.");
                 EndProcess(ProcessType.Encryption);
             }
@@ -333,7 +317,7 @@ namespace Encryption_App.UI
             StartProcess(ProcessType.Decryption);
 
             // Create the object used to represent the header data
-            var data = new AesCryptographicInfo();
+            var data = new SymmetricCryptographicRepresentative();
 
             // Get the path from the box
             string filePath = this.DecryptFileTextBox.Text;
@@ -351,7 +335,7 @@ namespace Encryption_App.UI
             // Read the header
             // ReSharper disable once ImplicitlyCapturedClosure
 
-            if (!manager.FileContainsHeader())
+            if (manager.FileContainsHeader())
             {
                 MessageBox.Show("File doesn't contain a valid header. It could be corrupted or not encrypted");
                 EndProcess(ProcessType.Decryption);
@@ -360,9 +344,17 @@ namespace Encryption_App.UI
 
             try
             {
-                data = (AesCryptographicInfo)data.ReadHeaderFromFile(filePath);
+                data = (SymmetricCryptographicRepresentative) data.ReadHeaderFromFile(filePath);
             }
             catch (FileFormatException exception)
+            {
+                FileStatics.WriteToLogFile(exception);
+                MessageBox.Show(
+                    "Header has been modified during program execution and corrupted. Check log for details");
+                EndProcess(ProcessType.Decryption);
+                return;
+            }
+            catch (JsonException exception)
             {
                 FileStatics.WriteToLogFile(exception);
                 MessageBox.Show("File header is existent but file is corrupted. Check log for details");
@@ -376,7 +368,6 @@ namespace Encryption_App.UI
             // Set the loading gif and set that we are now not running a process
             EndProcess(ProcessType.Decryption);
         }
-
 
         #endregion
     }

@@ -1,12 +1,12 @@
-﻿using Newtonsoft.Json;
-using System.Text;
+﻿using System.Text;
+using Newtonsoft.Json;
 
-namespace FactaLogicaSoftware.CryptoTools.Information
+namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
 {
     /// <summary>
-    /// The abstract class that all CryptographicInfo objects derive from
+    /// The abstract class that all CryptographicRepresentative objects derive from
     /// </summary>
-    public abstract class CryptographicInfo
+    public abstract class CryptographicRepresentative
     {
         // padding used to find start and end of header object - human readable
         private protected Encoding Encoding;
@@ -16,7 +16,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information
         [JsonIgnore]
         public static readonly string EndChars;
 
-        static CryptographicInfo()
+        static CryptographicRepresentative()
         {
             StartChars = "BEGIN ENCRYPTION HEADER STRING";
             EndChars = "END ENCRYPTION HEADER STRING";
@@ -37,13 +37,6 @@ namespace FactaLogicaSoftware.CryptoTools.Information
         // primary data object - see CryptoStructs.cs for documentation
         public string CryptoManager;
 
-        public HmacInfo Hmac;
-        public EncryptionModeInfo EncryptionModeInfo;
-        public KeyCreator InstanceKeyCreator;
-
-        // private types
-
-
         /// <summary>
         /// If overriden in a derived class, writes a header representation of the object to a file as JSON
         /// </summary>
@@ -51,11 +44,11 @@ namespace FactaLogicaSoftware.CryptoTools.Information
         public abstract void WriteHeaderToFile(string path);
 
         /// <summary>
-        /// If overriden in a derived class, reads a header from a file and creates a CryptographicInfo object from it
+        /// If overriden in a derived class, reads a header from a file and creates a CryptographicRepresentative object from it
         /// </summary>
         /// <param name="path"></param>
         /// <returns>The object created from the header</returns>
-        public abstract CryptographicInfo ReadHeaderFromFile(string path);
+        public abstract CryptographicRepresentative ReadHeaderFromFile(string path);
 
         /// <summary>
         /// If overriden in a derived class, creates a header representation of the object as a string as JSON
@@ -64,9 +57,9 @@ namespace FactaLogicaSoftware.CryptoTools.Information
         public abstract string GenerateHeader();
 
         /// <summary>
-        /// If overriden in a derived class, reads a header from a string and creates a CryptographicInfo object from it
+        /// If overriden in a derived class, reads a header from a string and creates a CryptographicRepresentative object from it
         /// </summary>
         /// <param name="data"></param>
-        public abstract CryptographicInfo ReadHeader(string data);
+        public abstract CryptographicRepresentative ReadHeader(string data);
     }
 }

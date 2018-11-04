@@ -94,7 +94,6 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             private protected set
             {
                 this.BackEncryptedArray = ProtectedData.Protect(value, null, DataProtectionScope.CurrentUser);
-                this.Usable = this.PerformanceValues != null;
             }
         }
 
@@ -123,8 +122,8 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
                 }
                 else
                 {
-                    Buffer.BlockCopy(this._buffer, this._begin, password, 0, length);
-                    this._begin += length;
+                    Buffer.BlockCopy(this._buffer, this._begin, password, 0, (int)length);
+                    this._begin += (int)length;
                     return password;
                 }
             }
@@ -136,7 +135,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             while (offset < length)
             {
                 byte[] block = this.Transform();
-                int remainder = length - offset;
+                int remainder = (int)length - offset;
 
                 if (remainder > BlockSize)
                 {

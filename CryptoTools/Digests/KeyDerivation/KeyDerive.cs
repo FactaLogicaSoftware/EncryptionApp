@@ -11,8 +11,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// The salt used with the KDF
         /// </summary>
         public byte[] Salt { get; private protected set; }
-
-        private protected bool Usable;
+        
         private protected byte[] BackEncryptedArray;
 
         /// <summary>

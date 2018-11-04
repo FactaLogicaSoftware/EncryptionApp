@@ -16,14 +16,6 @@
         private (ulong N, uint r, uint p) _tuneFlags;
 
         /// <summary>
-        /// Default constructor that isn't valid for derivation
-        /// </summary>
-        public SCryptKeyDerive()
-        {
-            this.Usable = false;
-        }
-
-        /// <summary>
         /// Creates an instance of an object used to hash
         /// </summary>
         /// <param name="password">The bytes of the password to hash</param>
@@ -37,7 +29,6 @@
             this.Salt = salt;
             this.Password = password;
             this._read = 0;
-            this.Usable = true;
         }
 
         /// <summary>
@@ -54,7 +45,6 @@
             this.Salt = salt;
             this.Password = Encoding.UTF8.GetBytes(password);
             this._read = 0;
-            this.Usable = true;
         }
 
         /// <inheritdoc />
@@ -64,17 +54,7 @@
         {
             get => ProtectedData.Unprotect(this.BackEncryptedArray, null, DataProtectionScope.CurrentUser);
 
-            private protected set
-            {
-                this.BackEncryptedArray = ProtectedData.Protect(value, null, DataProtectionScope.CurrentUser);
-
-                const bool isPowerOf2 = true; // TODO V. IMPORTANT check if _tuneFlags.N is a power of 2
-
-                if (isPowerOf2 && this._tuneFlags.r > 0 && this._tuneFlags.p > 0)
-                {
-                    this.Usable = true;
-                }
-            }
+            private protected set => this.BackEncryptedArray = ProtectedData.Protect(value, null, DataProtectionScope.CurrentUser);
         }
 
         public override object PerformanceValues
@@ -93,7 +73,8 @@
         /// <param name="size"></param>
         public override byte[] GetBytes(int size)
         {
-            // TODO manage checked overflows
+            if (size <= 0)
+                throw new ArgumentOutOfRangeException(nameof(size));
             return Replicon.Cryptography.SCrypt.SCrypt.DeriveKey(
                 this.Password,
                 this.Salt,

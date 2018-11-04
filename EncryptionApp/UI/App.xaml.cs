@@ -11,12 +11,7 @@
     /// </summary>
     public partial class App : Application
     {
-        internal static readonly App This;
-
-        static App()
-        {
-            This = (App)Current;
-        }
+        internal static App This;
 
         internal AppSettings CurrentSettings;
 
@@ -53,6 +48,7 @@
                 throw;
             }
 
+            This = this;
             this.CurrentSettings = new AppSettings();
         }
 
