@@ -389,7 +389,7 @@ namespace Encryption_App.UI
                     await EncryptDataAsync(sender, e, record, transformer);
                     break;
                 case ProcessType.Decryption:
-                    transformer = new TransformingFileManager(record.FilePath, this._encryptionProgress);
+                    transformer = new TransformingFileManager(record.FilePath, this._decryptionProgress);
                     await DecryptDataAsync(sender, e, record, transformer);
                     break;
             }
