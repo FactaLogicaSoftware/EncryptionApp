@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Newtonsoft.Json;
 
@@ -42,10 +44,10 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
         {
             // Get the index of the start and end of the JSON object
 #pragma warning disable 162
-            int start = header.IndexOf("BEGIN ENCRYPTION HEADER STRING", StringComparison.Ordinal) + /*IMPORTANT*/
+            int start = header.IndexOf(StartChars, StringComparison.Ordinal) + /*IMPORTANT*/
                         StartChars
                             .Length; // + StartChars.Length, IndexOf gets the first character of the string search, so adding the length pushes it to the end of that
-            int end = header.IndexOf("END ENCRYPTION HEADER STRING", StringComparison.Ordinal);
+            int end = header.IndexOf(EndChars, StringComparison.Ordinal);
 
             // If either search failed and returned -1, fail, as the header is corrupted
             if (start == -1 || end == -1)
@@ -67,7 +69,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
                 // Create the data deserialized to a cryptographic object
                 data = JsonConvert.DeserializeObject<SymmetricCryptographicRepresentative>(jsonString);
             }
-            catch (JsonException e)
+            catch (JsonException)
             {
                 throw new ArgumentException("String should not contain BOM");
             }
@@ -87,7 +89,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
         /// </summary>
         /// <param name="path">The file path to read rom</param>
         /// <returns>The cryptographic info object created from the file data</returns>
-        public override CryptographicRepresentative ReadHeaderFromFile(string path)
+        public override void ReadHeaderFromFile(string path)
         {
             // Create the streams needed to read from the file
             var fileStream = new FileStream(path, FileMode.Open);
@@ -156,8 +158,13 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
                 data.Type = InfoType.Read;
                 data.HeaderLength = this.HeaderLength;
 
-                // Return the data object
-                return data;
+                FieldInfo[] fields = this.GetType().GetFields(BindingFlags.Public
+                                                           | BindingFlags.Instance);
+                foreach (FieldInfo field in fields)
+                {
+                    object value = field.GetValue(data);
+                    field.SetValue(this, value);
+                }
             }
         }
 

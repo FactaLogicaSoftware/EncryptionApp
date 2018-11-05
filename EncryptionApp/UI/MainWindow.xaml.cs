@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -12,8 +10,6 @@ using System.Xaml;
 using Encryption_App.ManagedSlaves;
 using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
 using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
-using FactaLogicaSoftware.CryptoTools.Events;
-using FactaLogicaSoftware.CryptoTools.Information;
 using FactaLogicaSoftware.CryptoTools.Information.Contracts;
 using FactaLogicaSoftware.CryptoTools.Information.Representatives;
 using Newtonsoft.Json;
@@ -42,7 +38,7 @@ namespace Encryption_App.UI
         private readonly TransformationPropertiesManager _transformer;
         private readonly ResourceManager _manager;
         private bool _isExecutingExclusiveProcess;
-        private Queue<(object sender, RoutedEventArgs e, RequestStateRecord record)> cache;
+        private readonly Queue<(object sender, RoutedEventArgs e, RequestStateRecord record)> _cache;
 
         #endregion
 
@@ -76,6 +72,7 @@ namespace Encryption_App.UI
             this.DropDown.ItemsSource = this._dropDownItems;
             this.DropDown.SelectedIndex = 0;
             this._isExecutingExclusiveProcess = false;
+            this._cache = new Queue<(object sender, RoutedEventArgs e, RequestStateRecord record)>();
 
             this.EncryptButton.Click += Encrypt_Click;
             this.DecryptButton.Click += Decrypt_Click;
@@ -126,7 +123,7 @@ namespace Encryption_App.UI
         private void CheckBox_Click(object sender, RoutedEventArgs e)
         {
         }
-        
+
         private void FilePath_Click(object sender, RoutedEventArgs e)
         {
             // Create a file dialog
@@ -159,12 +156,62 @@ namespace Encryption_App.UI
         // TODO Make values dependent on settings @NightRaven3142
         private async void Encrypt_Click(object sender, RoutedEventArgs e)
         {
-            await EncryptDataAsync(sender, e);
+            var contract = new SymmetricCryptographicContract
+            (
+                new TransformationContract
+                {
+                    BlockSize = 128,
+                    CryptoManager = typeof(AesCryptoManager),
+                    InitializationVectorSizeBytes = 16,
+                    KeySize = 128,
+                    Mode = CipherMode.CBC
+                },
+                new KeyContract
+                {
+                    KeyAlgorithm = typeof(Pbkdf2KeyDerive),
+                    PerformanceDerivative = App.This.PerformanceDerivative.PerformanceDerivativeValue,
+                    SaltLengthBytes = 16
+                },
+                new HmacContract
+                {
+                    HashAlgorithm = typeof(HMACSHA384)
+                }
+            );
+
+            var record = new RequestStateRecord(ProcessType.Encryption, this.EncryptFileTextBox.Text, contract);
+
+
+            // If the program is currently executing something, just return and inform the user
+            if (this._isExecutingExclusiveProcess)
+            {
+                MessageBoxResult result = MessageBox.Show("Cannot perform action - currently executing one. Would you like to que this operation?", "Confirm", MessageBoxButton.YesNo);
+                if (result == MessageBoxResult.Yes)
+                    this._cache.Enqueue((sender, e, record));
+                return;
+            }
+
+            var transformer = new TransformingFileManager(record.FilePath, this._encryptionProgress);
+
+            await EncryptDataAsync(sender, e, record, transformer);
         }
 
         private async void Decrypt_Click(object sender, RoutedEventArgs e)
         {
-            await DecryptDataAsync();
+            var record = new RequestStateRecord(ProcessType.Decryption, this.DecryptFileTextBox.Text);
+
+            // If the program is currently executing something, just return and inform the user
+            if (this._isExecutingExclusiveProcess)
+            {
+                MessageBoxResult result = MessageBox.Show("Cannot perform action - currently executing one. Would you like to que this operation?", "Confirm", MessageBoxButton.YesNo);
+                if (result == MessageBoxResult.Yes)
+                    this._cache.Enqueue((sender, e, record));
+
+                return;
+            }
+
+            var transformer = new TransformingFileManager(record.FilePath, this._decryptionProgress);
+
+            await DecryptDataAsync(sender, e, record, transformer);
         }
 
         #endregion
@@ -230,46 +277,12 @@ namespace Encryption_App.UI
             }
         }
 
-        private async Task EncryptDataAsync(object sender, RoutedEventArgs e)
+        private async Task EncryptDataAsync(object sender, RoutedEventArgs e, RequestStateRecord record, TransformingFileManager transformer)
         {
-            var contract = new SymmetricCryptographicContract
-            (
-                new TransformationContract
-                {
-                    BlockSize = 128,
-                    CryptoManager = typeof(AesCryptoManager),
-                    InitializationVectorSizeBytes = 16,
-                    KeySize = 128,
-                    Mode = CipherMode.CBC
-                },
-                new KeyContract
-                {
-                    KeyAlgorithm = typeof(Pbkdf2KeyDerive),
-                    PerformanceDerivative = App.This.PerformanceDerivative.PerformanceDerivativeValue,
-                    SaltLengthBytes = 16
-                },
-                new HmacContract
-                {
-                    HashAlgorithm = typeof(HMACSHA384)
-                }
-            );
-
-            var record = new RequestStateRecord(ProcessType.Encryption, this.EncryptFileTextBox.Text, contract);
-
-            // If the program is currently executing something, just return and inform the user
-            if (this._isExecutingExclusiveProcess)
-            {
-                // TODO run cached processes
-                this.cache.Enqueue((sender, e, record));
-                MessageBox.Show("Cannot perform action - currently executing one");
-                return;
-            }
-
             // Set the loading gif and set that we are running a process
             StartProcess(ProcessType.Encryption);
-            var manager = new TransformingFileManager(this, record.FilePath);
-
-            if (manager.FileContainsHeader())
+            
+            if (transformer.FileContainsHeader())
             {
                 MessageBoxResult result = MessageBox.Show("It appears the data you are trying to encrypt is already encrypted. Do you wish to continue?", "Encryption confirmation", MessageBoxButton.YesNo);
 
@@ -291,7 +304,7 @@ namespace Encryption_App.UI
             try
             {
                 // Run the encryption in a separate thread and return control to the UI thread
-                await Task.Run(() => manager.EncryptDataWithHeader(record, this.EncryptPasswordBox.SecurePassword, record.FilePath, DesiredKeyDerivationMilliseconds));
+                await Task.Run(() => transformer.EncryptDataWithHeader(record, this.EncryptPasswordBox.SecurePassword, DesiredKeyDerivationMilliseconds));
 
             }
             catch (CryptographicException exception)
@@ -303,24 +316,17 @@ namespace Encryption_App.UI
 
             // Set the loading gif and set that we are now not running a process
             EndProcess(ProcessType.Encryption);
+            ManageCache();
         }
 
-        private async Task DecryptDataAsync()
+        private async Task DecryptDataAsync(object sender, RoutedEventArgs e, RequestStateRecord record, TransformingFileManager transformer)
         {
-            // If the program is currently executing something, just return and inform the user
-            if (this._isExecutingExclusiveProcess)
-            {
-                MessageBox.Show("Cannot perform action - currently executing one");
-                return;
-            }
-
             StartProcess(ProcessType.Decryption);
 
-            // Create the object used to represent the header data
             var data = new SymmetricCryptographicRepresentative();
 
             // Get the path from the box
-            string filePath = this.DecryptFileTextBox.Text;
+            string filePath = record.FilePath;
 
             // If the file doesn't exist, return and inform the user
             if (!File.Exists(filePath))
@@ -330,12 +336,7 @@ namespace Encryption_App.UI
                 return;
             }
 
-            var manager = new TransformingFileManager(this, filePath);
-
-            // Read the header
-            // ReSharper disable once ImplicitlyCapturedClosure
-
-            if (manager.FileContainsHeader())
+            if (transformer.FileContainsHeader())
             {
                 MessageBox.Show("File doesn't contain a valid header. It could be corrupted or not encrypted");
                 EndProcess(ProcessType.Decryption);
@@ -344,7 +345,7 @@ namespace Encryption_App.UI
 
             try
             {
-                data = (SymmetricCryptographicRepresentative) data.ReadHeaderFromFile(filePath);
+                data.ReadHeaderFromFile(filePath);
             }
             catch (FileFormatException exception)
             {
@@ -362,11 +363,36 @@ namespace Encryption_App.UI
                 return;
             }
 
-            // Decrypt the data
-            await Task.Run(() => manager.DecryptDataWithHeader(data, this.DecryptPasswordBox.SecurePassword, filePath));
+            try
+            {
+                // Decrypt the data
+                await Task.Run(() => transformer.DecryptDataWithHeader(data, this.DecryptPasswordBox.SecurePassword));
+            }
+            catch (CryptographicException)
+            {
+                EndProcess(ProcessType.Decryption);
+                MessageBox.Show("Wrong password or corrupted file");
+            }
+            ManageCache();
+        }
 
-            // Set the loading gif and set that we are now not running a process
-            EndProcess(ProcessType.Decryption);
+        private async void ManageCache()
+        {
+            if (this._cache.Count == 0)
+                return;
+            (object sender, RoutedEventArgs e, RequestStateRecord record) = this._cache.Dequeue();
+            TransformingFileManager transformer;
+            switch (record.ProcessType)
+            {
+                case ProcessType.Encryption:
+                    transformer = new TransformingFileManager(record.FilePath, this._encryptionProgress);
+                    await EncryptDataAsync(sender, e, record, transformer);
+                    break;
+                case ProcessType.Decryption:
+                    transformer = new TransformingFileManager(record.FilePath, this._encryptionProgress);
+                    await DecryptDataAsync(sender, e, record, transformer);
+                    break;
+            }
         }
 
         #endregion

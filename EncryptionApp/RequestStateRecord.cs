@@ -16,13 +16,19 @@ namespace Encryption_App
     {
         public MainWindow.ProcessType ProcessType;
         public readonly string FilePath;
-        public readonly SymmetricCryptographicContract contract;
+        public readonly SymmetricCryptographicContract Contract;
+
+        public RequestStateRecord(MainWindow.ProcessType processType, string filePath)
+        {
+            this.ProcessType = processType;
+            this.FilePath = filePath;
+        }
 
         public RequestStateRecord(MainWindow.ProcessType processType, string filePath, SymmetricCryptographicContract contract)
         {
             this.ProcessType = processType;
             this.FilePath = filePath;
-            this.contract = contract;
+            this.Contract = contract;
         }
     }
 }

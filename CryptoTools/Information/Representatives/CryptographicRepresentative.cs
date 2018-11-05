@@ -48,7 +48,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
         /// </summary>
         /// <param name="path"></param>
         /// <returns>The object created from the header</returns>
-        public abstract CryptographicRepresentative ReadHeaderFromFile(string path);
+        public abstract void ReadHeaderFromFile(string path);
 
         /// <summary>
         /// If overriden in a derived class, creates a header representation of the object as a string as JSON
