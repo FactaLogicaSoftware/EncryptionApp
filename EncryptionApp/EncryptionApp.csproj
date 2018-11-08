@@ -67,6 +67,7 @@
     <CodeAnalysisRuleSet>EncryptionApp.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
     <DocumentationFile>bin\x64\Debug\Encryption App.xml</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
@@ -115,7 +116,7 @@
       <SubType>Designer</SubType>
     </Page>
     <Compile Include="AppSettings.cs" />
-    <Compile Include="FileHandle.cs" />
+    <Compile Include="Externals.cs" />
     <Compile Include="FileStatics.cs" />
     <Compile Include="Exceptions\InvalidCallerException.cs" />
     <Compile Include="ManagedSlaves\ManagedSlave.cs" />
@@ -132,8 +133,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="TransformationPropertiesManager.cs" />
-    <Compile Include="ManagedSlaves\TransformingFileManager.cs" />
+    <Compile Include="SecureStringConverter.cs" />
+    <Compile Include="ManagedSlaves\CryptoFile.cs" />
     <Compile Include="UI\App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>

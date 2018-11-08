@@ -10,6 +10,7 @@ using System.Xaml;
 using Encryption_App.ManagedSlaves;
 using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
 using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
+using FactaLogicaSoftware.CryptoTools.Exceptions;
 using FactaLogicaSoftware.CryptoTools.Information.Contracts;
 using FactaLogicaSoftware.CryptoTools.Information.Representatives;
 using Newtonsoft.Json;
@@ -35,7 +36,6 @@ namespace Encryption_App.UI
         private readonly List<string> _dropDownItems = new List<string> { "Choose Option...", "Encrypt a file", "Encrypt a file for sending to someone" };
         private readonly Progress<int> _encryptionProgress;
         private readonly Progress<int> _decryptionProgress;
-        private readonly TransformationPropertiesManager _transformer;
         private readonly ResourceManager _manager;
         private bool _isExecutingExclusiveProcess;
         private readonly Queue<(object sender, RoutedEventArgs e, RequestStateRecord record)> _cache;
@@ -78,7 +78,6 @@ namespace Encryption_App.UI
             this.DecryptButton.Click += Decrypt_Click;
             this._encryptionProgress = new Progress<int>();
             this._decryptionProgress = new Progress<int>();
-            this._transformer = new TransformationPropertiesManager();
             var tempDictionary = new Dictionary<object, Progress<int>> { { this.EncryptProgressBar, this._encryptionProgress }, { this.DecryptProgressBar, this._decryptionProgress } };
             this._manager = new ResourceManager(this, tempDictionary);
 
@@ -190,7 +189,7 @@ namespace Encryption_App.UI
                 return;
             }
 
-            var transformer = new TransformingFileManager(record.FilePath, this._encryptionProgress);
+            var transformer = new CryptoFile(record.FilePath, this._encryptionProgress);
 
             await EncryptDataAsync(sender, e, record, transformer);
         }
@@ -209,25 +208,10 @@ namespace Encryption_App.UI
                 return;
             }
 
-            var transformer = new TransformingFileManager(record.FilePath, this._decryptionProgress);
+            var transformer = new CryptoFile(record.FilePath, this._decryptionProgress);
 
             await DecryptDataAsync(sender, e, record, transformer);
         }
-
-        #endregion
-
-        #region EXTERNAL_DECLERATIONS
-
-
-        /// <summary>
-        /// A kernel32 function that destroys all values in a block of memory
-        /// </summary>
-        /// <param name="destination">The pointer to the start of the block to be zeroed</param>
-        /// <param name="length">The number of bytes to zero</param>
-        /// <returns></returns>
-        [DllImport("KERNEL32.DLL", EntryPoint = "RtlZeroMemory")]
-        // ReSharper disable once UnusedMember.Local
-        public static extern bool ZeroMemory(IntPtr destination, int length); // Function is called at runtime through a dynamic type; ignore warning
 
         #endregion
 
@@ -277,7 +261,7 @@ namespace Encryption_App.UI
             }
         }
 
-        private async Task EncryptDataAsync(object sender, RoutedEventArgs e, RequestStateRecord record, TransformingFileManager transformer)
+        private async Task EncryptDataAsync(object sender, RoutedEventArgs e, RequestStateRecord record, CryptoFile transformer)
         {
             // Set the loading gif and set that we are running a process
             StartProcess(ProcessType.Encryption);
@@ -319,7 +303,7 @@ namespace Encryption_App.UI
             ManageCache();
         }
 
-        private async Task DecryptDataAsync(object sender, RoutedEventArgs e, RequestStateRecord record, TransformingFileManager transformer)
+        private async Task DecryptDataAsync(object sender, RoutedEventArgs e, RequestStateRecord record, CryptoFile transformer)
         {
             StartProcess(ProcessType.Decryption);
 
@@ -368,11 +352,13 @@ namespace Encryption_App.UI
                 // Decrypt the data
                 await Task.Run(() => transformer.DecryptDataWithHeader(data, this.DecryptPasswordBox.SecurePassword));
             }
-            catch (CryptographicException)
+            // BUG Doesn't catch?
+            catch (UnverifiableDataException)
             {
                 EndProcess(ProcessType.Decryption);
                 MessageBox.Show("Wrong password or corrupted file");
             }
+            EndProcess(ProcessType.Decryption);
             ManageCache();
         }
 
@@ -381,15 +367,15 @@ namespace Encryption_App.UI
             if (this._cache.Count == 0)
                 return;
             (object sender, RoutedEventArgs e, RequestStateRecord record) = this._cache.Dequeue();
-            TransformingFileManager transformer;
+            CryptoFile transformer;
             switch (record.ProcessType)
             {
                 case ProcessType.Encryption:
-                    transformer = new TransformingFileManager(record.FilePath, this._encryptionProgress);
+                    transformer = new CryptoFile(record.FilePath, this._encryptionProgress);
                     await EncryptDataAsync(sender, e, record, transformer);
                     break;
                 case ProcessType.Decryption:
-                    transformer = new TransformingFileManager(record.FilePath, this._decryptionProgress);
+                    transformer = new CryptoFile(record.FilePath, this._decryptionProgress);
                     await DecryptDataAsync(sender, e, record, transformer);
                     break;
             }

@@ -3,33 +3,46 @@ using System.Collections;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Windows;
+using Encryption_App.UI;
 using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
 using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
 
 namespace Encryption_App
 {
-    internal class TransformationPropertiesManager
+    internal static class SecureStringConverter
     {
-        internal KeyDerive SecureStringToKeyDerive(SecureString password, IEnumerable salt, PerformanceDerivative performanceDerivative, Type keyDeriveAlgorithm)
+        public static unsafe GCHandle SecureStringToKeyDerive(SecureString password, IEnumerable salt, PerformanceDerivative performanceDerivative, Type keyDeriveAlgorithm, out KeyDerive keyDerive)
         {
             // Turn the secure string into a string to pass it into keyDevice for the shortest interval possible
-            IntPtr valuePtr = IntPtr.Zero;
+            IntPtr ptrSecureString = IntPtr.Zero;
 
             try
             {
-                valuePtr = Marshal.SecureStringToGlobalAllocUnicode(password);
+                ptrSecureString = Marshal.SecureStringToGlobalAllocUnicode(password);
+
+                var dataInsecureBytes = new byte[password.Length * sizeof(char)];
+
+                GCHandle bytesHandle = GCHandle.Alloc(dataInsecureBytes, GCHandleType.Pinned);
+
+                for (var i = 0; i < password.Length * sizeof(char); i++)
+                    dataInsecureBytes[i] = Marshal.ReadByte(ptrSecureString, i);
+
 
                 // Create an object array of parameters
-                var parametersForInstance = new object[] { Marshal.PtrToStringUni(valuePtr), salt, null };
+                var parametersForInstance = new object[] { dataInsecureBytes, salt, null };
 
                 // Parameters for static function call
-                var parametersForStatic = new object[] { performanceDerivative, 2000UL };
-                
+                var parametersForStatic = new object[] { performanceDerivative, performanceDerivative.Milliseconds };
+
                 object val = keyDeriveAlgorithm.GetMethod("TransformPerformance")?.Invoke(null, parametersForStatic);
 
                 parametersForInstance[2] = val;
 
-                return (KeyDerive)Activator.CreateInstance(keyDeriveAlgorithm, parametersForInstance);
+                keyDerive = (KeyDerive)Activator.CreateInstance(keyDeriveAlgorithm, parametersForInstance);
+
+                password.Dispose();
+
+                return bytesHandle;
             }
             catch (NotSupportedException e)
             {
@@ -48,7 +61,7 @@ namespace Encryption_App
             finally
             {
                 // Destroy the managed string
-                Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
+                Marshal.ZeroFreeGlobalAllocUnicode(ptrSecureString);
             }
         }
     }
