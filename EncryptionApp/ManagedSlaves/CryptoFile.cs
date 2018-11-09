@@ -21,21 +21,18 @@ namespace Encryption_App.ManagedSlaves
     {
         private readonly string _filePath;
         private readonly Progress<int> _progress;
-        private readonly ResourceManager _manager;
 
         public CryptoFile(string filePath)
         {
             this._filePath = filePath;
             this._progress = null;
             // TODO make owned by MainWindow, share assemblies
-            this._manager = new ResourceManager(this);
         }
 
         public CryptoFile(string filePath, Progress<int> progress)
         {
             this._filePath = filePath;
             this._progress = progress;
-            this._manager = new ResourceManager(this);
         }
 
         public bool FileContainsHeader()
@@ -45,11 +42,11 @@ namespace Encryption_App.ManagedSlaves
 
             try
             {
-                using (var fReader = new StreamReader(this._filePath))
+                using (var reader = new StreamReader(this._filePath))
                 {
                     try
                     {
-                        fReader.ReadBlock(buff, 0, buff.Length);
+                        reader.ReadBlock(buff, 0, buff.Length);
                     }
                     catch (IOException e)
                     {

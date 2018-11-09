@@ -36,7 +36,6 @@ namespace Encryption_App.UI
         private readonly List<string> _dropDownItems = new List<string> { "Choose Option...", "Encrypt a file", "Encrypt a file for sending to someone" };
         private readonly Progress<int> _encryptionProgress;
         private readonly Progress<int> _decryptionProgress;
-        private readonly ResourceManager _manager;
         private bool _isExecutingExclusiveProcess;
         private readonly Queue<(object sender, RoutedEventArgs e, RequestStateRecord record)> _cache;
 
@@ -79,7 +78,6 @@ namespace Encryption_App.UI
             this._encryptionProgress = new Progress<int>();
             this._decryptionProgress = new Progress<int>();
             var tempDictionary = new Dictionary<object, Progress<int>> { { this.EncryptProgressBar, this._encryptionProgress }, { this.DecryptProgressBar, this._decryptionProgress } };
-            this._manager = new ResourceManager(this, tempDictionary);
 
             // Subscribe to events
             this.KeyDown += MainWindow_KeyDown;
