@@ -28,51 +28,61 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
         }
 
-        /// <summary>
-        /// The default constructor which uses 4mb of memory and uses RC2Cng
-        /// </summary>
-        public Rc2CryptoManager()
+        private static SymmetricAlgorithm DefaultAlgorithm { get; } = new RC2CryptoServiceProvider
         {
-            // Base class value
-            // TODO Customized field values
-            SymmetricAlgorithm = new RC2CryptoServiceProvider
-            {
-                BlockSize = 64,
-                KeySize = 128,
-                EffectiveKeySize = 128,
-                Padding = PaddingMode.PKCS7,
-                Mode = CipherMode.CBC
-            };
+            BlockSize = 64,
+            KeySize = 128,
+            EffectiveKeySize = 128,
+            Padding = PaddingMode.PKCS7,
+            Mode = CipherMode.CBC
+        };
 
-            // Default memory - TODO Calculate to higher numbers if possible
-            MemoryConst = 1024 * 1024 * 4;
+        private static int DefaultChunkSize => 1024 * 1024 * 4;
+
+        /// <inheritdoc />
+        /// <summary>
+        /// The default constructor which uses 4mb of memory and uses RC2CryptoServiceProvider
+        /// </summary>
+        public Rc2CryptoManager() : this(DefaultChunkSize)
+        {
         }
 
+        /// <inheritdoc />
         /// <summary>
-        /// Defines the maximum size read through streams and uses RC2Cng
+        /// Defines the maximum size read through streams and uses RC2CryptoServiceProvider
         /// </summary>
         /// <param name="memoryConst">The number of bytes to read and write</param>
-        public Rc2CryptoManager(int memoryConst)
+        public Rc2CryptoManager(int memoryConst) : this(memoryConst, DefaultAlgorithm)
         {
-            // Check if that much memory can be assigned
-            if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
+        }
+
+        /// <inheritdoc />
+        /// <summary>
+        /// Uses 4mb read/write values and an RC2 algorithm of your choice
+        /// </summary>
+        /// <param name="algorithm">The algorithm to use</param>
+        public Rc2CryptoManager([NotNull] SymmetricAlgorithm algorithm) : this(DefaultChunkSize, algorithm)
+        {
+        }
+
+        // TODO messy constructor inheritance
+        /// <inheritdoc />
+        /// <summary>
+        /// Uses custom read/write values and an RC2 algorithm of your choice
+        /// </summary>
+        /// <param name="memoryConst">The number of bytes to read and write</param>
+        /// <param name="algorithm">The algorithm to use</param>
+        public Rc2CryptoManager(int memoryConst, [NotNull] SymmetricAlgorithm algorithm) : base(memoryConst, algorithm)
+        {
+            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS compliant
+            if (algorithm is AesCng || algorithm is AesCryptoServiceProvider || algorithm is TripleDESCng)
             {
-                throw new ArgumentException("Not enough memory to use that chunking size");
+                this.IsFipsCompliant = true;
             }
-
-            // Assign to class field
-            MemoryConst = memoryConst;
-
-            // Base class value
-            // TODO Customized field values
-            SymmetricAlgorithm = new RC2CryptoServiceProvider
+            else
             {
-                BlockSize = 64,
-                KeySize = 128,
-                EffectiveKeySize = 128,
-                Padding = PaddingMode.PKCS7,
-                Mode = CipherMode.CBC
-            };
+                this.IsFipsCompliant = false;
+            }
         }
 
         /// <summary>

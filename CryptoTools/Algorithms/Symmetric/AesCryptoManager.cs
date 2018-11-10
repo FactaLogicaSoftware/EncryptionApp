@@ -5,6 +5,7 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using JetBrains.Annotations;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {
@@ -24,52 +25,60 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
         }
 
+        private static SymmetricAlgorithm DefaultAlgorithm { get; } = new AesCng
+        {
+            BlockSize = 128,
+            KeySize = 128,
+            Mode = CipherMode.CBC,
+            Padding = PaddingMode.PKCS7
+        };
+
+        private static int DefaultChunkSize => 1024 * 1024 * 4;
+
+        /// <inheritdoc />
         /// <summary>
         /// The default constructor which uses 4mb of memory and uses AesCng
         /// </summary>
-        public AesCryptoManager()
+        public AesCryptoManager() : this(DefaultChunkSize)
         {
-            // Base class value
-            // TODO Customized field values
-            this.SymmetricAlgorithm = new AesCng
-            {
-                BlockSize = 128,
-                KeySize = 256,
-                Mode = CipherMode.CBC,
-                Padding = PaddingMode.PKCS7
-            };
-
-            // Default memory - TODO Calculate to higher numbers if possible
-            this.MemoryConst = 1024 * 1024 * 4;
-
-            // As the default aes transformation object is AesCng which is FIPS compliant
-            this.IsFipsCompliant = true;
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// Defines the maximum size read through streams and uses AesCng
         /// </summary>
         /// <param name="memoryConst">The number of bytes to read and write</param>
-        public AesCryptoManager(int memoryConst)
+        public AesCryptoManager(int memoryConst) : this(memoryConst, DefaultAlgorithm)
         {
-            // Check if that much memory can be assigned
-            if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
+        }
+
+        /// <inheritdoc />
+        /// <summary>
+        /// Uses 4mb read/write values and an AES algorithm of your choice
+        /// </summary>
+        /// <param name="algorithm">The algorithm to use</param>
+        public AesCryptoManager([NotNull] SymmetricAlgorithm algorithm) : this(DefaultChunkSize, algorithm)
+        {
+        }
+
+        // TODO messy constructor inheritance
+        /// <inheritdoc />
+        /// <summary>
+        /// Uses custom read/write values and an AES algorithm of your choice
+        /// </summary>
+        /// <param name="memoryConst">The number of bytes to read and write</param>
+        /// <param name="algorithm">The algorithm to use</param>
+        public AesCryptoManager(int memoryConst, [NotNull] SymmetricAlgorithm algorithm) : base(memoryConst, algorithm)
+        {
+            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS compliant
+            if (algorithm is AesCng || algorithm is AesCryptoServiceProvider || algorithm is TripleDESCng)
             {
-                throw new ArgumentException("Not enough memory to use that chunking size");
+                this.IsFipsCompliant = true;
             }
-
-            // Assign to class field
-            this.MemoryConst = memoryConst;
-
-            // Create the aes object
-            // TODO Customized field values
-            this.SymmetricAlgorithm = new AesCng
+            else
             {
-                BlockSize = 128,
-                KeySize = 256,
-                Mode = CipherMode.CBC,
-                Padding = PaddingMode.PKCS7
-            };
+                this.IsFipsCompliant = false;
+            }
         }
 
         /// <summary>

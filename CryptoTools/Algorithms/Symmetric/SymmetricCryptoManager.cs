@@ -34,71 +34,13 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// </summary>
         public bool IsFipsCompliant { get; private protected set; }
 
-        protected SymmetricCryptoManager()
-        {
-            // Default memory - TODO Calculate to higher numbers if possible
-            this.MemoryConst = 1024 * 1024 * 4;
-        }
-
-        /// <summary>
-        /// Uses 4mb read/write values and an AES algorithm of your choice
-        /// </summary>
-        /// <param name="algorithm">The algorithm to use</param>
-        protected SymmetricCryptoManager(SymmetricAlgorithm algorithm)
-        {
-            #region CONTRACT
-
-            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS compliant
-            if (algorithm is AesCng || algorithm is AesCryptoServiceProvider || algorithm is TripleDESCng)
-            {
-                IsFipsCompliant = true;
-            }
-            else
-            {
-                IsFipsCompliant = false;
-            }
-
-            Contract.EndContractBlock();
-
-            #endregion
-
-            // Default memory - TODO Calculate to higher numbers if possible
-            this.MemoryConst = 1024 * 1024 * 4;
-
-            // Assign the aes object
-            // TODO verify integrity of argument
-            this.SymmetricAlgorithm = algorithm;
-        }
-
         /// <summary>
         /// Uses custom read/write values and an AES algorithm of your choice
         /// </summary>
         /// <param name="memoryConst">The number of bytes to read and write</param>
         /// <param name="algorithm">The algorithm to use</param>
-        protected SymmetricCryptoManager(int memoryConst, SymmetricAlgorithm algorithm)
+        public SymmetricCryptoManager(int memoryConst, [NotNull] SymmetricAlgorithm algorithm)
         {
-            #region CONTRACT
-
-            // Check if that much memory can be assigned
-            if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
-            {
-                throw new ArgumentException("Not enough memory to use that chunking size");
-            }
-
-            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS compliant
-            if (algorithm is AesCng || algorithm is AesCryptoServiceProvider || algorithm is TripleDESCng)
-            {
-                this.IsFipsCompliant = true;
-            }
-            else
-            {
-                this.IsFipsCompliant = false;
-            }
-
-            Contract.EndContractBlock();
-
-            #endregion
-
             // Assign to class field
             this.MemoryConst = memoryConst;
 
@@ -131,7 +73,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="inputFile"></param>
         /// <param name="outputFile"></param>
         /// <param name="transformer"></param>
-        protected void InternalTransformFile(string inputFile, string outputFile, ICryptoTransform transformer)
+        protected void InternalTransformFile([NotNull] string inputFile, [NotNull] string outputFile, [NotNull] ICryptoTransform transformer)
         {
             // Any cryptographic exception indicates the data is invalid or an incorrect password has been inputted
             try
@@ -251,7 +193,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="key">The bytes of the key</param>
         /// <param name="iv">The bytes of the initialization vector</param>
         public abstract void EncryptFileBytes([NotNull] string inputFile, [NotNull] string outputFile, [NotNull] byte[] key, [NotNull] byte[] iv);
-
+        
         /// <summary>
         /// If overriden in a derived class, decrypts bytes of a given file into another one
         /// </summary>

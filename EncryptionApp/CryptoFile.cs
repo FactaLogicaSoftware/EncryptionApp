@@ -136,7 +136,9 @@ namespace Encryption_App
                 hmacAlg = (HMAC)Activator.CreateInstance(request.Contract.HmacContract.HashAlgorithm);
             }
 
-            var encryptor = (SymmetricCryptoManager)Activator.CreateInstance(request.Contract.TransformationContract.CryptoManager);
+            var @params = new object[] { 1024 * 1024 * 1024, new AesCryptoServiceProvider() };
+
+            var encryptor = (SymmetricCryptoManager)Activator.CreateInstance(request.Contract.TransformationContract.CryptoManager, @params);
 
             encryptor.DebugValuesFinalised += Encryptor_OnDebugValuesFinalised;
 

@@ -5,6 +5,7 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using JetBrains.Annotations;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {
@@ -18,7 +19,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             get => SymmetricAlgorithm.KeySize;
             set
             {
-                if (value != 128 && value != 192)
+                if (value != 192)
                 {
                     throw new ArgumentException("Key is not a valid length (128/192)");
                 }
@@ -27,46 +28,60 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
         }
 
+        private static SymmetricAlgorithm DefaultAlgorithm { get; } = new TripleDESCng
+        {
+            BlockSize = 64,
+            KeySize = 192,
+            Padding = PaddingMode.PKCS7,
+            Mode = CipherMode.CBC
+        };
+
+        private static int DefaultChunkSize => 1024 * 1024 * 4;
+
+        /// <inheritdoc />
         /// <summary>
         /// The default constructor which uses 4mb of memory and uses TripleDESCng
         /// </summary>
-        public TripleDesCryptoManager()
+        public TripleDesCryptoManager() : this(DefaultChunkSize)
         {
-            // Base class value
-            // TODO Customized field values
-            SymmetricAlgorithm = new TripleDESCng
-            {
-                BlockSize = 64,
-                KeySize = 192,
-                Mode = CipherMode.CBC,
-                Padding = PaddingMode.PKCS7
-            };
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// Defines the maximum size read through streams and uses TripleDESCng
         /// </summary>
         /// <param name="memoryConst">The number of bytes to read and write</param>
-        public TripleDesCryptoManager(int memoryConst)
+        public TripleDesCryptoManager(int memoryConst) : this(memoryConst, DefaultAlgorithm)
         {
-            // Check if that much memory can be assigned
-            if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
+        }
+
+        /// <inheritdoc />
+        /// <summary>
+        /// Uses 4mb read/write values and a TripleDES algorithm of your choice
+        /// </summary>
+        /// <param name="algorithm">The algorithm to use</param>
+        public TripleDesCryptoManager([NotNull] SymmetricAlgorithm algorithm) : this(DefaultChunkSize, algorithm)
+        {
+        }
+
+        // TODO messy constructor inheritance
+        /// <inheritdoc />
+        /// <summary>
+        /// Uses custom read/write values and a TripleDES algorithm of your choice
+        /// </summary>
+        /// <param name="memoryConst">The number of bytes to read and write</param>
+        /// <param name="algorithm">The algorithm to use</param>
+        public TripleDesCryptoManager(int memoryConst, [NotNull] SymmetricAlgorithm algorithm) : base(memoryConst, algorithm)
+        {
+            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS compliant
+            if (algorithm is AesCng || algorithm is AesCryptoServiceProvider || algorithm is TripleDESCng)
             {
-                throw new ArgumentException("Not enough memory to use that chunking size");
+                this.IsFipsCompliant = true;
             }
-
-            // Assign to class field
-            MemoryConst = memoryConst;
-
-            // Base class value
-            // TODO Customized field values
-            SymmetricAlgorithm = new TripleDESCng
+            else
             {
-                BlockSize = 64,
-                KeySize = 192,
-                Mode = CipherMode.CBC,
-                Padding = PaddingMode.PKCS7
-            };
+                this.IsFipsCompliant = false;
+            }
         }
 
         /// <summary>
@@ -220,7 +235,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             SymmetricAlgorithm.Mode = CipherMode.CBC;
             SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
 
-            // Put the ciphertext byte array into memory, and read it through the crypto stream to decrypt it
+            // Put the cipher-text byte array into memory, and read it through the crypto stream to decrypt it
             var memStream = new MemoryStream(data);
             var cryptoStream = new CryptoStream(memStream, SymmetricAlgorithm.CreateDecryptor(), CryptoStreamMode.Read);
             using (var binReader = new BinaryReader(cryptoStream))
