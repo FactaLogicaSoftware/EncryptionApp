@@ -117,61 +117,52 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="MainWindow_DecryptDataWithHeader_Start_time__" xml:space="preserve">
-    <value>Start time: </value>
-  </data>
-  <data name="MainWindow_DecryptDataWithHeader_Assembly_loaded_time__" xml:space="preserve">
-    <value>Assembly loaded time: </value>
-  </data>
-  <data name="MainWindow_DecryptDataWithHeader_Password_managed_time__" xml:space="preserve">
+  <data name="PasswordControlledTime__WriteString" xml:space="preserve">
     <value>Password managed time: </value>
   </data>
-  <data name="MainWindow_DecryptDataWithHeader_Header_removed_time__" xml:space="preserve">
+  <data name="HeaderRemovedTime" xml:space="preserve">
     <value>Header removed time: </value>
   </data>
-  <data name="MainWindow_DecryptDataWithHeader_Object_built_time__" xml:space="preserve">
-    <value>Object built time: </value>
-  </data>
-  <data name="MainWindow_DecryptDataWithHeader_File_copied_time__" xml:space="preserve">
+  <data name="FileCopiedTime_WriteString" xml:space="preserve">
     <value>File copied time: </value>
   </data>
-  <data name="MainWindow_DecryptDataWithHeader_Post_decryption_time__" xml:space="preserve">
+  <data name="PostDecryptionTime_WriteString" xml:space="preserve">
     <value>Post decryption time: </value>
   </data>
-  <data name="MainWindow_DecryptDataWithHeader_Pre_decryption_time__" xml:space="preserve">
+  <data name="PreDecryptionTime_WriteString" xml:space="preserve">
     <value>Pre decryption time: </value>
   </data>
-  <data name="MainWindow_DecryptDataWithHeader_HMAC_verified_time__" xml:space="preserve">
+  <data name="PostHMACAuthenticationTime_WriteString" xml:space="preserve">
     <value>HMAC verified time: </value>
   </data>
-  <data name="MainWindow_EncryptDataWithHeader_File_write_time__" xml:space="preserve">
+  <data name="FileWriteTime_WriteString" xml:space="preserve">
     <value>File write time: </value>
   </data>
-  <data name="MainWindow_EncryptDataWithHeader_Post_authenticate_time__" xml:space="preserve">
+  <data name="PostHMACCreationTime_WriteString" xml:space="preserve">
     <value>Post authenticate time: </value>
   </data>
-  <data name="MainWindow_EncryptDataWithHeader_Post_header_time__" xml:space="preserve">
+  <data name="PostHeaderWriteTime_WriteString" xml:space="preserve">
     <value>Post header time: {0}</value>
   </data>
-  <data name="MainWindow_EncryptDataWithHeader_Post_encryption_time__" xml:space="preserve">
+  <data name="PostEncryptionTime_WriteString" xml:space="preserve">
     <value>Post encryption time: </value>
   </data>
-  <data name="MainWindow_EncryptDataWithHeader_Pre_encryption_time__" xml:space="preserve">
+  <data name="PreEncryptionTime_WriteString" xml:space="preserve">
     <value>Pre encryption time: </value>
   </data>
-  <data name="PerformanceTransformer_PerformanceTransformer_Initialization_time__" xml:space="preserve">
+  <data name="InitialPerformanceInitializationTime_WriteString" xml:space="preserve">
     <value>Initialization time: </value>
   </data>
-  <data name="PerformanceTransformer_PerformanceTransformer_Derivation_time__" xml:space="preserve">
+  <data name="InitialPerformanceDerivationTime_WriteString" xml:space="preserve">
     <value>Derivation time: </value>
   </data>
-  <data name="MainWindow_EncryptDataWithHeader_Actual_key_derivation_time__" xml:space="preserve">
+  <data name="ActualKeyDerivationTime_WriteString" xml:space="preserve">
     <value>Actual key derivation time: </value>
   </data>
-  <data name="MainWindow_EncryptDataWithHeader_Expected_key_derivation_time__" xml:space="preserve">
+  <data name="ExpectedKeyDerivationTime_WriteString" xml:space="preserve">
     <value>Expected key derivation time: </value>
   </data>
-  <data name="MainWindow_EncryptDataWithHeader_Iteration_value__" xml:space="preserve">
-    <value>Iteration value: </value>
+  <data name="PerformanceValue_WriteString" xml:space="preserve">
+    <value>Performance value: </value>
   </data>
 </root>

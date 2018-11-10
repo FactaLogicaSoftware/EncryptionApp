@@ -5,6 +5,7 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using JetBrains.Annotations;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {
@@ -180,7 +181,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="key">The key to encrypt with</param>
         /// <param name="iv">The initialization vector</param>
         /// <returns>The encrypted byte array</returns>
-        public override byte[] EncryptBytes(byte[] data, byte[] key, byte[] iv)
+        public override byte[] EncryptBytes([NotNull] byte[] data, [NotNull] byte[] key, [NotNull] byte[] iv)
         {
             #region CONTRACT
 

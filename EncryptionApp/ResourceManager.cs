@@ -4,9 +4,8 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
-using Encryption_App.Exceptions;
 
-namespace Encryption_App.ManagedSlaves
+namespace Encryption_App
 {
     internal static class ResourceManager
     {

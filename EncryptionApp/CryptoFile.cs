@@ -6,7 +6,10 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
 using System.Windows;
+using Encryption_App.Properties;
 using Encryption_App.UI;
+
+
 using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
 using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
 using FactaLogicaSoftware.CryptoTools.Events;
@@ -15,7 +18,7 @@ using FactaLogicaSoftware.CryptoTools.HMAC;
 using FactaLogicaSoftware.CryptoTools.Information.Representatives;
 using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
 
-namespace Encryption_App.ManagedSlaves
+namespace Encryption_App
 {
     internal class CryptoFile
     {
@@ -26,7 +29,6 @@ namespace Encryption_App.ManagedSlaves
         {
             this._filePath = filePath;
             this._progress = null;
-            // TODO make owned by MainWindow, share assemblies
         }
 
         public CryptoFile(string filePath, Progress<int> progress)
@@ -116,12 +118,12 @@ namespace Encryption_App.ManagedSlaves
             if (password.Length < App.This.CurrentSettings.MinPasswordLength)
             {
                 MessageBox.Show("Password too short");
-                ((IProgress<int>)_encryptionProgress)?.Report(0);
+                ((IProgress<int>)_progress)?.Report(0);
                 return;
             }
 #endif
 
-            GCHandle hndBytes = SecureStringConverter.SecureStringToKeyDerive(password, salt,
+            GCHandle byteHandle = SecureStringConverter.SecureStringToKeyDerive(password, salt,
                 performanceDerivative, request.Contract.InstanceKeyContract.KeyAlgorithm, out KeyDerive keyDevice);
 
             ((IProgress<int>)this._progress)?.Report(35);
@@ -143,25 +145,25 @@ namespace Encryption_App.ManagedSlaves
 #endif
             byte[] key = keyDevice.GetBytes((int)request.Contract.TransformationContract.KeySize / 8);
 
-            Externals.ZeroMemory(hndBytes.AddrOfPinnedObject(), ((byte[])hndBytes.Target).Length);
+            Externals.ZeroMemory(byteHandle.AddrOfPinnedObject(), ((byte[])byteHandle.Target).Length);
 
-            hndBytes.Free();
+            byteHandle.Free();
 #if VERBOSE
-            Console.WriteLine(Resources.MainWindow_EncryptDataWithHeader_Actual_key_derivation_time__ + (watch.ElapsedMilliseconds - offset));
-            Console.WriteLine(Resources.MainWindow_EncryptDataWithHeader_Expected_key_derivation_time__ + desiredKeyDerivationMilliseconds);
+            Console.WriteLine(DebugResources.ActualKeyDerivationTime_WriteString + (watch.ElapsedMilliseconds - offset));
+            Console.WriteLine(DebugResources.ExpectedKeyDerivationTime_WriteString + desiredKeyDerivationMilliseconds);
 #endif
             // Create a handle to the key to allow control of it
             GCHandle keyHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
 
 #if VERBOSE
-            Console.WriteLine(Resources.MainWindow_EncryptDataWithHeader_Pre_encryption_time__ + watch.ElapsedMilliseconds);
+            Console.WriteLine(DebugResources.PreEncryptionTime_WriteString + watch.ElapsedMilliseconds);
 #endif
             // Encrypt the data to a temporary file
             encryptor.EncryptFileBytes(this._filePath, App.This.DataTempFile, key, iv);
 
             ((IProgress<int>)this._progress)?.Report(90);
 #if VERBOSE
-            Console.WriteLine(Resources.MainWindow_EncryptDataWithHeader_Post_encryption_time__ + watch.ElapsedMilliseconds);
+            Console.WriteLine(DebugResources.PostEncryptionTime_WriteString + watch.ElapsedMilliseconds);
 #endif
 
             byte[] hash = null;
@@ -180,7 +182,7 @@ namespace Encryption_App.ManagedSlaves
             Externals.ZeroMemory(keyHandle.AddrOfPinnedObject(), key.Length);
             keyHandle.Free();
 #if VERBOSE
-            Console.WriteLine(Resources.MainWindow_EncryptDataWithHeader_Post_authenticate_time__ + watch.ElapsedMilliseconds);
+            Console.WriteLine(DebugResources.PostHMACCreationTime_WriteString + watch.ElapsedMilliseconds);
 #endif
             var cryptographicInfo = new SymmetricCryptographicRepresentative
             {
@@ -212,13 +214,13 @@ namespace Encryption_App.ManagedSlaves
             ((IProgress<int>)this._progress)?.Report(98);
 #if VERBOSE
             // We have to use Dispatcher.Invoke as the current thread can't access these objects this.dispatcher.Invoke(() => { EncryptOutput.Content = "Transferring the data to the file"; });
-            Console.WriteLine(Resources.MainWindow_EncryptDataWithHeader_Post_header_time__, watch.ElapsedMilliseconds);
+            Console.WriteLine(DebugResources.PostHeaderWriteTime_WriteString, watch.ElapsedMilliseconds);
 #endif
             FileStatics.AppendToFile(this._filePath, App.This.DataTempFile);
 
             ((IProgress<int>)this._progress)?.Report(100);
 #if VERBOSE 
-            Console.WriteLine(Resources.MainWindow_EncryptDataWithHeader_File_write_time__ + watch.ElapsedMilliseconds);
+            Console.WriteLine(DebugResources.FileWriteTime_WriteString + watch.ElapsedMilliseconds);
 #endif
         }
 
@@ -235,23 +237,15 @@ namespace Encryption_App.ManagedSlaves
 #if VERBOSE
             Stopwatch watch = Stopwatch.StartNew();
 #endif
-
-#if VERBOSE
-            Console.WriteLine(Resources.MainWindow_DecryptDataWithHeader_Start_time__ + watch.ElapsedMilliseconds);
-#endif
-
-#if VERBOSE
-            Console.WriteLine(Resources.MainWindow_DecryptDataWithHeader_Assembly_loaded_time__ + watch.ElapsedMilliseconds);
-#endif
             var performanceDerivative = new PerformanceDerivative(cryptographicRepresentative.InstanceKeyCreator.PerformanceDerivative);
 
-            GCHandle hndBytes = SecureStringConverter.SecureStringToKeyDerive(password, cryptographicRepresentative.InstanceKeyCreator.Salt,
+            GCHandle byteHandle = SecureStringConverter.SecureStringToKeyDerive(password, cryptographicRepresentative.InstanceKeyCreator.Salt,
                 performanceDerivative, cryptographicRepresentative.InstanceKeyCreator.KeyAlgorithm, out KeyDerive keyDevice);
 
             ((IProgress<int>)this._progress)?.Report(10);
 
 #if VERBOSE
-            Console.WriteLine(Resources.MainWindow_DecryptDataWithHeader_Password_managed_time__ + watch.ElapsedMilliseconds);
+            Console.WriteLine(DebugResources.PasswordControlledTime__WriteString + watch.ElapsedMilliseconds);
 #endif
             HMAC hmacAlg = null;
 
@@ -261,24 +255,21 @@ namespace Encryption_App.ManagedSlaves
             }
 
             var decryptor = (SymmetricCryptoManager)Activator.CreateInstance(cryptographicRepresentative.TransformationModeInfo.CryptoManager);
-
-#if VERBOSE
-            Console.WriteLine(Resources.MainWindow_DecryptDataWithHeader_Object_built_time__ + watch.ElapsedMilliseconds);
-#endif
+            
             FileStatics.RemovePrependData(this._filePath, App.This.HeaderLessTempFile, cryptographicRepresentative.HeaderLength);
 
             ((IProgress<int>)this._progress)?.Report(20);
 
 #if VERBOSE
-            Console.WriteLine(Resources.MainWindow_DecryptDataWithHeader_Header_removed_time__ + watch.ElapsedMilliseconds);
+            Console.WriteLine(DebugResources.HeaderRemovedTime + watch.ElapsedMilliseconds);
 #endif
             byte[] key = keyDevice.GetBytes((int)cryptographicRepresentative.TransformationModeInfo.KeySize / 8);
 
-            Externals.ZeroMemory(hndBytes.AddrOfPinnedObject(), ((byte[]) hndBytes.Target).Length);
+            Externals.ZeroMemory(byteHandle.AddrOfPinnedObject(), ((byte[])byteHandle.Target).Length);
 
-            hndBytes.Free();
+            byteHandle.Free();
 
-            GCHandle gch = GCHandle.Alloc(key, GCHandleType.Pinned);
+            GCHandle keyHandle = GCHandle.Alloc(key, GCHandleType.Pinned);
 
             var isVerified = false;
 
@@ -292,11 +283,11 @@ namespace Encryption_App.ManagedSlaves
             ((IProgress<int>)this._progress)?.Report(35);
 
 #if VERBOSE
-            Console.WriteLine(Resources.MainWindow_DecryptDataWithHeader_HMAC_verified_time__ + watch.ElapsedMilliseconds);
+            Console.WriteLine(DebugResources.PostHMACAuthenticationTime_WriteString + watch.ElapsedMilliseconds);
 #endif
 
             // If that didn't succeed, the file has been tampered with
-            if (cryptographicRepresentative.Hmac.HashAlgorithm != null && !isVerified)
+            if (cryptographicRepresentative.Hmac.HashAlgorithm != null && !isVerified) 
             {
                 throw new UnverifiableDataException("File could not be verified - may have been tampered, or the password is incorrect");
             }
@@ -305,25 +296,25 @@ namespace Encryption_App.ManagedSlaves
             try
             {
 #if VERBOSE
-                Console.WriteLine(Resources.MainWindow_DecryptDataWithHeader_Pre_decryption_time__ + watch.ElapsedMilliseconds);
+                Console.WriteLine(DebugResources.PreDecryptionTime_WriteString + watch.ElapsedMilliseconds);
 #endif
                 decryptor.DecryptFileBytes(App.This.HeaderLessTempFile, App.This.DataTempFile, key, cryptographicRepresentative.TransformationModeInfo.InitializationVector);
 #if VERBOSE
                 ((IProgress<int>)this._progress)?.Report(75);
-                Console.WriteLine(Resources.MainWindow_DecryptDataWithHeader_Post_decryption_time__ + watch.ElapsedMilliseconds);
+                Console.WriteLine(DebugResources.PostDecryptionTime_WriteString + watch.ElapsedMilliseconds);
 #endif
                 // Move the file to the original file location
                 File.Copy(App.This.DataTempFile, this._filePath, true);
                 ((IProgress<int>)this._progress)?.Report(100);
 #if VERBOSE
-                Console.WriteLine(Resources.MainWindow_DecryptDataWithHeader_File_copied_time__ + watch.ElapsedMilliseconds);
+                Console.WriteLine(DebugResources.FileCopiedTime_WriteString + watch.ElapsedMilliseconds);
 #endif
             }
             finally
             {
                 // Delete the key from memory for security
-                Externals.ZeroMemory(gch.AddrOfPinnedObject(), key.Length);
-                gch.Free();
+                Externals.ZeroMemory(keyHandle.AddrOfPinnedObject(), key.Length);
+                keyHandle.Free();
             }
         }
 

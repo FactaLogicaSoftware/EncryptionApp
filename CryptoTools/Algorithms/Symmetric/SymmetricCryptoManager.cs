@@ -4,6 +4,7 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Security.Cryptography;
 using FactaLogicaSoftware.CryptoTools.Events;
+using JetBrains.Annotations;
 using Microsoft.VisualBasic.Devices;
 #if DEBUG
 
@@ -249,7 +250,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="outputFile">The full path of the file to put the encrypted data</param>
         /// <param name="key">The bytes of the key</param>
         /// <param name="iv">The bytes of the initialization vector</param>
-        public abstract void EncryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv);
+        public abstract void EncryptFileBytes([NotNull] string inputFile, [NotNull] string outputFile, [NotNull] byte[] key, [NotNull] byte[] iv);
 
         /// <summary>
         /// If overriden in a derived class, decrypts bytes of a given file into another one
@@ -258,7 +259,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="outputFile">The full path of the file to put the encrypted data</param>
         /// <param name="key">The bytes of the key</param>
         /// <param name="iv">The bytes of the initialization vector</param>
-        public abstract void DecryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv);
+        public abstract void DecryptFileBytes([NotNull] string inputFile, [NotNull] string outputFile, [NotNull] byte[] key, [NotNull] byte[] iv);
 
         /// <summary>
         /// If overriden in a derived class, encrypts an array of bytes
@@ -267,7 +268,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="key">The key to encrypt with</param>
         /// <param name="iv">The initialization vector</param>
         /// <returns>The encrypted byte array</returns>
-        public abstract byte[] EncryptBytes(byte[] data, byte[] key, byte[] iv);
+        public abstract byte[] EncryptBytes([NotNull] byte[] data, [NotNull] byte[] key, [NotNull] byte[] iv);
 
         /// <summary>
         /// If overriden in a derived class, decrypts an array of bytes
@@ -276,6 +277,6 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="key">The key to decrypt with</param>
         /// <param name="iv">The initialization vector</param>
         /// <returns>The decrypted byte array</returns>
-        public abstract byte[] DecryptBytes(byte[] data, byte[] key, byte[] iv);
+        public abstract byte[] DecryptBytes([NotNull] byte[] data, [NotNull] byte[] key, [NotNull] byte[] iv);
     }
 }
