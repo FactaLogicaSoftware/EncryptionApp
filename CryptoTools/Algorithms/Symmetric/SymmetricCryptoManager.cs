@@ -17,7 +17,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
     /// <summary>
     /// An interface that defines the contract of any encryption algorithm
     /// </summary>
-    public abstract class SymmetricCryptoManager
+    public abstract class SymmetricCryptoManager : IDisposable
     {
         private protected SymmetricAlgorithm SymmetricAlgorithm;
 
@@ -51,8 +51,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         
         ~SymmetricCryptoManager()
         {
-            // All aes classes implement IDispose so we must dispose of it
-            this.SymmetricAlgorithm.Dispose();
+            Dispose(false);
         }
 
         protected void OnMemoryChunkValueChanged(MemoryChunkValueChangedEventArgs e)
@@ -172,7 +171,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                         // TODO more advanced IO stats
                     };
 
-                    OnDebugValuesFinalised(new DebugValuesFinalisedEventArgs(toWrite));
+                    OnDebugValuesFinalised(new DebugValuesFinalisedEventArgs(toWrite, this));
 
                     InternalDebug.WriteToDiagnosticsFile(toWrite);
 #endif
@@ -220,5 +219,28 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="iv">The initialization vector</param>
         /// <returns>The decrypted byte array</returns>
         public abstract byte[] DecryptBytes([NotNull] byte[] data, [NotNull] byte[] key, [NotNull] byte[] iv);
+
+        private void ReleaseUnmanagedResources()
+        {
+            // TODO release unmanaged resources here
+        }
+
+        private void Dispose(bool disposing)
+        {
+            ReleaseUnmanagedResources();
+            if (disposing)
+            {
+                this.SymmetricAlgorithm?.Dispose();
+            }
+        }
+
+        /// <inheritdoc />
+        /// <summary>
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

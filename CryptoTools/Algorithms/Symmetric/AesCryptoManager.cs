@@ -1,5 +1,4 @@
 ﻿using FactaLogicaSoftware.CryptoTools.Exceptions;
-using Microsoft.VisualBasic.Devices;
 using System;
 using System.Diagnostics.Contracts;
 using System.IO;
@@ -9,8 +8,16 @@ using JetBrains.Annotations;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// </summary>
     public sealed class AesCryptoManager : SymmetricCryptoManager
     {
+        /// <summary>
+        /// Gets or sets the KeySize for the AES algorithm
+        /// Valid sizes are 128, 192, and 256
+        /// </summary>
+        /// <exception cref="ArgumentException"></exception>
         public override int KeySize
         {
             get => this.SymmetricAlgorithm.KeySize;
@@ -24,7 +31,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 this.SymmetricAlgorithm.KeySize = value;
             }
         }
-
+        
         private static SymmetricAlgorithm DefaultAlgorithm { get; } = new AesCng
         {
             BlockSize = 128,

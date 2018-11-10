@@ -3,16 +3,47 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace FactaLogicaSoftware.CryptoTools.Information.Contracts
 {
-    public class SymmetricCryptographicContract : CryptographicProcessContract
+    /// <summary>
+    /// Represents the contract used to transform data
+    /// with a symmetric algorithm
+    /// </summary>
+    public class SymmetricCryptographicContract
     {
+        /// <summary>
+        /// The class containing the information
+        /// defining how to transform the data
+        /// </summary>
+        [NotNull]
         public TransformationContract TransformationContract;
+
+        /// <summary>
+        /// The class containing the information on
+        /// how to derive the key from the password,
+        /// or null to represent that the password is the key
+        /// </summary>
+        [CanBeNull]
         public KeyContract InstanceKeyContract;
+
+        /// <summary>
+        /// The class containing the information on
+        /// how to verify the data using an HMAC process,
+        /// or null to represent the data cannot be verified
+        /// </summary>
+        [CanBeNull]
         public HmacContract HmacContract;
 
-        public SymmetricCryptographicContract(TransformationContract transformationContract, KeyContract instanceKeyContract, HmacContract hmacContract)
+        /// <summary>
+        /// Creates a new instance of the SymmetricCryptographicContract
+        /// from the relevant contracts
+        /// </summary>
+        /// <param name="transformationContract"></param>
+        /// <param name="instanceKeyContract"></param>
+        /// <param name="hmacContract"></param>
+        public SymmetricCryptographicContract([NotNull] TransformationContract transformationContract, [CanBeNull] KeyContract instanceKeyContract = null, [CanBeNull] HmacContract hmacContract = null)
         {
             this.TransformationContract = transformationContract ??
                                           throw new ArgumentNullException(nameof(transformationContract));

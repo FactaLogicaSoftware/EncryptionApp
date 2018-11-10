@@ -9,11 +9,23 @@ using JetBrains.Annotations;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// </summary>
     public sealed class TripleDesCryptoManager : SymmetricCryptoManager
     {
         // Max file size allowed - 24GB
-        private const long MaxSecureFileSize = 1024 * 1024 * 1024 * 24L;
+        /// <summary>
+        /// The largest amount of data allowed to be encrypted with
+        /// this algorithm
+        /// </summary>
+        public const long MaxSecureFileSize = 1024 * 1024 * 1024 * 24L;
 
+        /// <summary>
+        /// Gets or sets the KeySize for the AES algorithm
+        /// Valid sizes are 128, 192, and 256
+        /// </summary>
+        /// <exception cref="ArgumentException"></exception>
         public override int KeySize
         {
             get => SymmetricAlgorithm.KeySize;

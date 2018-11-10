@@ -2,6 +2,10 @@
 {
     using System;
 
+    /// <inheritdoc />
+    /// <summary>
+    /// 
+    /// </summary>
     [Serializable]
     public class DataTooLargeException : InvalidCryptographicOperationException
     {
@@ -10,7 +14,7 @@
         /// The default constructor
         /// </summary>
         public DataTooLargeException()
-            : base("Key is not valid")
+            : base("Data is too large")
         {
         }
 

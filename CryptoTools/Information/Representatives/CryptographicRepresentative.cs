@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using Newtonsoft.Json;
 
 namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
@@ -11,8 +12,15 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
         // padding used to find start and end of header object - human readable
         private protected Encoding Encoding;
 
+        /// <summary>
+        /// The characters that pad the start of the serialization
+        /// </summary>
         [JsonIgnore]
         public static readonly string StartChars;
+
+        /// <summary>
+        /// The characters that pad the end of the serialization
+        /// </summary>
         [JsonIgnore]
         public static readonly string EndChars;
 
@@ -22,20 +30,48 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
             EndChars = "END ENCRYPTION HEADER STRING";
         }
 
+        /// <summary>
+        /// The length of the current 
+        /// </summary>
         [JsonIgnore]
-        public long HeaderLength { get; private protected set; }
+        public long HeaderLength
+        {
+            get
+            {
+                if (this.Type != InfoType.Read)
+                    throw new NotSupportedException("Header length invalid on a write object");
 
+                return this._headerLength;
+            }
+            private protected set => this._headerLength = value;
+        }
+
+        /// <summary>
+        /// The InfoType of the current objects
+        /// </summary>
         [JsonIgnore]
         public InfoType Type { get; private protected set; }
 
+        /// <summary>
+        /// Represents the 2 possible types of
+        /// CryptographicRepresentative - either
+        /// one created for writing, or one created
+        /// from read data
+        /// </summary>
         public enum InfoType
         {
+            /// <summary>
+            /// Represents an object that was created
+            /// by deserialization from data
+            /// </summary>
             Read,
+            /// <summary>
+            /// Represents an object that was created
+            /// through code, for serialization
+            /// </summary>
             Write
         }
-
-        // primary data object - see CryptoStructs.cs for documentation
-        public string CryptoManager;
+        private long _headerLength;
 
         /// <summary>
         /// If overriden in a derived class, writes a header representation of the object to a file as JSON

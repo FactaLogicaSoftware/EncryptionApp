@@ -9,11 +9,24 @@ using JetBrains.Annotations;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {
-    public class Rc2CryptoManager : SymmetricCryptoManager
+    /// <inheritdoc />
+    /// <summary>
+    /// The class used for transformation of data
+    /// using the Rc2 encryption algorithm
+    /// </summary>
+    public sealed class Rc2CryptoManager : SymmetricCryptoManager
     {
-        // Max file size allowed - 24GB
-        private const long MaxSecureFileSize = 1024 * 1024 * 1024 * 24L;
+        /// <summary>
+        /// The largest amount of data allowed to be encrypted with
+        /// this algorithm
+        /// </summary>
+        public const long MaxSecureFileSize = 1024 * 1024 * 1024 * 24L;
 
+        /// <summary>
+        /// Gets or sets the KeySize for the AES algorithm
+        /// Valid sizes are 128, 192, and 256
+        /// </summary>
+        /// <exception cref="ArgumentException"></exception>
         public override int KeySize
         {
             get => SymmetricAlgorithm.KeySize;
@@ -24,7 +37,14 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                     throw new ArgumentException("Key is not a valid length ");
                 }
 
-                SymmetricAlgorithm.KeySize = value;
+                try
+                {
+                    SymmetricAlgorithm.KeySize = value;
+                }
+                catch (CryptographicException)
+                {
+                    throw new ArgumentException(nameof(value));
+                }
             }
         }
 
@@ -64,8 +84,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         public Rc2CryptoManager([NotNull] SymmetricAlgorithm algorithm) : this(DefaultChunkSize, algorithm)
         {
         }
-
-        // TODO messy constructor inheritance
+        
         /// <inheritdoc />
         /// <summary>
         /// Uses custom read/write values and an RC2 algorithm of your choice

@@ -95,11 +95,21 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             return _baseObject.HashRaw(Password, Salt).Skip((int)_read).ToArray();
         }
 
+        /// <inheritdoc />
+        /// <summary>
+        /// </summary>
         public override void Reset()
         {
             _read = 0;
         }
 
+        /// <summary>
+        /// Returns the tuple containing the
+        /// tuning parameters for Argon2
+        /// </summary>
+        /// <param name="performanceDerivative"></param>
+        /// <param name="milliseconds"></param>
+        /// <returns></returns>
         public static (ulong N, uint r, uint p) TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
         {
             return performanceDerivative.TransformToArgon2Tuning(milliseconds);

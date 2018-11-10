@@ -6,6 +6,9 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
     using System.Security.Cryptography;
     using System.Text;
 
+#pragma warning disable CS1591
+    // TODO @NATHAN
+
     public sealed class Pbkdf2Advanced : KeyDerive
     {
         // needs to be fixed

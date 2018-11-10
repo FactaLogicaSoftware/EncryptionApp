@@ -53,6 +53,7 @@
     <WarningLevel>4</WarningLevel>
     <GenerateSerializationAssemblies>On</GenerateSerializationAssemblies>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DocumentationFile>bin\x64\Debug\CryptoTools.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
@@ -94,7 +95,6 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Algorithms\Asymmetric\RsaCryptoManager.cs" />
     <Compile Include="Algorithms\Symmetric\Rc2CryptoManager.cs" />
     <Compile Include="Algorithms\Symmetric\TripleDesCryptoManager.cs" />
     <Compile Include="Digests\KeyDerivation\Argon2KeyDerive.cs" />
@@ -112,7 +112,6 @@
     <Compile Include="Information\Contracts\KeyContract.cs" />
     <Compile Include="Information\Contracts\SymmetricCryptographicContract.cs" />
     <Compile Include="Information\Contracts\TransformationContract.cs" />
-    <Compile Include="Information\Contracts\CryptographicProcessContract.cs" />
     <Compile Include="Information\Representatives\HmacRepresentative.cs" />
     <Compile Include="Information\Representatives\KeyRepresentative.cs" />
     <Compile Include="Information\Representatives\SymmetricCryptographicRepresentative.cs" />

@@ -2,6 +2,7 @@
 using System;
 
 #pragma warning disable 0414
+#pragma warning disable 1591
 
 namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {

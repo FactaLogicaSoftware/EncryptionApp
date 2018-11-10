@@ -188,7 +188,6 @@ namespace Encryption_App
 #endif
             var cryptographicInfo = new SymmetricCryptographicRepresentative
             {
-                CryptoManager = request.Contract.TransformationContract.CryptoManager.AssemblyQualifiedName,
                 TransformationModeInfo = new TransformationRepresentative
                 {
                     BlockSize = request.Contract.TransformationContract.BlockSize,

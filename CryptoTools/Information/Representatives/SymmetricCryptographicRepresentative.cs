@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 
 namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
@@ -20,8 +21,14 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
             this.Encoding = Encoding.UTF8;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        [CanBeNull]
         public HmacRepresentative Hmac;
+        [NotNull]
         public TransformationRepresentative TransformationModeInfo;
+        [CanBeNull]
         public KeyRepresentative InstanceKeyCreator;
 
         /// <inheritdoc />
