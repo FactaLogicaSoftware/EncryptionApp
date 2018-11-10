@@ -1,10 +1,10 @@
 ﻿using FactaLogicaSoftware.CryptoTools.Exceptions;
+using JetBrains.Annotations;
 using System;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using JetBrains.Annotations;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {
@@ -29,7 +29,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 this.SymmetricAlgorithm.KeySize = value;
             }
         }
-        
+
         private static SymmetricAlgorithm DefaultAlgorithm { get; } = new AesCng
         {
             BlockSize = 128,
@@ -132,7 +132,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             Contract.EndContractBlock();
 
-            #endregion
+            #endregion CONTRACT
 
             // Set actual IV and key
             this.SymmetricAlgorithm.Key = key;
@@ -170,7 +170,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             Contract.EndContractBlock();
 
-            #endregion
+            #endregion CONTRACT
 
             // Set actual IV and key
             this.SymmetricAlgorithm.Key = key;
@@ -199,7 +199,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             Contract.EndContractBlock();
 
-            #endregion
+            #endregion CONTRACT
 
             // AES values
             this.SymmetricAlgorithm.KeySize = key.Length * 8;
@@ -242,8 +242,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             if (!this.SymmetricAlgorithm.ValidKeySize(key.Length * 8)) throw new InvalidKeyLengthException($"Invalid key length of {key.Length * 8}");
             if (iv.Length != this.SymmetricAlgorithm.BlockSize / 8) throw new InvalidCryptographicPropertyException($"IV length (bits: {iv.Length * 8}) must be equal to block size length {this.SymmetricAlgorithm.BlockSize}");
 
-
-            #endregion
+            #endregion CONTRACT
 
             // AES values
             this.SymmetricAlgorithm.KeySize = key.Length * 8;

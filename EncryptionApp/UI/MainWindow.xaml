@@ -121,7 +121,6 @@
             <ProgressBar Height="25" Width="186" />
             <ProgressBar Height="10" Width="100" />
         </TabControl>
-        <Button Content="History" Grid.Column="1" HorizontalAlignment="Left" Margin="38,10,-114,0" VerticalAlignment="Top" Width="76" FontFamily="Segoe UI Light" Background="#FF606060" Foreground="White" Height="23"/>
-
+        <Button Content="History" Grid.Column="1" HorizontalAlignment="Left" Margin="38,10,-114,0" VerticalAlignment="Top" Width="76" FontFamily="Segoe UI Light" Background="#FF606060" Foreground="White" Height="23" />
     </Grid>
 </Window>

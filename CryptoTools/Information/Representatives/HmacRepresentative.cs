@@ -12,6 +12,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
         /// The byte array of the hash
         /// </summary>
         public byte[] HashBytes;
+
         /// <summary>
         /// The type used to verify the bytes
         /// </summary>

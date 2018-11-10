@@ -6,7 +6,7 @@
     /// <inheritdoc />
     /// <summary>
     /// Event args representing a change in the memory chunk
-    /// value for 
+    /// value for
     /// </summary>
     public class MemoryChunkValueChangedEventArgs : EventArgs
     {

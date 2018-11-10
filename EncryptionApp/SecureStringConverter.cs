@@ -1,11 +1,10 @@
-﻿using System;
+﻿using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
+using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
+using System;
 using System.Collections;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Windows;
-using Encryption_App.UI;
-using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
-using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
 
 namespace Encryption_App
 {
@@ -26,7 +25,6 @@ namespace Encryption_App
 
                 for (var i = 0; i < password.Length * sizeof(char); i++)
                     dataInsecureBytes[i] = Marshal.ReadByte(ptrSecureString, i);
-
 
                 // Create an object array of parameters
                 var parametersForInstance = new object[] { dataInsecureBytes, salt, null };
@@ -64,6 +62,7 @@ namespace Encryption_App
                 Marshal.ZeroFreeGlobalAllocUnicode(ptrSecureString);
             }
         }
+
         public static (IntPtr, int) SecureStringToKeyDeriveReturnPointer(SecureString password, IEnumerable salt, PerformanceDerivative performanceDerivative, Type keyDeriveAlgorithm, out KeyDerive keyDerive)
         {
             // Turn the secure string into a string to pass it into keyDevice for the shortest interval possible
@@ -79,7 +78,6 @@ namespace Encryption_App
 
                 for (var i = 0; i < password.Length * sizeof(char); i++)
                     dataInsecureBytes[i] = Marshal.ReadByte(ptrSecureString, i);
-
 
                 // Create an object array of parameters
                 var parametersForInstance = new object[] { dataInsecureBytes, salt, null };

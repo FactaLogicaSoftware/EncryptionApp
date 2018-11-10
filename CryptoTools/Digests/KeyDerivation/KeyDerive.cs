@@ -1,6 +1,4 @@
-﻿using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
-
-namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
+﻿namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {
     /// <summary>
     /// A base class that represents the contract of any key derivation function
@@ -11,7 +9,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         /// The salt used with the KDF
         /// </summary>
         public byte[] Salt { get; private protected set; }
-        
+
         private protected byte[] BackEncryptedArray;
 
         /// <summary>

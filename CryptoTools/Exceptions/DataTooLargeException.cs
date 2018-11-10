@@ -4,7 +4,7 @@
 
     /// <inheritdoc />
     /// <summary>
-    /// 
+    ///
     /// </summary>
     [Serializable]
     public class DataTooLargeException : InvalidCryptographicOperationException

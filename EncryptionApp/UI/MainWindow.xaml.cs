@@ -1,4 +1,10 @@
-﻿using System;
+﻿using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
+using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
+using FactaLogicaSoftware.CryptoTools.Exceptions;
+using FactaLogicaSoftware.CryptoTools.Information.Contracts;
+using FactaLogicaSoftware.CryptoTools.Information.Representatives;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -8,12 +14,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Xaml;
-using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
-using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
-using FactaLogicaSoftware.CryptoTools.Exceptions;
-using FactaLogicaSoftware.CryptoTools.Information.Contracts;
-using FactaLogicaSoftware.CryptoTools.Information.Representatives;
-using Newtonsoft.Json;
 
 #if VERBOSE
 #endif
@@ -32,6 +32,7 @@ namespace Encryption_App.UI
         // ReSharper disable twice PrivateFieldCanBeConvertedToLocalVariable
         // ReSharper disable twice NotAccessedField.Local
         private const int DesiredKeyDerivationMilliseconds = 2000;
+
         private const int KeySize = 128;
         private const string AesStringChoice = "AES - Recommended";
         private const string TripleDesStringChoice = "TripleDES";
@@ -46,7 +47,7 @@ namespace Encryption_App.UI
         private bool _cacheExecutionState;
         private object _manageCacheLock;
 
-        #endregion
+        #endregion FIELDS
 
         #region CONSTRUCTORS
 
@@ -112,7 +113,7 @@ namespace Encryption_App.UI
             }
         }
 
-        #endregion
+        #endregion CONSTRUCTORS
 
         #region EVENT_HANDLERS
 
@@ -134,6 +135,7 @@ namespace Encryption_App.UI
                 case Key.Enter when Keyboard.IsKeyDown(Key.LeftCtrl) && ((FrameworkElement)this.TabControl.SelectedItem).Name == "EncryptionTab":
                     Encrypt_Click(sender, e);
                     break;
+
                 case Key.Enter when Keyboard.IsKeyDown(Key.LeftCtrl) && ((FrameworkElement)this.TabControl.SelectedItem).Name == "DecryptionTab":
                     Decrypt_Click(sender, e);
                     break;
@@ -162,6 +164,7 @@ namespace Encryption_App.UI
                 case true when ((FrameworkElement)e.Source).Name == this.EncryptFileBrowseButton.Name:
                     this.EncryptFileTextBox.Text = openFileDialog.FileName;
                     break;
+
                 case true when ((FrameworkElement)e.Source).Name == this.DecryptFileBrowseButton.Name:
                     this.DecryptFileTextBox.Text = openFileDialog.FileName;
                     break;
@@ -183,12 +186,15 @@ namespace Encryption_App.UI
                 case AesStringChoice:
                     typeOfTransform = typeof(AesCryptoManager);
                     break;
+
                 case TripleDesStringChoice:
                     typeOfTransform = typeof(TripleDesCryptoManager);
                     break;
+
                 case Rc2StringChoice:
                     typeOfTransform = typeof(Rc2CryptoManager);
                     break;
+
                 default:
                     MessageBox.Show("Dropdown selected changed. Please restore it to original, and continue");
                     return;
@@ -217,7 +223,6 @@ namespace Encryption_App.UI
             );
 
             var record = new RequestStateRecord(ProcessType.Encryption, this.EncryptFileTextBox.Text, contract);
-
 
             // If the program is currently executing something, just return and inform the user
             if (this._isExecutingExclusiveProcess)
@@ -252,7 +257,7 @@ namespace Encryption_App.UI
             await DecryptDataAsync(sender, e, record, transformer);
         }
 
-        #endregion
+        #endregion EVENT_HANDLERS
 
         #region METHODS
 
@@ -266,6 +271,7 @@ namespace Encryption_App.UI
             /// The process type is encryption
             /// </summary>
             Encryption,
+
             /// <summary>
             /// The process type is decryption
             /// </summary>
@@ -280,6 +286,7 @@ namespace Encryption_App.UI
                 case ProcessType.Encryption:
                     this.EncryptLoadingGif.Visibility = Visibility.Hidden;
                     break;
+
                 case ProcessType.Decryption:
                     this.DecryptLoadingGif.Visibility = Visibility.Hidden;
                     break;
@@ -294,6 +301,7 @@ namespace Encryption_App.UI
                 case ProcessType.Encryption:
                     this.EncryptLoadingGif.Visibility = Visibility.Visible;
                     break;
+
                 case ProcessType.Decryption:
                     this.DecryptLoadingGif.Visibility = Visibility.Visible;
                     break;
@@ -331,7 +339,6 @@ namespace Encryption_App.UI
                 // Run the encryption in a separate thread and return control to the UI thread
                 await Task.Run(() =>
                 {
-
                     try
                     {
                         transformer.EncryptDataWithHeader(record, this.EncryptPasswordBox.SecurePassword,
@@ -345,7 +352,6 @@ namespace Encryption_App.UI
                         internalThrewException = true;
                     }
                 });
-
             }
             catch (CryptographicException exception)
             {
@@ -366,6 +372,7 @@ namespace Encryption_App.UI
                     case "EncryptionTab":
                         this.EncryptionCacheStateSwitchButton.Content = PrimaryResources.CachePaused_String;
                         break;
+
                     case "DecryptionTab":
                         this.DecryptionCacheStateSwitchButton.Content = PrimaryResources.CachePaused_String;
                         break;
@@ -448,6 +455,7 @@ namespace Encryption_App.UI
                     case "EncryptionTab":
                         this.EncryptionCacheStateSwitchButton.Content = PrimaryResources.CachePaused_String;
                         break;
+
                     case "DecryptionTab":
                         this.DecryptionCacheStateSwitchButton.Content = PrimaryResources.CachePaused_String;
                         break;
@@ -473,17 +481,17 @@ namespace Encryption_App.UI
                     transformer = new CryptoFile(record.FilePath, this._encryptionProgress);
                     await EncryptDataAsync(sender, e, record, transformer);
                     break;
+
                 case ProcessType.Decryption:
                     transformer = new CryptoFile(record.FilePath, this._decryptionProgress);
                     await DecryptDataAsync(sender, e, record, transformer);
                     break;
-
             }
 
             this._isCacheRunning = false;
         }
 
-        #endregion
+        #endregion METHODS
 
         private void CacheStateSwitchButton_OnClick(object sender, RoutedEventArgs e)
         {

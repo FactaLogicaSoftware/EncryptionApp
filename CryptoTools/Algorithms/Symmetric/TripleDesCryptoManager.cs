@@ -1,11 +1,10 @@
 ﻿using FactaLogicaSoftware.CryptoTools.Exceptions;
-using Microsoft.VisualBasic.Devices;
+using JetBrains.Annotations;
 using System;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using JetBrains.Annotations;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {
@@ -143,7 +142,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             Contract.EndContractBlock();
 
-            #endregion
+            #endregion CONTRACT
 
             // Set actual IV and key
             SymmetricAlgorithm.KeySize = key.Length * 8;
@@ -186,7 +185,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             Contract.EndContractBlock();
 
-            #endregion
+            #endregion CONTRACT
 
             // Set actual IV and key
             SymmetricAlgorithm.Key = key;

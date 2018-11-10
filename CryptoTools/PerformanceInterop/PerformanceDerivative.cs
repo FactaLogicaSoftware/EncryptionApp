@@ -55,7 +55,7 @@
             var salt = new byte[256 / 8];
             var buff = new byte[256 / 8];
             rand.NextBytes(salt);
-            
+
             var test = new Pbkdf2KeyDerive("Hello World", salt, Pbkdf2Iterations);
 
             long a = watch.ElapsedMilliseconds;

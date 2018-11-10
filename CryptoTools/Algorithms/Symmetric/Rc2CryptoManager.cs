@@ -1,11 +1,10 @@
 ﻿using FactaLogicaSoftware.CryptoTools.Exceptions;
-using Microsoft.VisualBasic.Devices;
+using JetBrains.Annotations;
 using System;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using JetBrains.Annotations;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {
@@ -84,7 +83,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         public Rc2CryptoManager([NotNull] SymmetricAlgorithm algorithm) : this(DefaultChunkSize, algorithm)
         {
         }
-        
+
         /// <inheritdoc />
         /// <summary>
         /// Uses custom read/write values and an RC2 algorithm of your choice
@@ -137,7 +136,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             if (key == null) throw new ArgumentNullException(nameof(key));
             if (iv == null) throw new ArgumentNullException(nameof(iv));
 
-            #endregion
+            #endregion CONTRACT
 
             if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
             if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
@@ -178,7 +177,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             if (key == null) throw new ArgumentNullException(nameof(key));
             if (iv == null) throw new ArgumentNullException(nameof(iv));
 
-            #endregion
+            #endregion CONTRACT
 
             if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
             if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
@@ -222,7 +221,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             Contract.EndContractBlock();
 
-            #endregion
+            #endregion CONTRACT
 
             // RC2 values
             SymmetricAlgorithm.KeySize = key.Length * 8;
@@ -267,7 +266,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             Contract.EndContractBlock();
 
-            #endregion
+            #endregion CONTRACT
 
             // AES values
             SymmetricAlgorithm.KeySize = key.Length * 8;
