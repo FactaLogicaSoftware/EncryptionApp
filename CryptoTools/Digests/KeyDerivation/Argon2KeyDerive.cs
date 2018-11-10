@@ -9,8 +9,6 @@ using System.Text;
 namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {
     /// <inheritdoc />
-    /// <summary>
-    /// </summary>
     /// TODO Make based off Konscious security, better lib, but not on nuGet
     public sealed class Argon2KeyDerive : KeyDerive
     {
@@ -20,8 +18,6 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         private uint _read;
 
         /// <inheritdoc />
-        /// <summary>
-        /// </summary>
         public override dynamic PerformanceValues
         {
             get => _tuneFlags;
@@ -87,8 +83,6 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         }
 
         /// <inheritdoc />
-        /// <summary>
-        /// </summary>
         public override byte[] GetBytes(int size)
         {
             _baseObject.HashLength = _read + (uint)size;
@@ -96,8 +90,6 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         }
 
         /// <inheritdoc />
-        /// <summary>
-        /// </summary>
         public override void Reset()
         {
             _read = 0;

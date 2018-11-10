@@ -9,8 +9,6 @@ using JetBrains.Annotations;
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {
     /// <inheritdoc />
-    /// <summary>
-    /// </summary>
     public sealed class AesCryptoManager : SymmetricCryptoManager
     {
         /// <summary>

@@ -14,19 +14,36 @@ using FactaLogicaSoftware.CryptoTools.DebugTools;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {
+    /// <inheritdoc />
     /// <summary>
     /// An interface that defines the contract of any encryption algorithm
     /// </summary>
     public abstract class SymmetricCryptoManager : IDisposable
     {
-        private protected SymmetricAlgorithm SymmetricAlgorithm;
+        private protected readonly SymmetricAlgorithm SymmetricAlgorithm;
 
+        /// <summary>
+        /// The event raised if the memory chunk size is changed
+        /// due to memory limitations
+        /// </summary>
         public event EventHandler<MemoryChunkValueChangedEventArgs> MemoryChunkValueChanged;
-        public event EventHandler<DebugValuesFinalisedEventArgs> DebugValuesFinalised;
 
-        // How many bytes read into memory per chunk - calculated by constructor
+#if DEBUG
+        /// <summary>
+        /// The event raised when debug values are finalised,
+        /// to allow other classes to use them
+        /// </summary>
+        public event EventHandler<DebugValuesFinalisedEventArgs> DebugValuesFinalised;
+#endif
+
+        /// <summary>
+        /// The number of bytes read into memory at one time
+        /// </summary>
         protected int MemoryConst;
 
+        /// <summary>
+        /// The key size, in bits, to use
+        /// </summary>
         public abstract int KeySize { get; set; }
 
         /// <summary>
@@ -49,17 +66,31 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             this.SymmetricAlgorithm = algorithm;
         }
         
+        /// <summary>
+        /// The default finalizer
+        /// </summary>
         ~SymmetricCryptoManager()
         {
             Dispose(false);
         }
 
+        /// <summary>
+        /// The event handler for any change in the
+        /// memory chunking size
+        /// </summary>
+        /// <param name="e">The new value wrapped in a MemoryChunkValueChangedEventArgs object</param>
+        /// <see cref="MemoryChunkValueChangedEventArgs"/>
         protected void OnMemoryChunkValueChanged(MemoryChunkValueChangedEventArgs e)
         {
             EventHandler<MemoryChunkValueChangedEventArgs> handler = this.MemoryChunkValueChanged;
             handler?.Invoke(this, e);
         }
 
+        /// <summary>
+        /// The event handler for debug values being finalised
+        /// </summary>
+        /// <param name="e">The strings of the values wrapped in a DebugValuesFinalisedEventArgs</param>
+        /// <see cref="DebugValuesFinalisedEventArgs"/>
         protected void OnDebugValuesFinalised(DebugValuesFinalisedEventArgs e)
         {
             EventHandler<DebugValuesFinalisedEventArgs> handler = this.DebugValuesFinalised;
@@ -235,8 +266,6 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         }
 
         /// <inheritdoc />
-        /// <summary>
-        /// </summary>
         public void Dispose()
         {
             Dispose(true);

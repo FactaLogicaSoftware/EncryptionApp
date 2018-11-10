@@ -77,9 +77,10 @@ namespace Encryption_App
         /// <param name="request"></param>
         /// <param name="password"></param>
         /// <param name="desiredKeyDerivationMilliseconds"></param>
-        public void EncryptDataWithHeader(RequestStateRecord request, SecureString password, int desiredKeyDerivationMilliseconds)
+        public void EncryptDataWithHeader(RequestStateRecord request, SecureString password,
+            int desiredKeyDerivationMilliseconds)
         {
-            ((IProgress<int>)this._progress)?.Report(0);
+            ((IProgress<int>) this._progress)?.Report(0);
             password.MakeReadOnly();
 
 #if VERBOSE
@@ -98,12 +99,14 @@ namespace Encryption_App
             catch (CryptographicException exception)
             {
                 FileStatics.WriteToLogFile(exception);
-                MessageBox.Show("There was an error generating secure random numbers. Please try again - check log file for more details");
+                MessageBox.Show(
+                    "There was an error generating secure random numbers. Please try again - check log file for more details");
             }
 
-            var performanceDerivative = new PerformanceDerivative(request.Contract.InstanceKeyContract.PerformanceDerivative);
+            var performanceDerivative =
+                new PerformanceDerivative(request.Contract.InstanceKeyContract.PerformanceDerivative);
 
-            ((IProgress<int>)this._progress)?.Report(25);
+            ((IProgress<int>) this._progress)?.Report(25);
 
             // Get the password
 
@@ -111,7 +114,7 @@ namespace Encryption_App
             {
                 MessageBox.Show("You must enter a password");
 
-                ((IProgress<int>)this._progress)?.Report(0);
+                ((IProgress<int>) this._progress)?.Report(0);
                 return;
             }
 #if TRACE
@@ -126,32 +129,35 @@ namespace Encryption_App
             GCHandle byteHandle = SecureStringConverter.SecureStringToKeyDerive(password, salt,
                 performanceDerivative, request.Contract.InstanceKeyContract.KeyAlgorithm, out KeyDerive keyDevice);
 
-            ((IProgress<int>)this._progress)?.Report(35);
+            ((IProgress<int>) this._progress)?.Report(35);
 
             HMAC hmacAlg = null;
 
             if (request.Contract.HmacContract != null)
             {
                 // Create the algorithm using reflection
-                hmacAlg = (HMAC)Activator.CreateInstance(request.Contract.HmacContract.HashAlgorithm);
+                hmacAlg = (HMAC) Activator.CreateInstance(request.Contract.HmacContract.HashAlgorithm);
             }
 
-            var @params = new object[] { 1024 * 1024 * 1024, new AesCryptoServiceProvider() };
+            var @params = new object[] {1024 * 1024 * 1024, new AesCryptoServiceProvider()};
 
-            var encryptor = (SymmetricCryptoManager)Activator.CreateInstance(request.Contract.TransformationContract.CryptoManager, @params);
+            var encryptor =
+                (SymmetricCryptoManager) Activator.CreateInstance(request.Contract.TransformationContract.CryptoManager,
+                    @params);
 
             encryptor.DebugValuesFinalised += Encryptor_OnDebugValuesFinalised;
 
 #if VERBOSE
             long offset = watch.ElapsedMilliseconds;
 #endif
-            byte[] key = keyDevice.GetBytes((int)request.Contract.TransformationContract.KeySize / 8);
+            byte[] key = keyDevice.GetBytes((int) request.Contract.TransformationContract.KeySize / 8);
 
-            Externals.ZeroMemory(byteHandle.AddrOfPinnedObject(), ((byte[])byteHandle.Target).Length);
+            Externals.ZeroMemory(byteHandle.AddrOfPinnedObject(), ((byte[]) byteHandle.Target).Length);
 
             byteHandle.Free();
 #if VERBOSE
-            Console.WriteLine(DebugResources.ActualKeyDerivationTime_WriteString + (watch.ElapsedMilliseconds - offset));
+            Console.WriteLine(DebugResources.ActualKeyDerivationTime_WriteString +
+                              (watch.ElapsedMilliseconds - offset));
             Console.WriteLine(DebugResources.ExpectedKeyDerivationTime_WriteString + desiredKeyDerivationMilliseconds);
 #endif
             // Create a handle to the key to allow control of it
@@ -163,7 +169,7 @@ namespace Encryption_App
             // Encrypt the data to a temporary file
             encryptor.EncryptFileBytes(this._filePath, App.This.DataTempFile, key, iv);
 
-            ((IProgress<int>)this._progress)?.Report(90);
+            ((IProgress<int>) this._progress)?.Report(90);
 #if VERBOSE
             Console.WriteLine(DebugResources.PostEncryptionTime_WriteString + watch.ElapsedMilliseconds);
 #endif
@@ -187,8 +193,8 @@ namespace Encryption_App
             Console.WriteLine(DebugResources.PostHMACCreationTime_WriteString + watch.ElapsedMilliseconds);
 #endif
             var cryptographicInfo = new SymmetricCryptographicRepresentative
-            {
-                TransformationModeInfo = new TransformationRepresentative
+            (
+                new TransformationRepresentative
                 {
                     BlockSize = request.Contract.TransformationContract.BlockSize,
                     CryptoManager = request.Contract.TransformationContract.CryptoManager,
@@ -196,20 +202,20 @@ namespace Encryption_App
                     KeySize = request.Contract.TransformationContract.KeySize,
                     Mode = request.Contract.TransformationContract.Mode
                 },
-                Hmac = new HmacRepresentative
-                {
-                    HashAlgorithm = request.Contract.HmacContract?.HashAlgorithm,
-                    HashBytes = hash
-                },
-                InstanceKeyCreator = new KeyRepresentative
+                new KeyRepresentative
                 {
                     KeyAlgorithm = request.Contract.InstanceKeyContract.KeyAlgorithm,
                     PerformanceDerivative = request.Contract.InstanceKeyContract.PerformanceDerivative,
                     Salt = salt
+                },
+                new HmacRepresentative
+                {
+                    HashAlgorithm = request.Contract.HmacContract?.HashAlgorithm,
+                    HashBytes = hash
                 }
-            };
+            );
 
-            // Write the CryptographicRepresentative object to a file
+        // Write the CryptographicRepresentative object to a file
             cryptographicInfo.WriteHeaderToFile(this._filePath);
 
             ((IProgress<int>)this._progress)?.Report(98);

@@ -7,20 +7,35 @@ using System.Threading.Tasks;
 
 namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
 {
+    /// <summary>
+    /// The information representing a piece
+    /// of encrypted data
+    /// </summary>
     public class TransformationRepresentative
     {
+        /// <summary>
+        /// The CryptoManager used for transformation
+        /// </summary>
         public Type CryptoManager;
 
-        // The byte array used as an initialization vector
+        /// <summary>
+        /// The initialization vector
+        /// </summary>
         public byte[] InitializationVector;
 
-        // The CipherMode used
+        /// <summary>
+        /// The CipherMode used
+        /// </summary>
         public CipherMode Mode;
 
-        // The key size used
+        /// <summary>
+        /// The key size, in bits, used
+        /// </summary>
         public uint KeySize;
 
-        // The block size used
+        /// <summary>
+        /// The block size, in bits, used
+        /// </summary>
         public uint BlockSize;
 
     }

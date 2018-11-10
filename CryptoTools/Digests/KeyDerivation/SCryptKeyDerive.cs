@@ -7,8 +7,6 @@
     using System.Text;
 
     /// <inheritdoc />
-    /// <summary>
-    /// </summary>
     public sealed class SCryptKeyDerive : KeyDerive
     {
         private uint _read;
@@ -48,8 +46,6 @@
         }
 
         /// <inheritdoc />
-        /// <summary>
-        /// </summary>
         public override byte[] Password
         {
             get => ProtectedData.Unprotect(this.BackEncryptedArray, null, DataProtectionScope.CurrentUser);
@@ -57,6 +53,11 @@
             private protected set => this.BackEncryptedArray = ProtectedData.Protect(value, null, DataProtectionScope.CurrentUser);
         }
 
+        /// <summary>
+        /// Gets or sets the performance values specific to the
+        /// key derive class
+        /// </summary>
+        /// <value>The tuple (int, int, int) or (ulong, uint, uint) to use</value>
         public override object PerformanceValues
         {
             get => this._tuneFlags;
@@ -68,8 +69,6 @@
         }
 
         /// <inheritdoc />
-        /// <summary>
-        /// </summary>
         /// <param name="size"></param>
         public override byte[] GetBytes(int size)
         {
@@ -85,8 +84,6 @@
         }
 
         /// <inheritdoc />
-        /// <summary>
-        /// </summary>
         public override void Reset()
         {
             this._read = 0;

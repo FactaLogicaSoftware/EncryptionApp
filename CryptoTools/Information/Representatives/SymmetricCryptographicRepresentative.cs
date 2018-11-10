@@ -9,25 +9,51 @@ using Newtonsoft.Json;
 
 namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// Represents how a piece of data was encrypted,
+    /// including all unique instances, unlike a
+    /// SymmetricCryptographicContract
+    /// </summary>
     public class SymmetricCryptographicRepresentative : CryptographicRepresentative
     {
         /// <summary>
-        /// The default constructor
+        /// 
         /// </summary>
         public SymmetricCryptographicRepresentative()
-            : base()
         {
-            // Define the encoding used and the strings used to represent the start and end of the header object
+            Type = InfoType.Read;
+        }
+
+        /// <summary>
+        /// The default constructor
+        /// </summary>
+        public SymmetricCryptographicRepresentative([NotNull] TransformationRepresentative transformationModeInfo, [CanBeNull] KeyRepresentative instanceKeyCreator = null, [CanBeNull] HmacRepresentative hmacRepresentative = null)
+        {
+            Type = InfoType.Write;
+            this.TransformationModeInfo = transformationModeInfo;
+            this.InstanceKeyCreator = instanceKeyCreator;
+            this.Hmac = hmacRepresentative;
             this.Encoding = Encoding.UTF8;
         }
 
         /// <summary>
-        /// 
+        /// The representation of the HMAC
+        /// authenticator for a piece of data
         /// </summary>
         [CanBeNull]
         public HmacRepresentative Hmac;
-        [NotNull]
+
+        /// <summary>
+        /// The representation of the encryption
+        /// of certain data
+        /// </summary>
         public TransformationRepresentative TransformationModeInfo;
+
+        /// <summary>
+        /// The representation of how to derive the key
+        /// for a certain piece of data
+        /// </summary>
         [CanBeNull]
         public KeyRepresentative InstanceKeyCreator;
 

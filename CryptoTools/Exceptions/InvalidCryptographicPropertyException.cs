@@ -3,6 +3,11 @@ using System.Runtime.Serialization;
 
 namespace FactaLogicaSoftware.CryptoTools.Exceptions
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// Represents that an attempted property assignment
+    /// was invalid in the given context
+    /// </summary>
     [Serializable]
     public class InvalidCryptographicPropertyException : Exception
     {

@@ -10,8 +10,6 @@ using JetBrains.Annotations;
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {
     /// <inheritdoc />
-    /// <summary>
-    /// </summary>
     public sealed class TripleDesCryptoManager : SymmetricCryptoManager
     {
         // Max file size allowed - 24GB

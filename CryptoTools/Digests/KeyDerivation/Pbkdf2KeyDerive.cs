@@ -64,6 +64,7 @@
         /// </summary>
         public override dynamic PerformanceValues { get; private protected set; }
 
+        /// <inheritdoc />
         [SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = nameof(_baseObject), Justification = "Glitched - should not warn")]
         public void Dispose()
         {
@@ -78,12 +79,11 @@
         {
             if (size <= 0)
                 throw new ArgumentOutOfRangeException(nameof(size));
+
             return this._baseObject.GetBytes(size);
         }
 
         /// <inheritdoc />
-        /// <summary>
-        /// </summary>
         public override void Reset()
         {
             this._baseObject.Reset();

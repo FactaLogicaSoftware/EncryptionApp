@@ -3,20 +3,37 @@ using System.Security.Cryptography;
 
 namespace FactaLogicaSoftware.CryptoTools.Information.Contracts
 {
+    /// <summary>
+    /// The contract for transforming data
+    /// including an optional HMAC and key derivation
+    /// contract
+    /// </summary>
     public class TransformationContract
     {
+        /// <summary>
+        /// The CryptoManager used for transformation
+        /// </summary>
         public Type CryptoManager;
 
-        // The byte array used as an initialization vector
+        /// <summary>
+        /// The size, in bytes, to use for the
+        /// initialization vector
+        /// </summary>
         public uint InitializationVectorSizeBytes;
 
-        // The CipherMode used
+        /// <summary>
+        /// The CipherMode used for encryption
+        /// </summary>
         public CipherMode Mode;
 
-        // The key size used
+        /// <summary>
+        /// The key size, in bits, used
+        /// </summary>
         public uint KeySize;
 
-        // The block size used
+        /// <summary>
+        /// The block size, in bits, used
+        /// </summary>
         public uint BlockSize;
 
     }
