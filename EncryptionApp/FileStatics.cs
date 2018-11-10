@@ -66,7 +66,7 @@
             {
                 // Seek to the end of the header. IMPORTANT Do not change to Position - Position has no value checking - Seek does
                 reader.BaseStream.Seek(length, SeekOrigin.Begin);
-                
+
                 long readLength = reader.BaseStream.Length - reader.BaseStream.Position;
 
                 // Continuously reads the stream in 1 mb sections until there is none left

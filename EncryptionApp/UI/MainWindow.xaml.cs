@@ -202,24 +202,9 @@ namespace Encryption_App.UI
 
             var contract = new SymmetricCryptographicContract
             (
-                new TransformationContract
-                {
-                    BlockSize = 128,
-                    CryptoManager = typeOfTransform,
-                    InitializationVectorSizeBytes = 16,
-                    KeySize = 128,
-                    Mode = CipherMode.CBC
-                },
-                new KeyContract
-                {
-                    KeyAlgorithm = typeof(Pbkdf2KeyDerive),
-                    PerformanceDerivative = App.This.PerformanceDerivative.PerformanceDerivativeValue,
-                    SaltLengthBytes = 16
-                },
-                new HmacContract
-                {
-                    HashAlgorithm = typeof(HMACSHA384)
-                }
+                new TransformationContract(typeOfTransform, 16, CipherMode.CBC, PaddingMode.PKCS7, KeySize, 128),
+                new KeyContract(typeof(Pbkdf2KeyDerive), App.This.PerformanceDerivative.PerformanceDerivativeValue, 16),
+                new HmacContract(typeof(HMACSHA384))
             );
 
             var record = new RequestStateRecord(ProcessType.Encryption, this.EncryptFileTextBox.Text, contract);

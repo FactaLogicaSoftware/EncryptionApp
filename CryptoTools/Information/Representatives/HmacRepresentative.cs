@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 
 namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
 {
@@ -9,13 +10,29 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
     public class HmacRepresentative
     {
         /// <summary>
+        /// The default constructor for this immutable object
+        /// </summary>
+        /// <param name="hashBytes"></param>
+        /// <param name="hashAlgorithm"></param>
+        public HmacRepresentative([NotNull] Type hashAlgorithm, [NotNull] byte[] hashBytes)
+        {
+            if (!hashAlgorithm.IsSubclassOf(typeof(System.Security.Cryptography.HMAC)))
+                throw new ArgumentException(nameof(HashAlgorithm) + "must be derived from" + typeof(System.Security.Cryptography.HMAC).FullName);
+
+            HashBytes = hashBytes ?? throw new ArgumentNullException(nameof(hashBytes));
+            HashAlgorithm = hashAlgorithm;
+        }
+
+        /// <summary>
         /// The byte array of the hash
         /// </summary>
-        public byte[] HashBytes;
+        [NotNull]
+        public byte[] HashBytes { get; }
 
         /// <summary>
         /// The type used to verify the bytes
         /// </summary>
-        public Type HashAlgorithm;
+        [NotNull]
+        public Type HashAlgorithm { get; }
     }
 }

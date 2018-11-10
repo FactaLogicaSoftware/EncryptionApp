@@ -130,7 +130,7 @@
         // var currentInfo = new SymmetricCryptographicRepresentative
         // {
         // InitializationVector = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 },
-        // TransformationModeInfo = new TransformationModeInfo { root_Algorithm = "AES", KeySize = 128, BlockSize = 128, Mode = CipherMode.CBC },
+        // TransformationModeInfo = new TransformationModeInfo { root_Algorithm = "AES", KeySize = 128, BlockSize = 128, CipherMode = CipherMode.CBC },
         // InstanceKeyCreator = new KeyCreator { root_HashAlgorithm = nameof(Rfc2898DeriveBytes), PerformanceDerivative = 14, salt = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 } },
         // Hmac = new PreTransformHmacInfo { root_Hash = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, HashAlgorithm = nameof(HMACSHA384) },
         // };

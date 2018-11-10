@@ -1,15 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Security;
-using System.Security.Cryptography;
-using System.Windows;
-using Encryption_App.Properties;
-using Encryption_App.UI;
-
-
+﻿using Encryption_App.UI;
 using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
 using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
 using FactaLogicaSoftware.CryptoTools.Events;
@@ -17,6 +6,14 @@ using FactaLogicaSoftware.CryptoTools.Exceptions;
 using FactaLogicaSoftware.CryptoTools.HMAC;
 using FactaLogicaSoftware.CryptoTools.Information.Representatives;
 using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Security;
+using System.Security.Cryptography;
+using System.Windows;
 
 namespace Encryption_App
 {
@@ -72,7 +69,7 @@ namespace Encryption_App
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="request"></param>
         /// <param name="password"></param>
@@ -80,7 +77,7 @@ namespace Encryption_App
         public void EncryptDataWithHeader(RequestStateRecord request, SecureString password,
             int desiredKeyDerivationMilliseconds)
         {
-            ((IProgress<int>) this._progress)?.Report(0);
+            ((IProgress<int>)this._progress)?.Report(0);
             password.MakeReadOnly();
 
 #if VERBOSE
@@ -106,7 +103,7 @@ namespace Encryption_App
             var performanceDerivative =
                 new PerformanceDerivative(request.Contract.InstanceKeyContract.PerformanceDerivative);
 
-            ((IProgress<int>) this._progress)?.Report(25);
+            ((IProgress<int>)this._progress)?.Report(25);
 
             // Get the password
 
@@ -114,7 +111,7 @@ namespace Encryption_App
             {
                 MessageBox.Show("You must enter a password");
 
-                ((IProgress<int>) this._progress)?.Report(0);
+                ((IProgress<int>)this._progress)?.Report(0);
                 return;
             }
 #if TRACE
@@ -129,20 +126,20 @@ namespace Encryption_App
             GCHandle byteHandle = SecureStringConverter.SecureStringToKeyDerive(password, salt,
                 performanceDerivative, request.Contract.InstanceKeyContract.KeyAlgorithm, out KeyDerive keyDevice);
 
-            ((IProgress<int>) this._progress)?.Report(35);
+            ((IProgress<int>)this._progress)?.Report(35);
 
             HMAC hmacAlg = null;
 
             if (request.Contract.HmacContract != null)
             {
                 // Create the algorithm using reflection
-                hmacAlg = (HMAC) Activator.CreateInstance(request.Contract.HmacContract.HashAlgorithm);
+                hmacAlg = (HMAC)Activator.CreateInstance(request.Contract.HmacContract.HashAlgorithm);
             }
 
-            var @params = new object[] {1024 * 1024 * 1024, new AesCryptoServiceProvider()};
+            var @params = new object[] { 1024 * 1024 * 1024, new AesCryptoServiceProvider() };
 
             var encryptor =
-                (SymmetricCryptoManager) Activator.CreateInstance(request.Contract.TransformationContract.CryptoManager,
+                (SymmetricCryptoManager)Activator.CreateInstance(request.Contract.TransformationContract.CryptoManager,
                     @params);
 
             encryptor.DebugValuesFinalised += Encryptor_OnDebugValuesFinalised;
@@ -150,9 +147,9 @@ namespace Encryption_App
 #if VERBOSE
             long offset = watch.ElapsedMilliseconds;
 #endif
-            byte[] key = keyDevice.GetBytes((int) request.Contract.TransformationContract.KeySize / 8);
+            byte[] key = keyDevice.GetBytes((int)request.Contract.TransformationContract.KeySize / 8);
 
-            Externals.ZeroMemory(byteHandle.AddrOfPinnedObject(), ((byte[]) byteHandle.Target).Length);
+            Externals.ZeroMemory(byteHandle.AddrOfPinnedObject(), ((byte[])byteHandle.Target).Length);
 
             byteHandle.Free();
 #if VERBOSE
@@ -169,7 +166,7 @@ namespace Encryption_App
             // Encrypt the data to a temporary file
             encryptor.EncryptFileBytes(this._filePath, App.This.DataTempFile, key, iv);
 
-            ((IProgress<int>) this._progress)?.Report(90);
+            ((IProgress<int>)this._progress)?.Report(90);
 #if VERBOSE
             Console.WriteLine(DebugResources.PostEncryptionTime_WriteString + watch.ElapsedMilliseconds);
 #endif
@@ -178,13 +175,16 @@ namespace Encryption_App
 
             if (request.Contract.HmacContract != null)
             {
-
                 // Create the signature derived from the encrypted data and key
                 byte[] signature = MessageAuthenticator.CreateHmac(App.This.DataTempFile, key, hmacAlg);
 
                 // Set the signature correctly in the CryptographicRepresentative object
                 hash = signature;
             }
+
+            HmacRepresentative hmac = request.Contract.HmacContract != null && hash != null
+                                        ? new HmacRepresentative(request.Contract.HmacContract.HashAlgorithm, hash)
+                                        : null;
 
             // Delete the key from memory for security
             Externals.ZeroMemory(keyHandle.AddrOfPinnedObject(), key.Length);
@@ -195,27 +195,24 @@ namespace Encryption_App
             var cryptographicInfo = new SymmetricCryptographicRepresentative
             (
                 new TransformationRepresentative
-                {
-                    BlockSize = request.Contract.TransformationContract.BlockSize,
-                    CryptoManager = request.Contract.TransformationContract.CryptoManager,
-                    InitializationVector = iv,
-                    KeySize = request.Contract.TransformationContract.KeySize,
-                    Mode = request.Contract.TransformationContract.Mode
-                },
+                (
+                    request.Contract.TransformationContract.CryptoManager,
+                    iv,
+                    request.Contract.TransformationContract.CipherMode,
+                    request.Contract.TransformationContract.PaddingMode,
+                    request.Contract.TransformationContract.KeySize,
+                    request.Contract.TransformationContract.BlockSize
+                ),
                 new KeyRepresentative
-                {
-                    KeyAlgorithm = request.Contract.InstanceKeyContract.KeyAlgorithm,
-                    PerformanceDerivative = request.Contract.InstanceKeyContract.PerformanceDerivative,
-                    Salt = salt
-                },
-                new HmacRepresentative
-                {
-                    HashAlgorithm = request.Contract.HmacContract?.HashAlgorithm,
-                    HashBytes = hash
-                }
+                (
+                    request.Contract.InstanceKeyContract.KeyAlgorithm,
+                    request.Contract.InstanceKeyContract.PerformanceDerivative,
+                    salt
+                ),
+                hmac
             );
 
-        // Write the CryptographicRepresentative object to a file
+            // Write the CryptographicRepresentative object to a file
             cryptographicInfo.WriteHeaderToFile(this._filePath);
 
             ((IProgress<int>)this._progress)?.Report(98);
@@ -226,13 +223,13 @@ namespace Encryption_App
             FileStatics.AppendToFile(this._filePath, App.This.DataTempFile);
 
             ((IProgress<int>)this._progress)?.Report(100);
-#if VERBOSE 
+#if VERBOSE
             Console.WriteLine(DebugResources.FileWriteTime_WriteString + watch.ElapsedMilliseconds);
 #endif
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="cryptographicRepresentative"></param>
         /// <param name="password"></param>
@@ -256,13 +253,25 @@ namespace Encryption_App
 #endif
             HMAC hmacAlg = null;
 
-            if (cryptographicRepresentative.Hmac.HashAlgorithm != null)
+            if (cryptographicRepresentative.Hmac != null)
             {
                 hmacAlg = (HMAC)Activator.CreateInstance(cryptographicRepresentative.Hmac.HashAlgorithm);
             }
 
-            var decryptor = (SymmetricCryptoManager)Activator.CreateInstance(cryptographicRepresentative.TransformationModeInfo.CryptoManager);
-            
+            var @params = new object[]
+            {
+                1024 * 1024 * 8, new AesCng
+                {
+                    BlockSize = (int)cryptographicRepresentative.TransformationModeInfo.BlockSize,
+                    KeySize = (int)cryptographicRepresentative.TransformationModeInfo.KeySize,
+                    Mode = cryptographicRepresentative.TransformationModeInfo.CipherMode,
+                    Padding = cryptographicRepresentative.TransformationModeInfo.PaddingMode
+                }
+            };
+
+
+            var decryptor = (SymmetricCryptoManager)Activator.CreateInstance(cryptographicRepresentative.TransformationModeInfo.CryptoManager, @params);
+
             FileStatics.RemovePrependData(this._filePath, App.This.HeaderLessTempFile, cryptographicRepresentative.HeaderLength);
 
             ((IProgress<int>)this._progress)?.Report(20);
@@ -280,7 +289,7 @@ namespace Encryption_App
 
             var isVerified = false;
 
-            if (cryptographicRepresentative.Hmac.HashAlgorithm != null)
+            if (cryptographicRepresentative.Hmac != null)
             {
                 // Check if the file and key make the same HMAC
                 isVerified = MessageAuthenticator.VerifyHmac(App.This.HeaderLessTempFile, key,
@@ -294,7 +303,7 @@ namespace Encryption_App
 #endif
 
             // If that didn't succeed, the file has been tampered with
-            if (cryptographicRepresentative.Hmac.HashAlgorithm != null && !isVerified) 
+            if (cryptographicRepresentative.Hmac != null && !isVerified)
             {
                 throw new UnverifiableDataException("File could not be verified - may have been tampered, or the password is incorrect");
             }
@@ -324,8 +333,6 @@ namespace Encryption_App
                 keyHandle.Free();
             }
         }
-
-
 
         // Dynamic issue
         // ReSharper disable once UnusedMember.Local

@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Text;
-using Newtonsoft.Json;
 
 namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
 {
@@ -31,7 +31,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
         }
 
         /// <summary>
-        /// The length of the current 
+        /// The length of the current
         /// </summary>
         [JsonIgnore]
         public long HeaderLength
@@ -65,12 +65,14 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
             /// by deserialization from data
             /// </summary>
             Read,
+
             /// <summary>
             /// Represents an object that was created
             /// through code, for serialization
             /// </summary>
             Write
         }
+
         private long _headerLength;
 
         /// <summary>

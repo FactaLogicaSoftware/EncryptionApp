@@ -1,10 +1,8 @@
 ﻿namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {
-    using FactaLogicaSoftware.CryptoTools.Exceptions;
     using FactaLogicaSoftware.CryptoTools.PerformanceInterop;
     using System;
     using System.Diagnostics.CodeAnalysis;
-    using System.Diagnostics.Contracts;
     using System.Security.Cryptography;
     using System.Text;
 

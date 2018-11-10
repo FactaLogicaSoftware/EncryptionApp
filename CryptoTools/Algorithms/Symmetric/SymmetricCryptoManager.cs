@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Security.Cryptography;
 using FactaLogicaSoftware.CryptoTools.Events;
 using JetBrains.Annotations;
-using Microsoft.VisualBasic.Devices;
+
 #if DEBUG
 
 using FactaLogicaSoftware.CryptoTools.DebugTools;
@@ -29,11 +28,13 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         public event EventHandler<MemoryChunkValueChangedEventArgs> MemoryChunkValueChanged;
 
 #if DEBUG
+
         /// <summary>
         /// The event raised when debug values are finalised,
         /// to allow other classes to use them
         /// </summary>
         public event EventHandler<DebugValuesFinalisedEventArgs> DebugValuesFinalised;
+
 #endif
 
         /// <summary>
@@ -65,7 +66,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             // TODO verify integrity of argument
             this.SymmetricAlgorithm = algorithm;
         }
-        
+
         /// <summary>
         /// The default finalizer
         /// </summary>
@@ -223,7 +224,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="key">The bytes of the key</param>
         /// <param name="iv">The bytes of the initialization vector</param>
         public abstract void EncryptFileBytes([NotNull] string inputFile, [NotNull] string outputFile, [NotNull] byte[] key, [NotNull] byte[] iv);
-        
+
         /// <summary>
         /// If overriden in a derived class, decrypts bytes of a given file into another one
         /// </summary>

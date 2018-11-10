@@ -1,11 +1,10 @@
-﻿using System;
-using System.Diagnostics;
+﻿using JetBrains.Annotations;
+using Newtonsoft.Json;
+using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using JetBrains.Annotations;
-using Newtonsoft.Json;
 
 namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
 {
@@ -18,7 +17,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
     public class SymmetricCryptographicRepresentative : CryptographicRepresentative
     {
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public SymmetricCryptographicRepresentative()
         {
@@ -37,6 +36,8 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
             this.Encoding = Encoding.UTF8;
         }
 
+        // TODO immutable? to think
+
         /// <summary>
         /// The representation of the HMAC
         /// authenticator for a piece of data
@@ -48,6 +49,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
         /// The representation of the encryption
         /// of certain data
         /// </summary>
+        [NotNull]
         public TransformationRepresentative TransformationModeInfo;
 
         /// <summary>

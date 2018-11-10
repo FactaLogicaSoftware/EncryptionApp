@@ -14,7 +14,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Contracts
         /// defining how to transform the data
         /// </summary>
         [NotNull]
-        public TransformationContract TransformationContract;
+        public TransformationContract TransformationContract { get; }
 
         /// <summary>
         /// The class containing the information on
@@ -22,7 +22,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Contracts
         /// or null to represent that the password is the key
         /// </summary>
         [CanBeNull]
-        public KeyContract InstanceKeyContract;
+        public KeyContract InstanceKeyContract { get; }
 
         /// <summary>
         /// The class containing the information on
@@ -30,7 +30,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Contracts
         /// or null to represent the data cannot be verified
         /// </summary>
         [CanBeNull]
-        public HmacContract HmacContract;
+        public HmacContract HmacContract { get; }
 
         /// <summary>
         /// Creates a new instance of the SymmetricCryptographicContract
