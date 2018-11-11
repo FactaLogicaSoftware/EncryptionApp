@@ -81,7 +81,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// </summary>
         /// <param name="e">The new value wrapped in a MemoryChunkValueChangedEventArgs object</param>
         /// <see cref="MemoryChunkValueChangedEventArgs"/>
-        protected void OnMemoryChunkValueChanged(MemoryChunkValueChangedEventArgs e)
+        protected void OnMemoryChunkValueChanged([NotNull] MemoryChunkValueChangedEventArgs e)
         {
             EventHandler<MemoryChunkValueChangedEventArgs> handler = this.MemoryChunkValueChanged;
             handler?.Invoke(this, e);
@@ -92,7 +92,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// </summary>
         /// <param name="e">The strings of the values wrapped in a DebugValuesFinalisedEventArgs</param>
         /// <see cref="DebugValuesFinalisedEventArgs"/>
-        protected void OnDebugValuesFinalised(DebugValuesFinalisedEventArgs e)
+        protected void OnDebugValuesFinalised([NotNull] DebugValuesFinalisedEventArgs e)
         {
             EventHandler<DebugValuesFinalisedEventArgs> handler = this.DebugValuesFinalised;
             handler?.Invoke(this, e);
@@ -106,6 +106,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="transformer"></param>
         protected void InternalTransformFile([NotNull] string inputFile, [NotNull] string outputFile, [NotNull] ICryptoTransform transformer)
         {
+            // TODO requires work
             // Any cryptographic exception indicates the data is invalid or an incorrect password has been inputted
             try
             {
@@ -223,7 +224,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="outputFile">The full path of the file to put the encrypted data</param>
         /// <param name="key">The bytes of the key</param>
         /// <param name="iv">The bytes of the initialization vector</param>
-        public abstract void EncryptFileBytes([NotNull] string inputFile, [NotNull] string outputFile, [NotNull] byte[] key, [NotNull] byte[] iv);
+        public abstract void EncryptFileBytes([NotNull] string inputFile, [NotNull] string outputFile, [NotNull] byte[] key, [CanBeNull] byte[] iv = null);
 
         /// <summary>
         /// If overriden in a derived class, decrypts bytes of a given file into another one
@@ -232,7 +233,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="outputFile">The full path of the file to put the encrypted data</param>
         /// <param name="key">The bytes of the key</param>
         /// <param name="iv">The bytes of the initialization vector</param>
-        public abstract void DecryptFileBytes([NotNull] string inputFile, [NotNull] string outputFile, [NotNull] byte[] key, [NotNull] byte[] iv);
+        public abstract void DecryptFileBytes([NotNull] string inputFile, [NotNull] string outputFile, [NotNull] byte[] key, [CanBeNull] byte[] iv = null);
 
         /// <summary>
         /// If overriden in a derived class, encrypts an array of bytes
@@ -241,7 +242,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="key">The key to encrypt with</param>
         /// <param name="iv">The initialization vector</param>
         /// <returns>The encrypted byte array</returns>
-        public abstract byte[] EncryptBytes([NotNull] byte[] data, [NotNull] byte[] key, [NotNull] byte[] iv);
+        public abstract byte[] EncryptBytes([NotNull] byte[] data, [NotNull] byte[] key, [CanBeNull] byte[] iv = null);
 
         /// <summary>
         /// If overriden in a derived class, decrypts an array of bytes
@@ -250,7 +251,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="key">The key to decrypt with</param>
         /// <param name="iv">The initialization vector</param>
         /// <returns>The decrypted byte array</returns>
-        public abstract byte[] DecryptBytes([NotNull] byte[] data, [NotNull] byte[] key, [NotNull] byte[] iv);
+        public abstract byte[] DecryptBytes([NotNull] byte[] data, [NotNull] byte[] key, [CanBeNull] byte[] iv = null);
 
         private void ReleaseUnmanagedResources()
         {

@@ -385,7 +385,7 @@ namespace Encryption_App.UI
                 return;
             }
 
-            if (transformer.FileContainsHeader())
+            if (!transformer.FileContainsHeader())
             {
                 MessageBox.Show("File doesn't contain a valid header. It could be corrupted or not encrypted");
                 EndProcess(ProcessType.Decryption);
@@ -481,6 +481,7 @@ namespace Encryption_App.UI
         private void CacheStateSwitchButton_OnClick(object sender, RoutedEventArgs e)
         {
             this._cacheExecutionState = !this._cacheExecutionState;
+
             ((Button)sender).Content = this._cacheExecutionState
                 ? PrimaryResources.CacheRunning_String
                 : PrimaryResources.CachePaused_String;

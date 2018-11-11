@@ -11,25 +11,53 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
     /// <inheritdoc />
     public sealed class AesCryptoManager : SymmetricCryptoManager
     {
+        private static readonly int[] KeySizes = {128, 192, 256};
+
+        private byte[] _initializationVector;
+
+        /// <summary>
+        /// The initialization vector used for
+        /// transformation
+        /// </summary>
+        /// <remarks>You can leave
+        /// this empty and pass the IV as a function
+        /// argument instead</remarks>
+        public byte[] InitializationVector
+        {
+            get => this._initializationVector;
+            set
+            {
+                if (value?.Length < this.SymmetricAlgorithm.BlockSize)
+                    throw new ArgumentException("Length of IV must be at least as much as length of block size");
+
+                this._initializationVector = value ?? throw new ArgumentNullException(nameof(value));
+            }
+        }
+
+        /// <inheritdoc />
         /// <summary>
         /// Gets or sets the KeySize for the AES algorithm
         /// Valid sizes are 128, 192, and 256
         /// </summary>
-        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="T:System.ArgumentException"></exception>
         public override int KeySize
         {
             get => this.SymmetricAlgorithm.KeySize;
             set
             {
-                if (value != 128 && value != 192 && value != 256)
+                if (!KeySizes.Contains(value))
                 {
-                    throw new ArgumentException("Key is not a valid length (128/192/256)");
+                    throw new ArgumentException("Key is not a valid length");
                 }
 
                 this.SymmetricAlgorithm.KeySize = value;
             }
         }
 
+        /// <summary>
+        /// Returns the default algorithm for this class.
+        /// Used for chaining constructor calls
+        /// </summary>
         private static SymmetricAlgorithm DefaultAlgorithm { get; } = new AesCng
         {
             BlockSize = 128,
@@ -38,6 +66,10 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             Padding = PaddingMode.PKCS7
         };
 
+        /// <summary>
+        /// Returns the default chunk size for this class.
+        /// Used for chaining constructor calls
+        /// </summary>
         private static int DefaultChunkSize => 1024 * 1024 * 4;
 
         /// <inheritdoc />
@@ -65,8 +97,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         public AesCryptoManager([NotNull] SymmetricAlgorithm algorithm) : this(DefaultChunkSize, algorithm)
         {
         }
-
-        // TODO messy constructor inheritance
+        
         /// <inheritdoc />
         /// <summary>
         /// Uses custom read/write values and an AES algorithm of your choice
@@ -111,23 +142,24 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="key">The key bytes</param>
         /// <param name="iv">The initialization vector</param>
         /// <exception cref="ArgumentNullException"></exception>
-        public override void EncryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
+        public override void EncryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv = null)
         {
             #region CONTRACT
 
             if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
             if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
             if (key == null) throw new ArgumentNullException(nameof(key));
-            if (iv == null) throw new ArgumentNullException(nameof(iv));
+            if (iv == null)
+                iv = this.InitializationVector ?? throw new ArgumentNullException(nameof(this.InitializationVector));
+
+            if (key.Length * 8 != KeySize) throw new ArgumentOutOfRangeException(nameof(key) + "must be the length of KeySize - " + KeySize + " bits");
+
+            if (this.InitializationVector.Length * 8 < this.SymmetricAlgorithm.BlockSize)
+                throw new ArgumentException("Initialization vector set in class must be at least as many bits as the block size");
 
             if (!File.Exists(inputFile))
             {
                 throw new ArgumentException("Input file does not exist");
-            }
-
-            if (key.Length != 128 / 8 && key.Length != 192 / 8 && key.Length != 256 / 8)
-            {
-                throw new InvalidKeyLengthException("Key is not a valid length (128/192/256)");
             }
 
             Contract.EndContractBlock();
@@ -149,23 +181,25 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="outputFile">The file path to output the decrypted data to</param>
         /// <param name="key">The key bytes</param>
         /// <param name="iv">The initialization vector</param>
-        public override void DecryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
+        /// <exception cref="ArgumentNullException"></exception>
+        public override void DecryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv = null)
         {
             #region CONTRACT
 
             if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
             if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
             if (key == null) throw new ArgumentNullException(nameof(key));
-            if (iv == null) throw new ArgumentNullException(nameof(iv));
+            if (iv == null)
+                iv = this.InitializationVector ?? throw new ArgumentNullException(nameof(this.InitializationVector));
+
+            if (key.Length * 8 != KeySize) throw new ArgumentOutOfRangeException(nameof(key) + "must be the length of KeySize - " + KeySize + " bits");
+
+            if (this.InitializationVector.Length * 8 < this.SymmetricAlgorithm.BlockSize)
+                throw new ArgumentException("Initialization vector set in class must be at least as many bits as the block size");
 
             if (!File.Exists(inputFile))
             {
                 throw new ArgumentException("Input file does not exist");
-            }
-
-            if (key.Length != 128 / 8 && key.Length != 192 / 8 && key.Length != 256 / 8)
-            {
-                throw new InvalidKeyLengthException("Key is not a valid length (128/192/256)");
             }
 
             Contract.EndContractBlock();
@@ -174,7 +208,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             // Set actual IV and key
             this.SymmetricAlgorithm.Key = key;
-            this.SymmetricAlgorithm.IV = iv;
+            this.SymmetricAlgorithm.IV = iv.Take(this.SymmetricAlgorithm.BlockSize / 8).ToArray();
 
             InternalTransformFile(inputFile, outputFile, this.SymmetricAlgorithm.CreateDecryptor());
         }
@@ -186,27 +220,28 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="data">The data to encrypt</param>
         /// <param name="key">The key to encrypt with</param>
         /// <param name="iv">The initialization vector</param>
+        /// <exception cref="ArgumentNullException"></exception>
         /// <returns>The encrypted byte array</returns>
-        public override byte[] EncryptBytes(byte[] data, byte[] key, byte[] iv)
+        public override byte[] EncryptBytes(byte[] data, byte[] key, byte[] iv = null)
         {
             #region CONTRACT
 
             if (data == null) throw new ArgumentNullException(nameof(data));
             if (key == null) throw new ArgumentNullException(nameof(key));
-            if (iv == null) throw new ArgumentNullException(nameof(iv));
-            if (!this.SymmetricAlgorithm.ValidKeySize(key.Length * 8)) throw new InvalidKeyLengthException($"Invalid key length of {key.Length * 8}");
-            if (iv.Length != this.SymmetricAlgorithm.BlockSize / 8) throw new InvalidCryptographicPropertyException($"IV length (bits: {iv.Length * 8}) must be equal to block size length {this.SymmetricAlgorithm.BlockSize}");
+            if (iv == null)
+                iv = this.InitializationVector ?? throw new ArgumentNullException(nameof(this.InitializationVector));
+
+            if (key.Length * 8 != KeySize) throw new ArgumentOutOfRangeException(nameof(key) + "must be the length of KeySize - " + KeySize + " bits");
+
+            if (this.InitializationVector.Length * 8 < this.SymmetricAlgorithm.BlockSize)
+                throw new ArgumentException("Initialization vector set in class must be at least as many bits as the block size");
 
             Contract.EndContractBlock();
 
             #endregion CONTRACT
-
-            // AES values
-            this.SymmetricAlgorithm.KeySize = key.Length * 8;
+            
             this.SymmetricAlgorithm.Key = key;
             this.SymmetricAlgorithm.IV = iv;
-            this.SymmetricAlgorithm.Mode = CipherMode.CBC;
-            this.SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
 
             // Put the plaintext byte array into memory, and read it through the crypto stream to encrypt it
             var memStream = new MemoryStream(data);
@@ -219,7 +254,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                 }
                 catch (OverflowException e)
                 {
-                    throw new OverflowException("Byte array to large to encrypt", e);
+                    throw new OverflowException("Byte array too large to encrypt", e);
                 }
             }
         }
@@ -231,25 +266,28 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="data">The data to decrypt</param>
         /// <param name="key">The key to decrypt with</param>
         /// <param name="iv">The initialization vector</param>
+        /// <exception cref="ArgumentNullException"></exception>
         /// <returns>The decrypted byte array</returns>
-        public override byte[] DecryptBytes(byte[] data, byte[] key, byte[] iv)
+        public override byte[] DecryptBytes(byte[] data, byte[] key, byte[] iv = null)
         {
             #region CONTRACT
 
             if (data == null) throw new ArgumentNullException(nameof(data));
             if (key == null) throw new ArgumentNullException(nameof(key));
-            if (iv == null) throw new ArgumentNullException(nameof(iv));
-            if (!this.SymmetricAlgorithm.ValidKeySize(key.Length * 8)) throw new InvalidKeyLengthException($"Invalid key length of {key.Length * 8}");
-            if (iv.Length != this.SymmetricAlgorithm.BlockSize / 8) throw new InvalidCryptographicPropertyException($"IV length (bits: {iv.Length * 8}) must be equal to block size length {this.SymmetricAlgorithm.BlockSize}");
+            if (iv == null)
+                iv = this.InitializationVector ?? throw new ArgumentNullException(nameof(this.InitializationVector));
+
+            if (key.Length * 8 != KeySize) throw new ArgumentOutOfRangeException(nameof(key) + "must be the length of KeySize - " + KeySize + " bits");
+
+            if (this.InitializationVector.Length * 8 < this.SymmetricAlgorithm.BlockSize)
+                throw new ArgumentException("Initialization vector set in class must be at least as many bits as the block size");
+
+            Contract.EndContractBlock();
 
             #endregion CONTRACT
 
-            // AES values
-            this.SymmetricAlgorithm.KeySize = key.Length * 8;
             this.SymmetricAlgorithm.Key = key;
             this.SymmetricAlgorithm.IV = iv;
-            this.SymmetricAlgorithm.Mode = CipherMode.CBC;
-            this.SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
 
             // Put the cipher text byte array into memory, and read it through the crypto stream to decrypt it
             var memStream = new MemoryStream(data);

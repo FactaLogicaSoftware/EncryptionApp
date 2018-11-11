@@ -98,6 +98,6 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
         /// If overriden in a derived class, reads a header from a string and creates a CryptographicRepresentative object from it
         /// </summary>
         /// <param name="data"></param>
-        public abstract CryptographicRepresentative ReadHeader(string data);
+        public abstract void ReadHeader(string data);
     }
 }

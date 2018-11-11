@@ -17,19 +17,21 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
     public class SymmetricCryptographicRepresentative : CryptographicRepresentative
     {
         /// <summary>
-        ///
+        /// The constructor used for reading
         /// </summary>
         public SymmetricCryptographicRepresentative()
         {
-            Type = InfoType.Read;
+            this.Type = InfoType.Read;
+            this.Encoding = Encoding.UTF8;
         }
 
         /// <summary>
-        /// The default constructor
+        /// The constructor for creating an object used for writing
+        /// or information
         /// </summary>
         public SymmetricCryptographicRepresentative([NotNull] TransformationRepresentative transformationModeInfo, [CanBeNull] KeyRepresentative instanceKeyCreator = null, [CanBeNull] HmacRepresentative hmacRepresentative = null)
         {
-            Type = InfoType.Write;
+            this.Type = InfoType.Write;
             this.TransformationModeInfo = transformationModeInfo;
             this.InstanceKeyCreator = instanceKeyCreator;
             this.Hmac = hmacRepresentative;
@@ -43,21 +45,21 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
         /// authenticator for a piece of data
         /// </summary>
         [CanBeNull]
-        public HmacRepresentative Hmac;
+        public HmacRepresentative Hmac { get; }
 
         /// <summary>
         /// The representation of the encryption
         /// of certain data
         /// </summary>
-        [NotNull]
-        public TransformationRepresentative TransformationModeInfo;
+        [CanBeNull]
+        public TransformationRepresentative TransformationModeInfo { get; }
 
         /// <summary>
         /// The representation of how to derive the key
         /// for a certain piece of data
         /// </summary>
         [CanBeNull]
-        public KeyRepresentative InstanceKeyCreator;
+        public KeyRepresentative InstanceKeyCreator { get; }
 
         /// <inheritdoc />
         /// <summary>
@@ -75,13 +77,11 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
         /// </summary>
         /// <param name="header">The string of header DATA</param>
         /// <returns>The cryptographic info object created from the data</returns>
-        public override CryptographicRepresentative ReadHeader(string header)
+        public override void ReadHeader(string header)
         {
             // Get the index of the start and end of the JSON object
-#pragma warning disable 162
-            int start = header.IndexOf(StartChars, StringComparison.Ordinal) + /*IMPORTANT*/
-                        StartChars
-                            .Length; // + StartChars.Length, IndexOf gets the first character of the string search, so adding the length pushes it to the end of that
+
+            int start = header.IndexOf(StartChars, StringComparison.Ordinal) +  StartChars.Length; // + StartChars.Length, IndexOf gets the first character of the string search, so adding the length pushes it to the end of that
             int end = header.IndexOf(EndChars, StringComparison.Ordinal);
 
             // If either search failed and returned -1, fail, as the header is corrupted
@@ -94,8 +94,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
             string jsonString = header.Substring(start, end - start);
 
             // Set the length of the header read
-            this.HeaderLength =
-                StartChars.Length + jsonString.Length + EndChars.Length;
+            this.HeaderLength = StartChars.Length + jsonString.Length + EndChars.Length;
 
             SymmetricCryptographicRepresentative data;
 
@@ -113,9 +112,21 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
             data.Type = InfoType.Write;
             data.HeaderLength = this.HeaderLength;
 
-            // Return the data object
-            return data;
-#pragma warning restore 162
+            FieldInfo[] fields = this.GetType().GetFields(BindingFlags.Public
+                                                          | BindingFlags.Instance);
+            foreach (FieldInfo field in fields)
+            {
+                object value = field.GetValue(data);
+                field.SetValue(this, value);
+            }
+
+            PropertyInfo[] properties = this.GetType().GetProperties(BindingFlags.Public
+                                                          | BindingFlags.Instance);
+            foreach (PropertyInfo property in properties)
+            {
+                object value = property.GetValue(data);
+                property.SetValue(this, value);
+            }
         }
 
         /// <inheritdoc />
@@ -128,10 +139,10 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
         {
             // Create the streams needed to read from the file
             var fileStream = new FileStream(path, FileMode.Open);
-            using (var binReader = new BinaryReader(fileStream, this.Encoding))
+            using (var binReader = new BinaryReader(fileStream, this.Encoding ?? Encoding.UTF8))
             {
                 // The header limit is 5KB, so read that and we know we have it all
-                string header;
+                string header = null;
 
                 int toReadVal = 1024 * 3;
 
@@ -149,9 +160,7 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
                 }
 
                 // Get the index of the start and end of the JSON object
-                int start = header.IndexOf("BEGIN ENCRYPTION HEADER STRING", StringComparison.Ordinal) + /*IMPORTANT*/
-                            StartChars
-                                .Length; // + StartChars.Length, IndexOf gets the first character of the string search, so adding the length pushes it to the end of that
+                int start = header.IndexOf("BEGIN ENCRYPTION HEADER STRING", StringComparison.Ordinal) + StartChars.Length; // + StartChars.Length, IndexOf gets the first character of the string search, so adding the length pushes it to the end of that
                 int end = header.IndexOf("END ENCRYPTION HEADER STRING", StringComparison.Ordinal);
 
                 // If either search failed and returned -1, fail, as the header is corrupted
@@ -194,11 +203,19 @@ namespace FactaLogicaSoftware.CryptoTools.Information.Representatives
                 data.HeaderLength = this.HeaderLength;
 
                 FieldInfo[] fields = this.GetType().GetFields(BindingFlags.Public
-                                                           | BindingFlags.Instance);
+                                                              | BindingFlags.Instance);
                 foreach (FieldInfo field in fields)
                 {
                     object value = field.GetValue(data);
                     field.SetValue(this, value);
+                }
+
+                PropertyInfo[] properties = this.GetType().GetProperties(BindingFlags.Public
+                                                                         | BindingFlags.Instance);
+                foreach (PropertyInfo property in properties)
+                {
+                    object value = property.GetValue(data);
+                    property.SetValue(this, value);
                 }
             }
         }

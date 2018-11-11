@@ -15,6 +15,10 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
     /// </summary>
     public sealed class Rc2CryptoManager : SymmetricCryptoManager
     {
+        private static readonly int[] KeySizes = {128, 192};
+
+        private byte[] _initializationVector;
+
         /// <summary>
         /// The largest amount of data allowed to be encrypted with
         /// this algorithm
@@ -22,28 +26,41 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         public const long MaxSecureFileSize = 1024 * 1024 * 1024 * 24L;
 
         /// <summary>
+        /// The initialization vector used for
+        /// transformation
+        /// </summary>
+        /// <remarks>You can leave
+        /// this empty and pass the IV as a function
+        /// argument instead</remarks>
+        public byte[] InitializationVector
+        {
+            get => this._initializationVector;
+            set
+            {
+                if (value?.Length < this.SymmetricAlgorithm.BlockSize)
+                    throw new ArgumentException("Length of IV must be at least as much as length of block size");
+
+                this._initializationVector = value ?? throw new ArgumentNullException(nameof(value));
+            }
+        }
+
+        /// <inheritdoc />
+        /// <summary>
         /// Gets or sets the KeySize for the AES algorithm
         /// Valid sizes are 128, 192, and 256
         /// </summary>
-        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="T:System.ArgumentException"></exception>
         public override int KeySize
         {
-            get => SymmetricAlgorithm.KeySize;
+            get => this.SymmetricAlgorithm.KeySize;
             set
             {
-                if (value != 128 && value != 192)
+                if (!KeySizes.Contains(value))
                 {
-                    throw new ArgumentException("Key is not a valid length ");
+                    throw new ArgumentException("Key is not a valid length");
                 }
 
-                try
-                {
-                    SymmetricAlgorithm.KeySize = value;
-                }
-                catch (CryptographicException)
-                {
-                    throw new ArgumentException(nameof(value));
-                }
+                this.SymmetricAlgorithm.KeySize = value;
             }
         }
 
@@ -127,21 +144,29 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="outputFile">The file path to output the encrypted data to</param>
         /// <param name="key">The key bytes</param>
         /// <param name="iv">The initialization vector</param>
-        public override void EncryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
+        public override void EncryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv = null)
         {
             #region CONTRACT
 
             if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
             if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
             if (key == null) throw new ArgumentNullException(nameof(key));
-            if (iv == null) throw new ArgumentNullException(nameof(iv));
+            if (iv == null)
+                iv = this.InitializationVector ?? throw new ArgumentNullException(nameof(this.InitializationVector));
+
+            if (key.Length * 8 != KeySize) throw new ArgumentOutOfRangeException(nameof(key) + "must be the length of KeySize - " + KeySize + " bits");
+
+            if (this.InitializationVector.Length * 8 < this.SymmetricAlgorithm.BlockSize)
+                throw new ArgumentException("Initialization vector set in class must be at least as many bits as the block size");
+
+            if (!File.Exists(inputFile))
+            {
+                throw new ArgumentException("Input file does not exist");
+            }
+
+            Contract.EndContractBlock();
 
             #endregion CONTRACT
-
-            if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
-            if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
-            if (key == null) throw new ArgumentNullException(nameof(key));
-            if (iv == null) throw new ArgumentNullException(nameof(iv));
 
             if (!File.Exists(inputFile))
             {
@@ -154,8 +179,8 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
 
             // Set actual IV and key
-            SymmetricAlgorithm.Key = key;
-            SymmetricAlgorithm.IV = iv.Take(8).ToArray();
+            this.SymmetricAlgorithm.Key = key;
+            this.SymmetricAlgorithm.IV = iv.Take(this.SymmetricAlgorithm.BlockSize / 8).ToArray();
 
             InternalTransformFile(inputFile, outputFile, SymmetricAlgorithm.CreateEncryptor());
         }
