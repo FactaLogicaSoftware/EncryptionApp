@@ -99,6 +99,22 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         }
 
         /// <summary>
+        /// Generates a secure sequence of random numbers
+        /// </summary>
+        /// <param name="arrayToFill">The array to fill</param>
+        /// <returns>A byte array that is the key</returns>
+        public static void FillWithSecureValues(byte[] arrayToFill)
+        {
+            if (arrayToFill == null)
+            {
+                throw new ArgumentNullException(nameof(arrayToFill));
+            }
+            // Generates a random value
+            var rng = new RNGCryptoServiceProvider();
+            rng.GetBytes(arrayToFill);
+        }
+
+        /// <summary>
         /// The transformation function used by all derived classes
         /// </summary>
         /// <param name="inputFile"></param>

@@ -117,22 +117,6 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
         }
 
-        /// <summary>
-        /// Generates a secure sequence of random numbers
-        /// </summary>
-        /// <param name="arrayToFill">The array to fill</param>
-        /// <returns>A byte array that is the key</returns>
-        public static void FillWithSecureValues(byte[] arrayToFill)
-        {
-            if (arrayToFill == null)
-            {
-                throw new ArgumentNullException(nameof(arrayToFill));
-            }
-            // Generates a random value
-            var rng = new RNGCryptoServiceProvider();
-            rng.GetBytes(arrayToFill);
-        }
-
         /// <inheritdoc />
         /// <summary>
         /// Encrypts data from one file to another using AES
@@ -240,6 +224,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             #endregion CONTRACT
             
+            // AES values
             this.SymmetricAlgorithm.Key = key;
             this.SymmetricAlgorithm.IV = iv;
 

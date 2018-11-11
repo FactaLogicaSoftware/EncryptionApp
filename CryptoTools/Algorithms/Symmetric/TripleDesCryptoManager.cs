@@ -11,7 +11,11 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
     /// <inheritdoc />
     public sealed class TripleDesCryptoManager : SymmetricCryptoManager
     {
-        // Max file size allowed - 24GB
+        // TODO check if 128 bits is supported
+        private static readonly int[] KeySizes = { 192 };
+
+        private byte[] _initializationVector;
+
         /// <summary>
         /// The largest amount of data allowed to be encrypted with
         /// this algorithm
@@ -19,10 +23,30 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         public const long MaxSecureFileSize = 1024 * 1024 * 1024 * 24L;
 
         /// <summary>
+        /// The initialization vector used for
+        /// transformation
+        /// </summary>
+        /// <remarks>You can leave
+        /// this empty and pass the IV as a function
+        /// argument instead</remarks>
+        public byte[] InitializationVector
+        {
+            get => this._initializationVector;
+            set
+            {
+                if (value?.Length < this.SymmetricAlgorithm.BlockSize)
+                    throw new ArgumentException("Length of IV must be at least as much as length of block size");
+
+                this._initializationVector = value ?? throw new ArgumentNullException(nameof(value));
+            }
+        }
+
+        /// <inheritdoc />
+        /// <summary>
         /// Gets or sets the KeySize for the AES algorithm
         /// Valid sizes are 128, 192, and 256
         /// </summary>
-        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="T:System.ArgumentException"></exception>
         public override int KeySize
         {
             get => SymmetricAlgorithm.KeySize;
@@ -30,7 +54,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             {
                 if (value != 192)
                 {
-                    throw new ArgumentException("Key is not a valid length (128/192)");
+                    throw new ArgumentException("Key is not a valid length");
                 }
 
                 SymmetricAlgorithm.KeySize = value;
@@ -72,8 +96,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         public TripleDesCryptoManager([NotNull] SymmetricAlgorithm algorithm) : this(DefaultChunkSize, algorithm)
         {
         }
-
-        // TODO messy constructor inheritance
+        
         /// <inheritdoc />
         /// <summary>
         /// Uses custom read/write values and a TripleDES algorithm of your choice
@@ -93,22 +116,6 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             }
         }
 
-        /// <summary>
-        /// Generates a secure sequence of random numbers
-        /// </summary>
-        /// <param name="arrayToFill">The array to fill</param>
-        /// <returns>A byte array that is the key</returns>
-        public static void FillWithSecureValues(byte[] arrayToFill)
-        {
-            if (arrayToFill == null)
-            {
-                throw new ArgumentNullException(nameof(arrayToFill));
-            }
-            // Generates a random value
-            var rng = new RNGCryptoServiceProvider();
-            rng.GetBytes(arrayToFill);
-        }
-
         /// <inheritdoc />
         /// <summary>
         /// Encrypts data from one file to another using TripleDES
@@ -117,37 +124,35 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="outputFile">The file path to output the encrypted data to</param>
         /// <param name="key">The key bytes</param>
         /// <param name="iv">The initialization vector</param>
-        public override void EncryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv)
+        public override void EncryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv = null)
         {
             #region CONTRACT
 
             if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
             if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
             if (key == null) throw new ArgumentNullException(nameof(key));
-            if (iv == null) throw new ArgumentNullException(nameof(iv));
+            if (iv == null)
+                iv = this.InitializationVector ?? throw new ArgumentNullException(nameof(this.InitializationVector));
+
+            if (key.Length * 8 != KeySize) throw new ArgumentOutOfRangeException(nameof(key) + "must be the length of KeySize - " + KeySize + " bits");
+
+            if (this.InitializationVector.Length * 8 < this.SymmetricAlgorithm.BlockSize)
+                throw new ArgumentException("Initialization vector set in class must be at least as many bits as the block size");
 
             if (!File.Exists(inputFile))
             {
                 throw new ArgumentException("Input file does not exist");
             }
-            if (new FileInfo(inputFile).Length > MaxSecureFileSize)
-            {
-                throw new ArgumentException("Input file is larger than max secure TripleDES encryption size");
-            }
 
-            if (key.Length != 128 / 8 && key.Length != 192 / 8)
-            {
-                throw new InvalidKeyLengthException("Key is not a valid length (192)");
-            }
+            if (new FileInfo(inputFile).Length > MaxSecureFileSize) throw new ArgumentException("File cannot be larger than 24GB with Rc2 for security reasons");
 
             Contract.EndContractBlock();
 
             #endregion CONTRACT
 
             // Set actual IV and key
-            SymmetricAlgorithm.KeySize = key.Length * 8;
             SymmetricAlgorithm.Key = key;
-            SymmetricAlgorithm.IV = iv.Take(8).ToArray();
+            SymmetricAlgorithm.IV = iv.Take(this.SymmetricAlgorithm.BlockSize / 8).ToArray();
 
             InternalTransformFile(inputFile, outputFile, SymmetricAlgorithm.CreateEncryptor());
         }
@@ -167,21 +172,20 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             if (inputFile == null) throw new ArgumentNullException(nameof(inputFile));
             if (outputFile == null) throw new ArgumentNullException(nameof(outputFile));
             if (key == null) throw new ArgumentNullException(nameof(key));
-            if (iv == null) throw new ArgumentNullException(nameof(iv));
+            if (iv == null)
+                iv = this.InitializationVector ?? throw new ArgumentNullException(nameof(this.InitializationVector));
+
+            if (key.Length * 8 != KeySize) throw new ArgumentOutOfRangeException(nameof(key) + "must be the length of KeySize - " + KeySize + " bits");
+
+            if (this.InitializationVector.Length * 8 < this.SymmetricAlgorithm.BlockSize)
+                throw new ArgumentException("Initialization vector set in class must be at least as many bits as the block size");
 
             if (!File.Exists(inputFile))
             {
                 throw new ArgumentException("Input file does not exist");
             }
-            if (new FileInfo(inputFile).Length > MaxSecureFileSize)
-            {
-                throw new ArgumentException("Input file is larger than max secure TripleDES encryption size");
-            }
 
-            if (key.Length != 192 / 8)
-            {
-                throw new InvalidKeyLengthException("Key is not a valid length (192)");
-            }
+            if (new FileInfo(inputFile).Length > MaxSecureFileSize) throw new ArgumentException("File cannot be larger than 24GB with Rc2 for security reasons");
 
             Contract.EndContractBlock();
 
@@ -189,7 +193,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 
             // Set actual IV and key
             SymmetricAlgorithm.Key = key;
-            SymmetricAlgorithm.IV = iv.Take(8).ToArray();
+            SymmetricAlgorithm.IV = iv.Take(this.SymmetricAlgorithm.BlockSize / 8).ToArray();
 
             InternalTransformFile(inputFile, outputFile, SymmetricAlgorithm.CreateDecryptor());
         }
@@ -202,14 +206,27 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="key">The key to encrypt with</param>
         /// <param name="iv">The initialization vector</param>
         /// <returns>The encrypted byte array</returns>
-        public override byte[] EncryptBytes(byte[] data, byte[] key, byte[] iv)
+        public override byte[] EncryptBytes(byte[] data, byte[] key, byte[] iv = null)
         {
+            #region CONTRACT
+
+            if (data == null) throw new ArgumentNullException(nameof(data));
+            if (key == null) throw new ArgumentNullException(nameof(key));
+            if (iv == null)
+                iv = this.InitializationVector ?? throw new ArgumentNullException(nameof(this.InitializationVector));
+
+            if (key.Length * 8 != KeySize) throw new ArgumentOutOfRangeException(nameof(key) + "must be the length of KeySize - " + KeySize + " bits");
+
+            if (this.InitializationVector.Length * 8 < this.SymmetricAlgorithm.BlockSize)
+                throw new ArgumentException("Initialization vector set in class must be at least as many bits as the block size");
+
+            Contract.EndContractBlock();
+
+            #endregion CONTRACT
+
             // TripleDES values
-            SymmetricAlgorithm.KeySize = key.Length * 8;
             SymmetricAlgorithm.Key = key;
             SymmetricAlgorithm.IV = iv;
-            SymmetricAlgorithm.Mode = CipherMode.CBC;
-            SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
 
             // Put the plaintext byte array into memory, and read it through the crypto stream to encrypt it
             var memStream = new MemoryStream(data);
@@ -235,14 +252,27 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="key">The key to decrypt with</param>
         /// <param name="iv">The initialization vector</param>
         /// <returns>The decrypted byte array</returns>
-        public override byte[] DecryptBytes(byte[] data, byte[] key, byte[] iv)
+        public override byte[] DecryptBytes(byte[] data, byte[] key, byte[] iv = null)
         {
+            #region CONTRACT
+
+            if (data == null) throw new ArgumentNullException(nameof(data));
+            if (key == null) throw new ArgumentNullException(nameof(key));
+            if (iv == null)
+                iv = this.InitializationVector ?? throw new ArgumentNullException(nameof(this.InitializationVector));
+
+            if (key.Length * 8 != KeySize) throw new ArgumentOutOfRangeException(nameof(key) + "must be the length of KeySize - " + KeySize + " bits");
+
+            if (this.InitializationVector.Length * 8 < this.SymmetricAlgorithm.BlockSize)
+                throw new ArgumentException("Initialization vector set in class must be at least as many bits as the block size");
+
+            Contract.EndContractBlock();
+
+            #endregion CONTRACT
+
             // TripleDES values
-            SymmetricAlgorithm.KeySize = key.Length * 8;
             SymmetricAlgorithm.Key = key;
             SymmetricAlgorithm.IV = iv;
-            SymmetricAlgorithm.Mode = CipherMode.CBC;
-            SymmetricAlgorithm.Padding = PaddingMode.PKCS7;
 
             // Put the cipher-text byte array into memory, and read it through the crypto stream to decrypt it
             var memStream = new MemoryStream(data);
