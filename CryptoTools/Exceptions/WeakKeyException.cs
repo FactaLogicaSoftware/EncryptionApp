@@ -8,7 +8,7 @@ namespace FactaLogicaSoftware.CryptoTools.Exceptions
     /// is weak
     /// </summary>
     [Serializable]
-    public class WeakKeyException : BadKeyException
+    public class WeakKeyException : Exception
     {
         /// <inheritdoc />
         /// <summary>

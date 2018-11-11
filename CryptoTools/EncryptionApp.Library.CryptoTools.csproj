@@ -106,7 +106,6 @@
     <Compile Include="Exceptions\InvalidCryptographicOperationException.cs" />
     <Compile Include="Exceptions\InvalidCryptographicPropertyException.cs" />
     <Compile Include="Exceptions\InvalidKeyException.cs" />
-    <Compile Include="Exceptions\InvalidKeyLengthException.cs" />
     <Compile Include="Exceptions\UnverifiableDataException.cs" />
     <Compile Include="Information\Contracts\HmacContract.cs" />
     <Compile Include="Information\Contracts\KeyContract.cs" />
