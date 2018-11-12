@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Security.Cryptography;
 using FactaLogicaSoftware.CryptoTools.Events;
-using Microsoft.VisualBasic.Devices;
+using JetBrains.Annotations;
+
 #if DEBUG
 
 using FactaLogicaSoftware.CryptoTools.DebugTools;
@@ -13,19 +13,38 @@ using FactaLogicaSoftware.CryptoTools.DebugTools;
 
 namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
 {
+    /// <inheritdoc />
     /// <summary>
     /// An interface that defines the contract of any encryption algorithm
     /// </summary>
-    public abstract class SymmetricCryptoManager
+    public abstract class SymmetricCryptoManager : IDisposable
     {
-        private protected SymmetricAlgorithm SymmetricAlgorithm;
+        private protected readonly SymmetricAlgorithm SymmetricAlgorithm;
 
+        /// <summary>
+        /// The event raised if the memory chunk size is changed
+        /// due to memory limitations
+        /// </summary>
         public event EventHandler<MemoryChunkValueChangedEventArgs> MemoryChunkValueChanged;
+
+#if DEBUG
+
+        /// <summary>
+        /// The event raised when debug values are finalised,
+        /// to allow other classes to use them
+        /// </summary>
         public event EventHandler<DebugValuesFinalisedEventArgs> DebugValuesFinalised;
 
-        // How many bytes read into memory per chunk - calculated by constructor
+#endif
+
+        /// <summary>
+        /// The number of bytes read into memory at one time
+        /// </summary>
         protected int MemoryConst;
 
+        /// <summary>
+        /// The key size, in bits, to use
+        /// </summary>
         public abstract int KeySize { get; set; }
 
         /// <summary>
@@ -33,71 +52,13 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// </summary>
         public bool IsFipsCompliant { get; private protected set; }
 
-        protected SymmetricCryptoManager()
-        {
-            // Default memory - TODO Calculate to higher numbers if possible
-            this.MemoryConst = 1024 * 1024 * 4;
-        }
-
-        /// <summary>
-        /// Uses 4mb read/write values and an AES algorithm of your choice
-        /// </summary>
-        /// <param name="algorithm">The algorithm to use</param>
-        protected SymmetricCryptoManager(SymmetricAlgorithm algorithm)
-        {
-            #region CONTRACT
-
-            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS compliant
-            if (algorithm is AesCng || algorithm is AesCryptoServiceProvider || algorithm is TripleDESCng)
-            {
-                IsFipsCompliant = true;
-            }
-            else
-            {
-                IsFipsCompliant = false;
-            }
-
-            Contract.EndContractBlock();
-
-            #endregion
-
-            // Default memory - TODO Calculate to higher numbers if possible
-            this.MemoryConst = 1024 * 1024 * 4;
-
-            // Assign the aes object
-            // TODO verify integrity of argument
-            this.SymmetricAlgorithm = algorithm;
-        }
-
         /// <summary>
         /// Uses custom read/write values and an AES algorithm of your choice
         /// </summary>
         /// <param name="memoryConst">The number of bytes to read and write</param>
         /// <param name="algorithm">The algorithm to use</param>
-        protected SymmetricCryptoManager(int memoryConst, SymmetricAlgorithm algorithm)
+        public SymmetricCryptoManager(int memoryConst, [NotNull] SymmetricAlgorithm algorithm)
         {
-            #region CONTRACT
-
-            // Check if that much memory can be assigned
-            if ((ulong)memoryConst > new ComputerInfo().AvailablePhysicalMemory)
-            {
-                throw new ArgumentException("Not enough memory to use that chunking size");
-            }
-
-            // Check if the algorithm is part of the 2 .NET algorithms currently FIPS compliant
-            if (algorithm is AesCng || algorithm is AesCryptoServiceProvider || algorithm is TripleDESCng)
-            {
-                this.IsFipsCompliant = true;
-            }
-            else
-            {
-                this.IsFipsCompliant = false;
-            }
-
-            Contract.EndContractBlock();
-
-            #endregion
-
             // Assign to class field
             this.MemoryConst = memoryConst;
 
@@ -105,23 +66,52 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
             // TODO verify integrity of argument
             this.SymmetricAlgorithm = algorithm;
         }
-        
+
+        /// <summary>
+        /// The default finalizer
+        /// </summary>
         ~SymmetricCryptoManager()
         {
-            // All aes classes implement IDispose so we must dispose of it
-            this.SymmetricAlgorithm.Dispose();
+            Dispose(false);
         }
 
-        protected void OnMemoryChunkValueChanged(MemoryChunkValueChangedEventArgs e)
+        /// <summary>
+        /// The event handler for any change in the
+        /// memory chunking size
+        /// </summary>
+        /// <param name="e">The new value wrapped in a MemoryChunkValueChangedEventArgs object</param>
+        /// <see cref="MemoryChunkValueChangedEventArgs"/>
+        protected void OnMemoryChunkValueChanged([NotNull] MemoryChunkValueChangedEventArgs e)
         {
             EventHandler<MemoryChunkValueChangedEventArgs> handler = this.MemoryChunkValueChanged;
             handler?.Invoke(this, e);
         }
 
-        protected void OnDebugValuesFinalised(DebugValuesFinalisedEventArgs e)
+        /// <summary>
+        /// The event handler for debug values being finalised
+        /// </summary>
+        /// <param name="e">The strings of the values wrapped in a DebugValuesFinalisedEventArgs</param>
+        /// <see cref="DebugValuesFinalisedEventArgs"/>
+        protected void OnDebugValuesFinalised([NotNull] DebugValuesFinalisedEventArgs e)
         {
             EventHandler<DebugValuesFinalisedEventArgs> handler = this.DebugValuesFinalised;
             handler?.Invoke(this, e);
+        }
+
+        /// <summary>
+        /// Generates a secure sequence of random numbers
+        /// </summary>
+        /// <param name="arrayToFill">The array to fill</param>
+        /// <returns>A byte array that is the key</returns>
+        public static void FillWithSecureValues(byte[] arrayToFill)
+        {
+            if (arrayToFill == null)
+            {
+                throw new ArgumentNullException(nameof(arrayToFill));
+            }
+            // Generates a random value
+            var rng = new RNGCryptoServiceProvider();
+            rng.GetBytes(arrayToFill);
         }
 
         /// <summary>
@@ -130,8 +120,9 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="inputFile"></param>
         /// <param name="outputFile"></param>
         /// <param name="transformer"></param>
-        protected void InternalTransformFile(string inputFile, string outputFile, ICryptoTransform transformer)
+        protected void InternalTransformFile([NotNull] string inputFile, [NotNull] string outputFile, [NotNull] ICryptoTransform transformer)
         {
+            // TODO requires work
             // Any cryptographic exception indicates the data is invalid or an incorrect password has been inputted
             try
             {
@@ -229,7 +220,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
                         // TODO more advanced IO stats
                     };
 
-                    OnDebugValuesFinalised(new DebugValuesFinalisedEventArgs(toWrite));
+                    OnDebugValuesFinalised(new DebugValuesFinalisedEventArgs(toWrite, this));
 
                     InternalDebug.WriteToDiagnosticsFile(toWrite);
 #endif
@@ -249,7 +240,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="outputFile">The full path of the file to put the encrypted data</param>
         /// <param name="key">The bytes of the key</param>
         /// <param name="iv">The bytes of the initialization vector</param>
-        public abstract void EncryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv);
+        public abstract void EncryptFileBytes([NotNull] string inputFile, [NotNull] string outputFile, [NotNull] byte[] key, [CanBeNull] byte[] iv = null);
 
         /// <summary>
         /// If overriden in a derived class, decrypts bytes of a given file into another one
@@ -258,7 +249,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="outputFile">The full path of the file to put the encrypted data</param>
         /// <param name="key">The bytes of the key</param>
         /// <param name="iv">The bytes of the initialization vector</param>
-        public abstract void DecryptFileBytes(string inputFile, string outputFile, byte[] key, byte[] iv);
+        public abstract void DecryptFileBytes([NotNull] string inputFile, [NotNull] string outputFile, [NotNull] byte[] key, [CanBeNull] byte[] iv = null);
 
         /// <summary>
         /// If overriden in a derived class, encrypts an array of bytes
@@ -267,7 +258,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="key">The key to encrypt with</param>
         /// <param name="iv">The initialization vector</param>
         /// <returns>The encrypted byte array</returns>
-        public abstract byte[] EncryptBytes(byte[] data, byte[] key, byte[] iv);
+        public abstract byte[] EncryptBytes([NotNull] byte[] data, [NotNull] byte[] key, [CanBeNull] byte[] iv = null);
 
         /// <summary>
         /// If overriden in a derived class, decrypts an array of bytes
@@ -276,6 +267,27 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric
         /// <param name="key">The key to decrypt with</param>
         /// <param name="iv">The initialization vector</param>
         /// <returns>The decrypted byte array</returns>
-        public abstract byte[] DecryptBytes(byte[] data, byte[] key, byte[] iv);
+        public abstract byte[] DecryptBytes([NotNull] byte[] data, [NotNull] byte[] key, [CanBeNull] byte[] iv = null);
+
+        private void ReleaseUnmanagedResources()
+        {
+            // TODO release unmanaged resources here
+        }
+
+        private void Dispose(bool disposing)
+        {
+            ReleaseUnmanagedResources();
+            if (disposing)
+            {
+                this.SymmetricAlgorithm?.Dispose();
+            }
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

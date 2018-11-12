@@ -7,7 +7,7 @@ namespace FactaLogicaSoftware.CryptoTools.Algorithms
     /// </summary>
     public static class NativeKeyEncryptor
     {
-        // Just some random data, make non 
+        // Just some random data, make non
         private static readonly byte[] Entropy =
         {
             0xc2, 0x2e, 0x42, 0xdc, 0x37, 0xe5, 0x95, 0x6d,

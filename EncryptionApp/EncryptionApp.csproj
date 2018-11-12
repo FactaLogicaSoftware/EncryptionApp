@@ -67,6 +67,7 @@
     <CodeAnalysisRuleSet>EncryptionApp.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
     <DocumentationFile>bin\x64\Debug\Encryption App.xml</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
@@ -83,6 +84,9 @@
     <StartupObject>Encryption_App.UI.App</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="JetBrains.Annotations, Version=2018.2.1.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
+      <HintPath>..\packages\JetBrains.Annotations.2018.2.1\lib\net20\JetBrains.Annotations.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -114,24 +118,30 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="FileHandle.cs" />
+    <Compile Include="AppSettings.cs" />
+    <Compile Include="Externals.cs" />
     <Compile Include="FileStatics.cs" />
     <Compile Include="Exceptions\InvalidCallerException.cs" />
-    <Compile Include="ManagedSlaves\ManagedSlave.cs" />
     <Compile Include="NativeFileProtector.cs" />
+    <Compile Include="PrimaryResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>PrimaryResources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="ManagedSlaves\ResourceManager.cs" />
-    <Compile Include="Resources.Designer.cs">
+    <Compile Include="ResourceManager.cs" />
+    <Compile Include="RequestStateRecord.cs" />
+    <Compile Include="DebugResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
+      <DependentUpon>DebugResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="TransformationPropertiesManager.cs" />
-    <Compile Include="ManagedSlaves\TransformingFileManager.cs" />
+    <Compile Include="SecureStringConverter.cs" />
+    <Compile Include="CryptoFile.cs" />
     <Compile Include="UI\App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -150,14 +160,18 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <EmbeddedResource Include="PrimaryResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>PrimaryResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources.resx">
+    <EmbeddedResource Include="DebugResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <LastGenOutput>DebugResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <None Include="EncryptionApp.ruleset" />
     <None Include="packages.config" />
@@ -189,6 +203,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="UI\Assets\loading.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ManagedSlaves\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

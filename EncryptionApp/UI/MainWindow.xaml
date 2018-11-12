@@ -79,7 +79,7 @@
                         <ColumnDefinition Width="91*" />
                         <ColumnDefinition Width="290*" />
                     </Grid.ColumnDefinitions>
-                    <ComboBox HorizontalAlignment="Left" Margin="26,54,0,0" VerticalAlignment="Top" Width="297" Height="23" x:Name="DropDown" Grid.ColumnSpan="2" Foreground="White" Background="#FF707070" FontFamily="Segoe UI Light" FontSize="12">
+                    <ComboBox HorizontalAlignment="Left"  Margin="26,54,0,0" VerticalAlignment="Top" Width="297" Height="23" x:Name="DropDown" Grid.ColumnSpan="2" Foreground="White" Background="#FF707070" FontFamily="Segoe UI Light" FontSize="12">
                         <ComboBox.ItemContainerStyle>
                             <Style TargetType="ComboBoxItem">
                                 <Setter Property="Background" Value="#FF424242" />
@@ -90,10 +90,11 @@
                     <CheckBox Content="File?" HorizontalAlignment="Left" Margin="177.695,122.941,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.14,0.464" Click="CheckBox_Click" Grid.Column="1" FontFamily="Segoe UI Light" Foreground="White" Background="#FF818181" />
                     <TextBox HorizontalAlignment="Left" Height="23" Margin="26,214,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="217" x:Name="EncryptFileTextBox" Grid.ColumnSpan="2" Background="#FF424242" BorderBrush="#FF707070" Foreground="White" FontFamily="Segoe UI Light" FontSize="12" />
                     <Button x:Name="EncryptFileBrowseButton" Content="Browse" HorizontalAlignment="Left" Margin="156,214.04,0,0" VerticalAlignment="Top" Width="75" Height="23" Click="FilePath_Click" Grid.Column="1" Background="#FF606060" Foreground="White" />
-                    <Button Content="Encrypt" HorizontalAlignment="Left" Margin="50,317,0,0" VerticalAlignment="Top" Width="101" Height="42" Click="Encrypt_Click" Grid.Column="1" FontFamily="Segoe UI Light" Background="#FF606060" Foreground="White" FontSize="18" />
+                    <Button x:Name="EncryptButton" Content="Encrypt" HorizontalAlignment="Left" Margin="50,317,0,0" VerticalAlignment="Top" Width="101" Height="42" Grid.Column="1" FontFamily="Segoe UI Light" Background="#FF606060" Foreground="White" FontSize="18" />
+                    <Button x:Name="EncryptionCacheStateSwitchButton" Click="CacheStateSwitchButton_OnClick" Content="runtime eval; ignore" HorizontalAlignment="Left" Margin="178,317,0,0" VerticalAlignment="Top" Width="101" Height="42" Grid.Column="1" FontFamily="Segoe UI Light" Background="#FF606060" Foreground="White" FontSize="18" />
                     <Label Content="Enter password:" HorizontalAlignment="Left" Margin="26,112,0,0" VerticalAlignment="Top" Width="122" Grid.ColumnSpan="2" FontFamily="Segoe UI Light" FontSize="15" Foreground="White" />
                     <Label Content="Enter password:" HorizontalAlignment="Left" Margin="26,112,0,0" VerticalAlignment="Top" Width="122" Grid.ColumnSpan="2" FontFamily="Segoe UI Light" FontSize="15" Foreground="White" />
-                    <Image x:Name="EncryptLoadingGif" gif:ImageBehavior.AnimatedSource="/UI/Assets/loading.gif" gif:ImageBehavior.RepeatBehavior="Forever" Grid.Column="1" Margin="213,171,34,-126" ></Image>
+                    <Image x:Name="EncryptLoadingGif" gif:ImageBehavior.AnimatedSource="/UI/Assets/loading.gif" gif:ImageBehavior.RepeatBehavior="Forever" Margin="10,302,32,12" />
                     <Label Content="File Location:" HorizontalAlignment="Left"  Margin="26,184,0,0" VerticalAlignment="Top" Width="162" Grid.ColumnSpan="2" FontSize="15" Foreground="White" FontFamily="Segoe UI Light" />
                     <PasswordBox HorizontalAlignment="Left" FontSize="15" Foreground="White" Margin="26,147,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Width="297" Height="23" Background="#FF424242" BorderBrush="#FF707070" x:Name="EncryptPasswordBox" />
                     <ProgressBar x:Name="EncryptProgressBar" Grid.Column="1" HorizontalAlignment="Left" Height="10" Margin="50,302,0,0" VerticalAlignment="Top" Width="100" />
@@ -106,20 +107,20 @@
                         <ColumnDefinition Width="125*" />
                     </Grid.ColumnDefinitions>
                     <CheckBox Content="File?" HorizontalAlignment="Left" Margin="233.695,122.941,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.14,0.464" Click="CheckBox_Click" Grid.Column="1" FontFamily="Segoe UI Light" Foreground="White" Background="#FF818181" />
+                    <Button x:Name="DecryptionCacheStateSwitchButton" Click="CacheStateSwitchButton_OnClick" Content="runtime eval; ignore" HorizontalAlignment="Left" Margin="264,317,0,0" VerticalAlignment="Top" Width="101" Height="42" Grid.Column="1" FontFamily="Segoe UI Light" Background="#FF606060" Foreground="White" FontSize="18" />
                     <Button x:Name="DecryptFileBrowseButton" Content="Browse" HorizontalAlignment="Left" Margin="230,214,0,0" VerticalAlignment="Top" Width="75" Height="23" Click="FilePath_Click" Grid.Column="1" Background="#FF606060" Foreground="White" />
-                    <Button Content="Decrypt" HorizontalAlignment="Left" Margin="106,317,0,0" VerticalAlignment="Top" Width="101" Height="42" x:Name="DecryptButton" Click="Decrypt_Click" Grid.Column="1" FontFamily="Segoe UI Light" Background="#FF606060" Foreground="White" FontSize="18" />
+                    <Button Content="Decrypt" HorizontalAlignment="Left" Margin="106,317,0,0" VerticalAlignment="Top" Width="101" Height="42" x:Name="DecryptButton" Grid.Column="1" FontFamily="Segoe UI Light" Background="#FF606060" Foreground="White" FontSize="18" />
                     <Label Content="Enter password:" HorizontalAlignment="Left" Margin="26,112,0,0" VerticalAlignment="Top" Width="122" Grid.ColumnSpan="2" FontFamily="Segoe UI Light" FontSize="15" Foreground="White" />
                     <PasswordBox HorizontalAlignment="Left" Margin="26,147,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Width="297" Height="23" Background="#FF424242" BorderBrush="#FF707070" x:Name="DecryptPasswordBox" Foreground="White" FontSize="12" />
                     <TextBox HorizontalAlignment="Left" Height="23" Margin="26,214,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="217" Grid.ColumnSpan="2" Background="#FF424242" BorderBrush="#FF707070" Foreground="White" x:Name="DecryptFileTextBox" />
                     <Label Content="Encrypted File Location:" HorizontalAlignment="Left" Margin="26,184,0,0" VerticalAlignment="Top" Width="183" Grid.ColumnSpan="2" FontFamily="Segoe UI Light" FontSize="15" Foreground="White" />
-                    <Image x:Name="DecryptLoadingGif" gif:ImageBehavior.AnimatedSource="/UI/Assets/loading.gif" gif:ImageBehavior.RepeatBehavior="Forever" Grid.Column="1" Margin="320,317,17,10" ></Image>
+                    <Image x:Name="DecryptLoadingGif" gif:ImageBehavior.AnimatedSource="/UI/Assets/loading.gif" gif:ImageBehavior.RepeatBehavior="Forever" Grid.Column="1" Margin="8,316,329,11" ></Image>
                     <ProgressBar x:Name="DecryptProgressBar" Grid.Column="1" HorizontalAlignment="Left" Height="10" Margin="107,302,0,0" VerticalAlignment="Top" Width="100" />
                 </Grid>
             </TabItem>
             <ProgressBar Height="25" Width="186" />
             <ProgressBar Height="10" Width="100" />
         </TabControl>
-        <Button Content="History" Grid.Column="1" HorizontalAlignment="Left" Margin="38,10,-114,0" VerticalAlignment="Top" Width="76" FontFamily="Segoe UI Light" Background="#FF606060" Foreground="White" Height="23"/>
-           
+        <Button Content="History" Grid.Column="1" HorizontalAlignment="Left" Margin="38,10,-114,0" VerticalAlignment="Top" Width="76" FontFamily="Segoe UI Light" Background="#FF606060" Foreground="White" Height="23" />
     </Grid>
 </Window>

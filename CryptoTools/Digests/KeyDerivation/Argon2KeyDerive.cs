@@ -9,8 +9,6 @@ using System.Text;
 namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
 {
     /// <inheritdoc />
-    /// <summary>
-    /// </summary>
     /// TODO Make based off Konscious security, better lib, but not on nuGet
     public sealed class Argon2KeyDerive : KeyDerive
     {
@@ -20,8 +18,6 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         private uint _read;
 
         /// <inheritdoc />
-        /// <summary>
-        /// </summary>
         public override dynamic PerformanceValues
         {
             get => _tuneFlags;
@@ -35,7 +31,14 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
                 }
                 catch (InvalidCastException)
                 {
-                    _tuneFlags = (ValueTuple<ulong, uint, uint>)value;
+                    try
+                    {
+                        _tuneFlags = (ValueTuple<ulong, uint, uint>)value;
+                    }
+                    catch (InvalidCastException e)
+                    {
+                        throw new InvalidCryptographicPropertyException("Tuple set must be of type (int, int, int) or, better, (ulong, uint, uint)", e);
+                    }
                 }
             }
         }
@@ -48,19 +51,7 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
         {
             get => ProtectedData.Unprotect(BackEncryptedArray, null, DataProtectionScope.CurrentUser);
 
-            private protected set
-            {
-                BackEncryptedArray = ProtectedData.Protect(value, null, DataProtectionScope.CurrentUser);
-                Usable = PerformanceValues != null;
-            }
-        }
-
-        /// <summary>
-        /// Default constructor that isn't valid for derivation
-        /// </summary>
-        public Argon2KeyDerive()
-        {
-            Usable = false;
+            private protected set => BackEncryptedArray = ProtectedData.Protect(value, null, DataProtectionScope.CurrentUser);
         }
 
         /// <summary>
@@ -75,7 +66,6 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             Salt = salt;
             Password = password;
             _baseObject = new PasswordHasher((uint)_tuneFlags.N, tuneFlags.r, tuneFlags.p, Argon2Type.Argon2d, 1024 * 1024);
-            Usable = true;
         }
 
         /// <summary>
@@ -90,27 +80,28 @@ namespace FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation
             Salt = salt;
             Password = Encoding.UTF8.GetBytes(password);
             _baseObject = new PasswordHasher((uint)_tuneFlags.N, tuneFlags.r, tuneFlags.p, Argon2Type.Argon2d, 1024 * 1024);
-            Usable = true;
         }
 
         /// <inheritdoc />
-        /// <summary>
-        /// </summary>
         public override byte[] GetBytes(int size)
         {
-            if (!Usable)
-            {
-                throw new InvalidCryptographicOperationException("Password not set");
-            }
             _baseObject.HashLength = _read + (uint)size;
             return _baseObject.HashRaw(Password, Salt).Skip((int)_read).ToArray();
         }
 
+        /// <inheritdoc />
         public override void Reset()
         {
             _read = 0;
         }
 
+        /// <summary>
+        /// Returns the tuple containing the
+        /// tuning parameters for Argon2
+        /// </summary>
+        /// <param name="performanceDerivative"></param>
+        /// <param name="milliseconds"></param>
+        /// <returns></returns>
         public static (ulong N, uint r, uint p) TransformPerformance(PerformanceDerivative performanceDerivative, ulong milliseconds)
         {
             return performanceDerivative.TransformToArgon2Tuning(milliseconds);

@@ -7,21 +7,11 @@
     using System.Text;
 
     /// <inheritdoc />
-    /// <summary>
-    /// </summary>
     public sealed class SCryptKeyDerive : KeyDerive
     {
         private uint _read;
 
         private (ulong N, uint r, uint p) _tuneFlags;
-
-        /// <summary>
-        /// Default constructor that isn't valid for derivation
-        /// </summary>
-        public SCryptKeyDerive()
-        {
-            this.Usable = false;
-        }
 
         /// <summary>
         /// Creates an instance of an object used to hash
@@ -37,7 +27,6 @@
             this.Salt = salt;
             this.Password = password;
             this._read = 0;
-            this.Usable = true;
         }
 
         /// <summary>
@@ -54,29 +43,21 @@
             this.Salt = salt;
             this.Password = Encoding.UTF8.GetBytes(password);
             this._read = 0;
-            this.Usable = true;
         }
 
         /// <inheritdoc />
-        /// <summary>
-        /// </summary>
         public override byte[] Password
         {
             get => ProtectedData.Unprotect(this.BackEncryptedArray, null, DataProtectionScope.CurrentUser);
 
-            private protected set
-            {
-                this.BackEncryptedArray = ProtectedData.Protect(value, null, DataProtectionScope.CurrentUser);
-
-                const bool isPowerOf2 = true; // TODO V. IMPORTANT check if _tuneFlags.N is a power of 2
-
-                if (isPowerOf2 && this._tuneFlags.r > 0 && this._tuneFlags.p > 0)
-                {
-                    this.Usable = true;
-                }
-            }
+            private protected set => this.BackEncryptedArray = ProtectedData.Protect(value, null, DataProtectionScope.CurrentUser);
         }
 
+        /// <summary>
+        /// Gets or sets the performance values specific to the
+        /// key derive class
+        /// </summary>
+        /// <value>The tuple (int, int, int) or (ulong, uint, uint) to use</value>
         public override object PerformanceValues
         {
             get => this._tuneFlags;
@@ -88,12 +69,11 @@
         }
 
         /// <inheritdoc />
-        /// <summary>
-        /// </summary>
         /// <param name="size"></param>
         public override byte[] GetBytes(int size)
         {
-            // TODO manage checked overflows
+            if (size <= 0)
+                throw new ArgumentOutOfRangeException(nameof(size));
             return Replicon.Cryptography.SCrypt.SCrypt.DeriveKey(
                 this.Password,
                 this.Salt,
@@ -104,8 +84,6 @@
         }
 
         /// <inheritdoc />
-        /// <summary>
-        /// </summary>
         public override void Reset()
         {
             this._read = 0;

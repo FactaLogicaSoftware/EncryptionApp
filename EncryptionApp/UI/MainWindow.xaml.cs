@@ -1,18 +1,20 @@
-﻿using System;
+﻿using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
+using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
+using FactaLogicaSoftware.CryptoTools.Exceptions;
+using FactaLogicaSoftware.CryptoTools.Information.Contracts;
+using FactaLogicaSoftware.CryptoTools.Information.Representatives;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Xaml;
-using Encryption_App.ManagedSlaves;
-using FactaLogicaSoftware.CryptoTools.Algorithms.Symmetric;
-using FactaLogicaSoftware.CryptoTools.Digests.KeyDerivation;
-using FactaLogicaSoftware.CryptoTools.Events;
-using FactaLogicaSoftware.CryptoTools.Information;
+
 #if VERBOSE
 #endif
 
@@ -26,18 +28,26 @@ namespace Encryption_App.UI
     {
         #region FIELDS
 
+        // No they can't - dynamic keyword messes up ReSharper and Intellisense
         // ReSharper disable twice PrivateFieldCanBeConvertedToLocalVariable
         // ReSharper disable twice NotAccessedField.Local
         private const int DesiredKeyDerivationMilliseconds = 2000;
+
         private const int KeySize = 128;
-        private readonly List<string> _dropDownItems = new List<string> { "Choose Option...", "Encrypt a file", "Encrypt a file for sending to someone" };
+        private const string AesStringChoice = "AES - Recommended";
+        private const string TripleDesStringChoice = "TripleDES";
+        private const string Rc2StringChoice = "Rc2";
+        private readonly List<string> _dropDownItems = new List<string> { AesStringChoice, TripleDesStringChoice, Rc2StringChoice };
         private readonly Progress<int> _encryptionProgress;
         private readonly Progress<int> _decryptionProgress;
-        private readonly TransformationPropertiesManager _transformer;
-        private readonly ResourceManager _manager;
         private bool _isExecutingExclusiveProcess;
+        private bool _isCacheRunning;
+        private bool _isCacheRequested;
+        private readonly Queue<(object sender, RoutedEventArgs e, RequestStateRecord record)> _cache;
+        private bool _cacheExecutionState;
+        private object _manageCacheLock;
 
-        #endregion
+        #endregion FIELDS
 
         #region CONSTRUCTORS
 
@@ -69,12 +79,16 @@ namespace Encryption_App.UI
             this.DropDown.ItemsSource = this._dropDownItems;
             this.DropDown.SelectedIndex = 0;
             this._isExecutingExclusiveProcess = false;
+            this._cache = new Queue<(object sender, RoutedEventArgs e, RequestStateRecord record)>();
+            this.EncryptionCacheStateSwitchButton.Content = "Pause cache";
+            this.DecryptionCacheStateSwitchButton.Content = "Pause cache";
+            this._cacheExecutionState = true;
+            this._manageCacheLock = new object();
 
+            this.EncryptButton.Click += Encrypt_Click;
+            this.DecryptButton.Click += Decrypt_Click;
             this._encryptionProgress = new Progress<int>();
             this._decryptionProgress = new Progress<int>();
-            this._transformer = new TransformationPropertiesManager();
-            var tempDictionary = new Dictionary<object, Progress<int>> { { this.EncryptProgressBar, this._encryptionProgress }, { this.DecryptProgressBar, this._decryptionProgress } };
-            this._manager = new ResourceManager(this, tempDictionary);
 
             // Subscribe to events
             this.KeyDown += MainWindow_KeyDown;
@@ -86,7 +100,20 @@ namespace Encryption_App.UI
             this.DecryptLoadingGif.Visibility = Visibility.Hidden;
         }
 
-        #endregion
+        private bool IsCacheRunning
+        {
+            get => this._isCacheRunning;
+            set
+            {
+                this._isCacheRunning = value;
+                if (this._isCacheRequested && !this._isCacheRunning)
+                {
+                    ManageCache();
+                }
+            }
+        }
+
+        #endregion CONSTRUCTORS
 
         #region EVENT_HANDLERS
 
@@ -108,20 +135,17 @@ namespace Encryption_App.UI
                 case Key.Enter when Keyboard.IsKeyDown(Key.LeftCtrl) && ((FrameworkElement)this.TabControl.SelectedItem).Name == "EncryptionTab":
                     Encrypt_Click(sender, e);
                     break;
+
                 case Key.Enter when Keyboard.IsKeyDown(Key.LeftCtrl) && ((FrameworkElement)this.TabControl.SelectedItem).Name == "DecryptionTab":
                     Decrypt_Click(sender, e);
                     break;
             }
         }
 
-        private void MenuItem_Click(RoutedEventArgs e)
-        {
-        }
-
         private void CheckBox_Click(object sender, RoutedEventArgs e)
         {
         }
-        
+
         private void FilePath_Click(object sender, RoutedEventArgs e)
         {
             // Create a file dialog
@@ -137,10 +161,11 @@ namespace Encryption_App.UI
             {
                 // If it succeeded, use the result
                 // Cast the sender of the event to the expected type, then check if it is DecryptButton or EncryptButton
-                case true when ((FrameworkElement)e.Source).Name == "EncryptFileBrowseButton":
+                case true when ((FrameworkElement)e.Source).Name == this.EncryptFileBrowseButton.Name:
                     this.EncryptFileTextBox.Text = openFileDialog.FileName;
                     break;
-                case true when ((FrameworkElement)e.Source).Name == "DecryptFileBrowseButton":
+
+                case true when ((FrameworkElement)e.Source).Name == this.DecryptFileBrowseButton.Name:
                     this.DecryptFileTextBox.Text = openFileDialog.FileName;
                     break;
                 // If it fails, something's gone wrong. TODO catch
@@ -154,50 +179,87 @@ namespace Encryption_App.UI
         // TODO Make values dependent on settings @NightRaven3142
         private async void Encrypt_Click(object sender, RoutedEventArgs e)
         {
-            await EncryptDataAsync();
+            Type typeOfTransform;
+
+            switch ((string)this.DropDown.SelectionBoxItem)
+            {
+                case AesStringChoice:
+                    typeOfTransform = typeof(AesCryptoManager);
+                    break;
+
+                case TripleDesStringChoice:
+                    typeOfTransform = typeof(TripleDesCryptoManager);
+                    break;
+
+                case Rc2StringChoice:
+                    typeOfTransform = typeof(Rc2CryptoManager);
+                    break;
+
+                default:
+                    MessageBox.Show("Dropdown selected changed. Please restore it to original, and continue");
+                    return;
+            }
+
+            var contract = new SymmetricCryptographicContract
+            (
+                new TransformationContract(typeOfTransform, 16, CipherMode.CBC, PaddingMode.PKCS7, KeySize, 128),
+                new KeyContract(typeof(Pbkdf2KeyDerive), App.This.PerformanceDerivative.PerformanceDerivativeValue, 16),
+                new HmacContract(typeof(HMACSHA384))
+            );
+
+            var record = new RequestStateRecord(ProcessType.Encryption, this.EncryptFileTextBox.Text, contract);
+
+            // If the program is currently executing something, just return and inform the user
+            if (this._isExecutingExclusiveProcess)
+            {
+                MessageBoxResult result = MessageBox.Show("Cannot perform action - currently executing one. Would you like to que this operation?", "Confirm", MessageBoxButton.YesNo);
+                if (result == MessageBoxResult.Yes)
+                    this._cache.Enqueue((sender, e, record));
+                return;
+            }
+
+            var transformer = new CryptoFile(record.FilePath, this._encryptionProgress);
+
+            await EncryptDataAsync(sender, e, record, transformer);
         }
-
-
 
         private async void Decrypt_Click(object sender, RoutedEventArgs e)
         {
-            await DecryptDataAsync();
+            var record = new RequestStateRecord(ProcessType.Decryption, this.DecryptFileTextBox.Text);
+
+            // If the program is currently executing something, just return and inform the user
+            if (this._isExecutingExclusiveProcess)
+            {
+                MessageBoxResult result = MessageBox.Show("Cannot perform action - currently executing one. Would you like to que this operation?", "Confirm", MessageBoxButton.YesNo);
+                if (result == MessageBoxResult.Yes)
+                    this._cache.Enqueue((sender, e, record));
+
+                return;
+            }
+
+            var transformer = new CryptoFile(record.FilePath, this._decryptionProgress);
+
+            await DecryptDataAsync(sender, e, record, transformer);
         }
 
-        private static void Encryptor_OnDebugValuesFinalised(object sender, DebugValuesFinalisedEventArgs e)
-        {
-            try
-            {
-                FileStatics.WriteToLogFile(e.FinalisedStrings.ToArray<object>()); // little bit of a hack, prevents covariant conversion warning, which is managed in the function
-            }
-            catch (IOException exception)
-            {
-                MessageBox.Show($"Unable to log values - IO exception occured with message: {exception.Message}");
-            }
-        }
-
-        #endregion
-
-        #region EXTERNAL_DECLERATIONS
-
-
-        /// <summary>
-        /// A kernel32 function that destroys all values in a block of memory
-        /// </summary>
-        /// <param name="destination">The pointer to the start of the block to be zeroed</param>
-        /// <param name="length">The number of bytes to zero</param>
-        /// <returns></returns>
-        [DllImport("KERNEL32.DLL", EntryPoint = "RtlZeroMemory")]
-        // ReSharper disable once UnusedMember.Local
-        private static extern bool ZeroMemory(IntPtr destination, int length); // Function is called at runtime through a dynamic type; ignore warning
-
-        #endregion
+        #endregion EVENT_HANDLERS
 
         #region METHODS
 
-        private enum ProcessType
+        /// <summary>
+        /// Defines whether a transformation
+        /// process is encryption or decryption
+        /// </summary>
+        public enum ProcessType
         {
+            /// <summary>
+            /// The process type is encryption
+            /// </summary>
             Encryption,
+
+            /// <summary>
+            /// The process type is decryption
+            /// </summary>
             Decryption
         }
 
@@ -209,6 +271,7 @@ namespace Encryption_App.UI
                 case ProcessType.Encryption:
                     this.EncryptLoadingGif.Visibility = Visibility.Hidden;
                     break;
+
                 case ProcessType.Decryption:
                     this.DecryptLoadingGif.Visibility = Visibility.Hidden;
                     break;
@@ -223,45 +286,19 @@ namespace Encryption_App.UI
                 case ProcessType.Encryption:
                     this.EncryptLoadingGif.Visibility = Visibility.Visible;
                     break;
+
                 case ProcessType.Decryption:
                     this.DecryptLoadingGif.Visibility = Visibility.Visible;
                     break;
             }
         }
 
-        private async Task EncryptDataAsync()
+        private async Task EncryptDataAsync(object sender, RoutedEventArgs e, RequestStateRecord record, CryptoFile transformer)
         {
-            // If the program is currently executing something, just return and inform the user
-            if (this._isExecutingExclusiveProcess)
-            {
-                MessageBox.Show("Cannot perform action - currently executing one");
-                return;
-            }
-
             // Set the loading gif and set that we are running a process
             StartProcess(ProcessType.Encryption);
 
-            // Create a random salt and iv
-            var salt = new byte[16];
-            var iv = new byte[16];
-            var rng = new RNGCryptoServiceProvider();
-            try
-            {
-                rng.GetBytes(iv);
-                rng.GetBytes(salt);
-            }
-            catch (CryptographicException exception)
-            {
-                FileStatics.WriteToLogFile(exception);
-                MessageBox.Show("There was an error generating secure random numbers. Please try again - check log file for more details");
-            }
-
-            // Pre declaration of them for assigning during the secure string scope
-            string filePath = this.EncryptFileTextBox.Text;
-
-            var manager = new TransformingFileManager(this, filePath);
-
-            if (!manager.FileContainsHeader())
+            if (transformer.FileContainsHeader())
             {
                 MessageBoxResult result = MessageBox.Show("It appears the data you are trying to encrypt is already encrypted. Do you wish to continue?", "Encryption confirmation", MessageBoxButton.YesNo);
 
@@ -273,70 +310,72 @@ namespace Encryption_App.UI
             }
 
             // If the file doesn't exist, return and inform the user
-            if (!File.Exists(filePath))
+            if (!File.Exists(record.FilePath))
             {
                 MessageBox.Show("File not valid");
                 EndProcess(ProcessType.Encryption);
                 return;
             }
 
-            // Assign the values to the CryptographicInfo object
-            var data = new AesCryptographicInfo
-            {
-                CryptoManager = typeof(AesCryptoManager).AssemblyQualifiedName,
-                Hmac = new HmacInfo
-                {
-                    HashAlgorithm = typeof(HMACSHA384).AssemblyQualifiedName
-
-                },
-                InstanceKeyCreator = new KeyCreator
-                {
-                    root_HashAlgorithm = typeof(Pbkdf2KeyDerive).AssemblyQualifiedName,
-                    PerformanceDerivative = App.This.PerformanceDerivative.PerformanceDerivativeValue,
-                    salt = salt
-                },
-                EncryptionModeInfo = new EncryptionModeInfo
-                {
-                    InitializationVector = iv,
-                    KeySize = KeySize,
-                    BlockSize = 128,
-                    Mode = CipherMode.CBC
-                }
-            };
+            var internalThrewException = false;
 
             try
             {
                 // Run the encryption in a separate thread and return control to the UI thread
-                await Task.Run(() => manager.EncryptDataWithHeader(data, this.EncryptPasswordBox.SecurePassword, filePath, DesiredKeyDerivationMilliseconds));
-
+                await Task.Run(() =>
+                {
+                    try
+                    {
+                        transformer.EncryptDataWithHeader(record, this.EncryptPasswordBox.SecurePassword,
+                            DesiredKeyDerivationMilliseconds);
+                    }
+                    catch (CryptographicException exception)
+                    {
+                        FileStatics.WriteToLogFile(exception);
+                        MessageBox.Show("Error occured during encryption. Please check log file.");
+                        EndProcess(ProcessType.Encryption);
+                        internalThrewException = true;
+                    }
+                });
             }
-            catch (CryptographicException e)
+            catch (CryptographicException exception)
             {
-                FileStatics.WriteToLogFile(e);
+                FileStatics.WriteToLogFile(exception);
                 MessageBox.Show("Error occured during encryption. Please check log file.");
                 EndProcess(ProcessType.Encryption);
             }
 
             // Set the loading gif and set that we are now not running a process
             EndProcess(ProcessType.Encryption);
-        }
 
-        private async Task DecryptDataAsync()
-        {
-            // If the program is currently executing something, just return and inform the user
-            if (this._isExecutingExclusiveProcess)
+            if (internalThrewException && this._cache.Count > 0)
             {
-                MessageBox.Show("Cannot perform action - currently executing one");
-                return;
+                this._cacheExecutionState = false;
+                switch (((FrameworkElement)this.TabControl.SelectedItem).Name)
+                {
+                    // TODO make based off name not just string
+                    case "EncryptionTab":
+                        this.EncryptionCacheStateSwitchButton.Content = PrimaryResources.CachePaused_String;
+                        break;
+
+                    case "DecryptionTab":
+                        this.DecryptionCacheStateSwitchButton.Content = PrimaryResources.CachePaused_String;
+                        break;
+                }
+                MessageBox.Show($"Cache canceled due to error. Press {PrimaryResources.CachePaused_String} to resume");
             }
 
+            ManageCache();
+        }
+
+        private async Task DecryptDataAsync(object sender, RoutedEventArgs e, RequestStateRecord record, CryptoFile transformer)
+        {
             StartProcess(ProcessType.Decryption);
 
-            // Create the object used to represent the header data
-            var data = new AesCryptographicInfo();
+            var data = new SymmetricCryptographicRepresentative();
 
             // Get the path from the box
-            string filePath = this.DecryptFileTextBox.Text;
+            string filePath = record.FilePath;
 
             // If the file doesn't exist, return and inform the user
             if (!File.Exists(filePath))
@@ -346,12 +385,7 @@ namespace Encryption_App.UI
                 return;
             }
 
-            var manager = new TransformingFileManager(this, filePath);
-
-            // Read the header
-            // ReSharper disable once ImplicitlyCapturedClosure
-
-            if (!manager.FileContainsHeader())
+            if (!transformer.FileContainsHeader())
             {
                 MessageBox.Show("File doesn't contain a valid header. It could be corrupted or not encrypted");
                 EndProcess(ProcessType.Decryption);
@@ -360,9 +394,17 @@ namespace Encryption_App.UI
 
             try
             {
-                data = (AesCryptographicInfo)data.ReadHeaderFromFile(filePath);
+                data.ReadHeaderFromFile(filePath);
             }
             catch (FileFormatException exception)
+            {
+                FileStatics.WriteToLogFile(exception);
+                MessageBox.Show(
+                    "Header has been modified during program execution and corrupted. Check log for details");
+                EndProcess(ProcessType.Decryption);
+                return;
+            }
+            catch (JsonException exception)
             {
                 FileStatics.WriteToLogFile(exception);
                 MessageBox.Show("File header is existent but file is corrupted. Check log for details");
@@ -370,14 +412,88 @@ namespace Encryption_App.UI
                 return;
             }
 
-            // Decrypt the data
-            await Task.Run(() => manager.DecryptDataWithHeader(data, this.DecryptPasswordBox.SecurePassword, filePath));
+            var internalThrewException = false;
 
-            // Set the loading gif and set that we are now not running a process
+            // Decrypt the data
+            await Task.Run(() =>
+            {
+                try
+                {
+                    transformer.DecryptDataWithHeader(data, this.DecryptPasswordBox.SecurePassword);
+                }
+                catch (UnverifiableDataException exception)
+                {
+                    FileStatics.WriteToLogFile(exception);
+                    EndProcess(ProcessType.Decryption);
+                    MessageBox.Show("Wrong password or corrupted file");
+                    internalThrewException = true;
+                }
+            });
+
             EndProcess(ProcessType.Decryption);
+            if (internalThrewException && this._cache.Count > 0)
+            {
+                this._cacheExecutionState = false;
+                switch (((FrameworkElement)this.TabControl.SelectedItem).Name)
+                {
+                    // TODO make based off name not just string
+                    case "EncryptionTab":
+                        this.EncryptionCacheStateSwitchButton.Content = PrimaryResources.CachePaused_String;
+                        break;
+
+                    case "DecryptionTab":
+                        this.DecryptionCacheStateSwitchButton.Content = PrimaryResources.CachePaused_String;
+                        break;
+                }
+                MessageBox.Show($"Cache canceled due to error. Press {PrimaryResources.CachePaused_String} to resume");
+            }
+
+            ManageCache();
         }
 
+        // Recursive
+        private async void ManageCache()
+        {
+            if (this._cache.Count == 0 || !this._cacheExecutionState)
+                return;
 
-        #endregion
+            _isCacheRunning = true;
+            (object sender, RoutedEventArgs e, RequestStateRecord record) = this._cache.Dequeue();
+            CryptoFile transformer;
+            switch (record.ProcessType)
+            {
+                case ProcessType.Encryption:
+                    transformer = new CryptoFile(record.FilePath, this._encryptionProgress);
+                    await EncryptDataAsync(sender, e, record, transformer);
+                    break;
+
+                case ProcessType.Decryption:
+                    transformer = new CryptoFile(record.FilePath, this._decryptionProgress);
+                    await DecryptDataAsync(sender, e, record, transformer);
+                    break;
+            }
+
+            this._isCacheRunning = false;
+        }
+
+        #endregion METHODS
+
+        private void CacheStateSwitchButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            this._cacheExecutionState = !this._cacheExecutionState;
+
+            ((Button)sender).Content = this._cacheExecutionState
+                ? PrimaryResources.CacheRunning_String
+                : PrimaryResources.CachePaused_String;
+
+            if (this._cacheExecutionState && !this._isCacheRunning)
+            {
+                ManageCache();
+            }
+            else
+            {
+                this._isCacheRequested = true;
+            }
+        }
     }
 }

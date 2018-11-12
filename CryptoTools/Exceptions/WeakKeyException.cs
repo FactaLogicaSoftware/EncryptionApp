@@ -2,14 +2,19 @@
 
 namespace FactaLogicaSoftware.CryptoTools.Exceptions
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// Indicates a key used in a cryptographic context
+    /// is weak
+    /// </summary>
     [Serializable]
-    public class WeakKeyException : BadKeyException
+    public class WeakKeyException : Exception
     {
         /// <inheritdoc />
         /// <summary>
         /// The default constructor
         /// </summary>
-        public WeakKeyException() : base("Key is not valid")
+        public WeakKeyException() : base("Key is weak")
         {
         }
 
